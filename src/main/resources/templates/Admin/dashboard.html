@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="admin/fragments/head :: head"></head>
+<!-- Site wrapper -->
+<div class="wrapper">
+
+    <div th:replace="admin/fragments/header :: header"></div>
+    <!-- =============================================== -->
+
+    <!-- Left side column. contains the sidebar -->
+    <div th:replace="admin/fragments/sidebar :: sidebar"></div>
+
+    <div class="container">
+        <div class="container mt-5">
+            <h1 class="text-center mb-3">Bán Hàng Tại Quầy</h1>
+            <a href="/home">Home</a> > <a>Bán Hàng Tại Quầy</a>
+            <%--Form giao diện--%>
+            <div class="container mt-5" style=" border: 2px solid ; padding: 20px; margin-top: 20px;">
+                <!-- Phần tiêu đề -->
+                <div class="mb-4 border-bottom pb-3">
+                    <form action="/create-hoa-don" method="post"
+                          class="d-flex justify-content-between align-items-center">
+                        <h5 class="text-primary">
+                            <i class="fas fa-file-invoice"></i> Danh sách Hóa Đơn
+                        </h5>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Tạo hóa đơn
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Danh sách hóa đơn -->
+                <div class="row g-4">
+                    <c:forEach var="hoaDon" items="${hoaDons}" varStatus="status">
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <form action="/sell-counter" method="GET">
+                                <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                                <button type="submit" class="btn p-0 w-100 shadow-sm">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white">
+                                            <h6 class="mb-0">Hóa Đơn #${status.index + 1}</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <p class="card-text text-muted">
+                                                Số lượng sản phẩm: <strong>${hoaDon.tongSanPham}</strong>
+                                            </p>
+                                            <span class="badge bg-primary position-absolute top-0 end-0 m-2">
+                                                ${hoaDon.tongSanPham}
+                                        </span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </form>
+                        </div>
+                    </c:forEach>
+                </div>
+            </div>
+
+            <!-- Phần Sản Phẩm: -->
+            <div id="productSection" style="display: none; border: 2px solid; padding: 20px; margin-top: 20px;">
+                <!-- Chức năng -->
+                <div class="bill-header d-flex justify-content-between align-items-center"
+                     style="border-bottom: 2px solid #17a2b8; padding-bottom: 10px;">
+                    <strong><i class="fas fa-list" style="color: #17a2b8; font-size: 18px;"></i> Danh Sách Sản
+                        Phẩm</strong>
+                    <div class="d-flex gap-2">
+                        <!-- Nút QR và Thêm sản phẩm -->
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-qrcode"></i> QR Code
+                        </button>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal"
+                                data-bs-target="#addProductModal">
+                            <i class="fas fa-cart-plus"></i> Thêm sản phẩm
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Thêm Sản Phẩm -->
+                <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content" style="border: 2px solid">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="addProductModalLabel">Thêm Sản Phẩm Vào Hóa Đơn Chi
+                                    Tiết</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/add-product-order" method="post">
+                                    <input type="hidden" name="idHoaDon" value="${hoaDon.id}">
+                                    <div class="table-responsive" style="border: 1px solid ; padding: 10px;">
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="text-center">
+                                            <tr>
+                                                <th>STT</th>
+                                                <th>Sản Phẩm</th>
+                                                <th>Số Lượng</th>
+                                                <th>Tồn Kho</th>
+                                                <th>Chất Liệu</th>
+                                                <th>Thương Hiệu</th>
+                                                <th>Xuất Sứ</th>
+                                                <th>Trạng Thái</th>
+                                                <th>Chọn</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <c:forEach var="sanPhamChiTiet" items="${sanPhamChiTiet}"
+                                                       varStatus="status">
+                                                <tr>
+                                                    <td class="text-center">${status.index + 1}</td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <img src="<c:url value='/images/${sanPhamChiTiet.hinhAnh[0].urlHinhAnh}'/>"
+                                                                 width="80">
+                                                            <div class="ms-3">
+                                                                <strong>${sanPhamChiTiet.sanPham.tenSanPham}</strong>
+                                                                (${sanPhamChiTiet.mauSac.tenMauSac}
+                                                                - ${sanPhamChiTiet.kichThuoc.tenKichThuoc})<br>
+                                                                <small class="text-danger font-weight-bold fs-5">${sanPhamChiTiet.gia}
+                                                                    VND</small><br>
+                                                                <small class="text-muted">Tồn
+                                                                    Kho: ${sanPhamChiTiet.soLuong}</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <input type="number" name="soLuong" value="1" min="1"
+                                                               max="${sanPhamChiTiet.soLuong}" class="form-control"
+                                                               readonly>
+                                                    </td>
+                                                    <td class="text-center">${sanPhamChiTiet.soLuong}</td>
+                                                    <td class="text-center">${sanPhamChiTiet.chatLieu.tenChatLieu}</td>
+                                                    <td class="text-center">
+                                                        ${sanPhamChiTiet.sanPham.thuongHieu.tenThuongHieu}
+                                                    </td>
+                                                    <td class="text-center">${sanPhamChiTiet.sanPham.xuatXu.quocGia}
+                                                    </td>
+                                                    <td class="text-center">
+                                            <span class="badge ${sanPhamChiTiet.trangThai == 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'}">
+                                                    ${sanPhamChiTiet.trangThai}
+                                            </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <button type="submit" name="idSanPhamChiTiet"
+                                                                value="${sanPhamChiTiet.id}"
+                                                                class="btn btn-outline-primary">
+                                                            Chọn
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hiển thị danh sách sản phẩm trong giỏ hàng -->
+                <div class="product-list" style="border-top: 2px solid ; padding-top: 20px;">
+                    <table class="table table-bordered table-striped align-middle">
+                        <thead class="text-center">
+                        <tr>
+                            <th>STT</th>
+                            <th>Sản Phẩm</th>
+                            <th style="width: 10%">Số Lượng</th>
+                            <th>Tồn Kho</th>
+                            <th>Giá</th>
+                            <th>Chất Liệu</th>
+                            <th>Thương Hiệu</th>
+                            <th>Xuất Sứ</th>
+                            <th>Thành Tiền</th>
+                            <th>Trạng Thái</th>
+                            <th>Chọn</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <c:forEach var="hoaDonChiTiet" items="${hoaDonChiTiet}" varStatus="status">
+                            <tr>
+                                <td class="text-center">${status.index + 1}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="<c:url value='/images/${hoaDonChiTiet.sanPhamChiTiet.hinhAnh[0].urlHinhAnh}'/>"
+                                             width="80">
+                                        <div class="ms-3">
+                                            <strong>${hoaDonChiTiet.sanPhamChiTiet.sanPham.tenSanPham}</strong> <br>
+                                            <small>Màu Sắc : ${hoaDonChiTiet.sanPhamChiTiet.mauSac.tenMauSac}</small>
+                                            <br>
+                                            <small>Size : ${hoaDonChiTiet.sanPhamChiTiet.kichThuoc.tenKichThuoc}</small><br>
+                                            <small class="text-danger font-weight-bold fs-5">${hoaDonChiTiet.sanPhamChiTiet.gia}
+                                                VND</small><br>
+                                            <small class="text-muted">Tồn
+                                                Kho: ${hoaDonChiTiet.sanPhamChiTiet.soLuong}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <form action="/update-product-order" method="post">
+                                        <input type="hidden" name="idHoaDonChiTiet" value="${hoaDonChiTiet.id}">
+                                        <input type="hidden" name="idHoaDon" value="${hoaDon.id}">
+                                        <input type="number" name="soLuong" value="${hoaDonChiTiet.soLuong}" min="1"
+                                               class="form-control" required onchange="this.form.submit()">
+                                    </form>
+                                </td>
+                                <td class="text-center">${hoaDonChiTiet.sanPhamChiTiet.soLuong}</td>
+                                <td class="text-center">${hoaDonChiTiet.sanPhamChiTiet.gia}</td>
+                                <td class="text-center">${hoaDonChiTiet.sanPhamChiTiet.chatLieu.tenChatLieu}</td>
+                                <td class="text-center">
+                                    ${hoaDonChiTiet.sanPhamChiTiet.sanPham.thuongHieu.tenThuongHieu}
+                                </td>
+                                <td class="text-center">${hoaDonChiTiet.sanPhamChiTiet.sanPham.xuatXu.quocGia}</td>
+                                <td class="text-center">${hoaDonChiTiet.thanhTien}</td>
+                                <td class="text-center">
+                    <span class="badge ${hoaDonChiTiet.sanPhamChiTiet.trangThai == 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'}">
+                            ${hoaDonChiTiet.sanPhamChiTiet.trangThai}
+                    </span>
+                                </td>
+                                <td>
+                                    <form action="/delete-product-order" method="post">
+                                        <input type="hidden" name="idHoaDon" value="${hoaDon.id}">
+                                        <input type="hidden" name="idHoaDonChiTiet" value="${hoaDonChiTiet.id}">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                    <h3 class="text-end">
+                        <strong>Tổng Tiền: </strong>
+                        <small class="text-danger font-weight-bold fs-5">${hoaDon.tongTien} VND</small>
+                    </h3>
+                </div>
+            </div>
+
+            <!-- Phần Tài Khoản Khách Hàng -->
+            <div class="bill-footer" style=" border: 2px solid; padding: 20px; margin-top: 20px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3><i class="fas fa-user-circle" style=" font-size: 24px;"></i> Tài khoản</h3>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#customerModal">
+                        <i class="fas fa-user"></i> Chọn tài khoản
+                    </button>
+
+                    <!-- Modal Chọn Khách Hàng -->
+                    <div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="customerModalLabel">Danh sách khách hàng</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th>Tên Khách Hàng</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Chọn</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <c:forEach var="khachHang" items="${khachHangs}">
+                                            <tr>
+                                                <td>${khachHang.hoTen}</td>
+                                                <td>${khachHang.email}</td>
+                                                <td>${khachHang.sdt}</td>
+                                                <td>
+                                                    <form action="/add-customer" method="post">
+                                                        <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                                                        <input type="hidden" name="khachHangId" value="${khachHang.id}">
+                                                        <button type="submit" class="btn btn-primary">Chọn</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center my-2">
+                <span class="me-2 fw-bold">
+                    <i class="bi bi-person-circle"></i> Tên khách hàng:
+                </span>
+                    <span class="p-2 rounded border bg-light">
+                    <c:choose>
+                        <c:when test="${hoaDon.khachHang != null}">
+                            <span>${hoaDon.khachHang.hoTen}</span>
+                            <c:choose>
+                                <c:when test="${hoaDon.khachHang.sdt != null}">
+                                    - <span class="text-muted">${hoaDon.khachHang.sdt}</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="text-muted">(Không có số điện thoại)</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="text-danger">Chưa chọn khách hàng</span>
+                        </c:otherwise>
+                    </c:choose>
+                </span>
+                </div>
+            </div>
+
+            <!-- Phần Thanh Toán -->
+            <div class="payment-section" style=" border: 2px solid; padding: 20px; margin-top: 20px;">
+                <div class="row">
+                    <div class="row">
+                        <!-- Cột thông tin giao hàng bên trái -->
+                        <div class="col-md-6">
+                            <h3><i class="fas fa-shipping-fast" style="font-size: 24px;"></i> Thông tin giao hàng</h3>
+
+                            <!-- Form giao hàng -->
+                            <div class="mt-3" id="shippingForm" style="display: none;">
+                                <div class="card card-body">
+                                    <form action="/update-shipping" method="post">
+                                        <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                                        <input type="hidden" name="khachHangId" value="${hoaDon.khachHang.id}">
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="soNha" class="form-label">Số Nhà:</label>
+                                                <input type="text" id="soNha" name="soNha" class="form-control"
+                                                       value="${hoaDon.khachHang.diaChis[0].soNha != null ? hoaDon.khachHang.diaChis[0].soNha : ''}">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="phuong" class="form-label">Phường:</label>
+                                                <input type="text" id="phuong" name="phuong" class="form-control"
+                                                       value="${hoaDon.khachHang.diaChis[0].phuong != null ? hoaDon.khachHang.diaChis[0].phuong : ''}">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="huyen" class="form-label">Huyện:</label>
+                                                <input type="text" id="huyen" name="huyen" class="form-control"
+                                                       value="${hoaDon.khachHang.diaChis[0].huyen != null ? hoaDon.khachHang.diaChis[0].huyen : ''}">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="thanhPho" class="form-label">Thành Phố:</label>
+                                                <input type="text" id="thanhPho" name="thanhPho" class="form-control"
+                                                       value="${hoaDon.khachHang.diaChis[0].thanhPho != null ? hoaDon.khachHang.diaChis[0].thanhPho : ''}">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">Cập nhật giao hàng</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Cột thông tin thanh toán bên phải -->
+                        <div class="col-md-6">
+                            <h3><i class="fas fa-wallet"></i> Thông tin thanh toán</h3>
+
+                            <!-- Phương thức thanh toán -->
+                            <div class="d-flex align-items-center mb-4">
+                            <span>
+                                <i class="fas fa-credit-card"></i>
+                                    <strong>Phương thức thanh toán: </strong>
+                                <span id="paymentMethod">${hoaDon.phuongThucThanhToan.tenPhuongThuc}</span>
+                            </span>
+                                <%--Mở modal phương thức--%>
+                                <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal"
+                                        data-bs-target="#paymentModal">
+                                    <i class="bi bi-credit-card"></i>
+                                </button>
+
+                                <!-- Modal Payment -->
+                                <div class="modal fade" id="paymentModal" tabindex="-1"
+                                     aria-labelledby="paymentModalLabel"
+                                     aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="paymentModalLabel">Chọn phương thức thanh
+                                                    toán</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="paymentMethodForm">
+                                                    <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                                                    <div class="mb-3">
+                                                        <label for="phuongThucThanhToan" class="form-label">
+                                                            <i class="fas fa-credit-card"></i> Phương thức thanh
+                                                            toán:</label>
+                                                        <select id="phuongThucThanhToan" name="phuongThucThanhToan"
+                                                                class="form-select">
+                                                            <option value="null" disabled selected>
+                                                                Chọn phương thức thanh toán
+                                                            </option>
+                                                            <c:forEach items="${listPhuongThucThanhToan}"
+                                                                       var="phuongThucThanhToan">
+                                                                <option value="${phuongThucThanhToan.id}">
+                                                                    ${phuongThucThanhToan.tenPhuongThuc}
+                                                                </option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </div>
+                                                    <button type="button" id="addPaymentMethodButton"
+                                                            class="btn btn-primary">
+                                                        Cập nhật
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- Mã Giảm Gía -->
+                            <div class="d-flex align-items-center mb-4">
+                            <span>
+                                <i class="fas fa-tag"></i>
+                                    <strong>Mã giảm giá: </strong>
+                                        ${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenChuongTrinh : "Chưa có phiếu giảm giá"}
+                            </span>
+
+                                <!-- Nút xóa mã giảm giá nếu có -->
+                                <form action="/remove-phieu-giam-gia" method="post" class="ms-3">
+                                    <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                                    <button type="submit"
+                                            class="btn btn-outline-danger btn-sm" ${hoaDon.phieuGiamGia== null ?
+                                    'disabled' : ''}>
+                                    <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Mở modal chọn mã giảm giá -->
+                                <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal"
+                                        data-bs-target="#discountModal">
+                                    <i class="fas fa-tag"></i>
+                                </button>
+
+                                <!-- Modal mã giảm giá -->
+                                <div class="modal fade" id="discountModal" tabindex="-1"
+                                     aria-labelledby="discountModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="discountModalLabel">Chọn mã giảm giá</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="/apply-phieu-giam-gia" method="post">
+                                                    <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                                                    <div class="mb-3">
+                                                        <label for="tenChuongTrinh" class="form-label"><i
+                                                                class="fas fa-tag"></i> Mã giảm giá:</label>
+                                                        <select id="tenChuongTrinh" name="tenChuongTrinh"
+                                                                class="form-select">
+                                                            <option value="null" disabled selected>Chọn phiếu giảm giá
+                                                            </option>
+                                                            <c:forEach items="${listPhieuGiamGia}" var="phieuGiamGia">
+                                                                <option value="${phieuGiamGia.tenChuongTrinh}">
+                                                                    ${phieuGiamGia.tenChuongTrinh} -
+                                                                    ${phieuGiamGia.giaTri}
+                                                                </option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        Áp dụng
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Giao hàng -->
+                            <div class="info mb-4 d-flex align-items-center">
+                                <div class="icon-box me-2">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                                <span class="me-auto fw-bold">Giao Hàng:</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="deliverySwitch">
+                                </div>
+                            </div>
+
+                            <!-- Phí Ship -->
+                            <div class="info mb-4" id="shipFeeSection" style="display: none;">
+                                <form action="/update-phi-ship" method="POST">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2"><i class="fas fa-box"></i> Phí Ship:</span>
+                                        <input type="hidden" name="hoaDonId" value="${hoaDon.id}"/>
+                                        <input type="text" name="phiShip" class="form-control w-auto"
+                                               value="${hoaDon.phiShip != null ? hoaDon.phiShip : 30}"
+                                               style="max-width: 200px;"/> VND
+                                    </div>
+                                </form>
+                            </div>
+
+
+                            <!-- Tiền hàng -->
+                            <div class="info mb-4">
+                                <span><i class="fas fa-box"></i> Tiền hàng:</span>
+                                <span>${hoaDon.tongTien} VNĐ</span>
+                            </div>
+
+                            <div class="info mb-4">
+                                <span><i class="fas fa-percent"></i> Giảm giá:</span>
+                                <span>${hoaDon.phieuGiamGia.giaTri} VNĐ</span>
+                            </div>
+                            <div class="info mb-3">
+                                <strong>Tổng tiền:</strong>
+                                <strong>${hoaDon.tongTien - hoaDon.phieuGiamGia.giaTri - hoaDon.phiShip} VNĐ</strong>
+                            </div>
+
+                            <div class="confirm-button mt-3">
+                                <form action="/confirm-payment" method="POST">
+                                    <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                                    <button class="btn btn-success w-100">
+                                        <i class="fas fa-check-circle"></i> Xác nhận thanh toán
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+        </div>
+
+        <%--Form báo lỗi--%>
+        <div aria-live="polite" aria-atomic="true" class="position-relative">
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <c:if test="${not empty successMessage}">
+                    <div class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
+                         aria-atomic="true" data-bs-delay="5000">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${successMessage}
+                            </div>
+                            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"
+                                    aria-label="Close"></button>
+                        </div>
+                    </div>
+                </c:if>
+                <c:if test="${not empty errorMessage}">
+                    <div class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
+                         aria-atomic="true" data-bs-delay="5000">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${errorMessage}
+                            </div>
+                            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"
+                                    aria-label="Close"></button>
+                        </div>
+                    </div>
+                </c:if>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%--Thông báo lỗi--%>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastElements = document.querySelectorAll('.toast');
+        toastElements.forEach(function (toastElement) {
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        });
+    });
+</script>
+
+<script>
+    // Kiểm tra nếu URL có chứa tham số hoaDonId, thì hiển thị phần sản phẩm
+    window.onload = function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hoaDonId = urlParams.get('hoaDonId');
+
+        if (hoaDonId) {
+            document.getElementById('productSection').style.display = 'block';
+        }
+    };
+
+    <%--Ẩn
+    hiện
+    form
+    giao
+    hàng-- % >
+    const deliverySwitch = document.getElementById('deliverySwitch');
+    const shippingForm = document.getElementById('shippingForm');
+    const shipFeeSection = document.getElementById('shipFeeSection');
+
+    deliverySwitch.addEventListener('change', function () {
+        if (this.checked) {
+            // Show the form when the checkbox is checked
+            shippingForm.style.display = 'block';
+            // Show the "Phí Ship" section when the checkbox is checked
+            shipFeeSection.style.display = 'block';
+        } else {
+            // Hide the form when the checkbox is unchecked
+            shippingForm.style.display = 'none';
+            // Hide the "Phí Ship" section when the checkbox is unchecked
+            shipFeeSection.style.display = 'none';
+        }
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        // Xử lý sự kiện nhấn nút cập nhật phương thức thanh toán
+        $('#addPaymentMethodButton').click(function () {
+            var hoaDonId = $('input[name="hoaDonId"]').val(); // Lấy ID của hóa đơn
+            var phuongThucThanhToanId = $('#phuongThucThanhToan').val(); // Lấy ID của phương thức thanh toán
+
+            if (!phuongThucThanhToanId) {
+                alert("Vui lòng chọn phương thức thanh toán!");
+                return;
+            }
+
+            // Gửi yêu cầu AJAX
+            $.ajax({
+                url: '/add-payment-method',  // URL yêu cầu
+                method: 'POST',
+                data: {
+                    hoaDonId: hoaDonId,
+                    phuongThucThanhToan: phuongThucThanhToanId
+                },
+                success: function (response) {
+                    // Cập nhật phương thức thanh toán trong giao diện
+                    $('#paymentMethod').text(response.updatedPaymentMethod);
+                    // alert('Phương thức thanh toán đã được cập nhật!');
+                    $('#paymentModal').modal('hide');  // Đóng modal sau khi thành công
+                },
+                error: function () {
+                    alert('Có lỗi xảy ra khi cập nhật phương thức thanh toán.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
