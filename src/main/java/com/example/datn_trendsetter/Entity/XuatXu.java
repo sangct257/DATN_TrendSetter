@@ -7,39 +7,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "san_pham")
-public class SanPham {
+@Table(name = "xuat_xu")
+public class XuatXu {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ten_san_pham")
-    private String tenSanPham;
-
-    @Column(name = "so_luong")
-    private Integer soLuong;
-
-    @Column(name = "mo_ta")
-    private String moTa;
-
-    @ManyToOne
-    @JoinColumn(name = "id_thuong_hieu",referencedColumnName = "id")
-    private ThuongHieu thuongHieu;
-
-    @ManyToOne
-    @JoinColumn(name = "id_xuat_xu",referencedColumnName = "id")
-    private XuatXu xuatXu;
-
-    @ManyToOne
-    @JoinColumn(name = "id_danh_muc",referencedColumnName = "id")
-    private DanhMuc danhMuc;
+    @Column(name = "quoc_gia")
+    private String quocGia;
 
     @Column(name = "trang_thai")
     private String trangThai;
@@ -58,8 +39,4 @@ public class SanPham {
 
     @Column(name = "deleted")
     private Boolean deleted;
-
-    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL)
-    private List<SanPhamChiTiet> sanPhamChiTiet;
-
 }

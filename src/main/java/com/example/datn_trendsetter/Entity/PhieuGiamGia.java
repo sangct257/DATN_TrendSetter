@@ -7,39 +7,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "san_pham")
-public class SanPham {
+@Table(name = "phieu_giam_gia")
+public class PhieuGiamGia {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ten_san_pham")
-    private String tenSanPham;
+    @Column(name = "ten_chuong_trinh")
+    private String tenChuongTrinh;
 
-    @Column(name = "so_luong")
-    private Integer soLuong;
+    @Column(name = "gia_tri")
+    private Float giaTri;
+
+    @Column(name = "dieu_kien")
+    private Float dieuKien;
+
+    @Column(name = "ngay_bat_dau")
+    private LocalDateTime ngayBatDau;
+
+    @Column(name = "ngay_ket_thuc")
+    private LocalDateTime ngayKetThuc;
 
     @Column(name = "mo_ta")
     private String moTa;
-
-    @ManyToOne
-    @JoinColumn(name = "id_thuong_hieu",referencedColumnName = "id")
-    private ThuongHieu thuongHieu;
-
-    @ManyToOne
-    @JoinColumn(name = "id_xuat_xu",referencedColumnName = "id")
-    private XuatXu xuatXu;
-
-    @ManyToOne
-    @JoinColumn(name = "id_danh_muc",referencedColumnName = "id")
-    private DanhMuc danhMuc;
 
     @Column(name = "trang_thai")
     private String trangThai;
@@ -58,8 +55,4 @@ public class SanPham {
 
     @Column(name = "deleted")
     private Boolean deleted;
-
-    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL)
-    private List<SanPhamChiTiet> sanPhamChiTiet;
-
 }

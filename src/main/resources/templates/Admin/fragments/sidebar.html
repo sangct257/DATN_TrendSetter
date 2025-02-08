@@ -1,15 +1,6 @@
 <aside class="main-sidebar" th:fragment="sidebar">
+    <br>
     <section class="sidebar">
-        <div class="user-panel">
-            <div class="pull-left image">
-                <img th:src="@{/assets/images/user2-160x160.jpg}" class="img-circle" alt="User Image">
-            </div>
-            <div class="pull-left info">
-                <p>Alexander Pierce</p>
-                <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
-            </div>
-        </div>
-
         <!-- search form -->
         <form action="#" method="get" class="sidebar-form">
             <div class="input-group">
@@ -26,19 +17,13 @@
             <li>
                 <a href="/admin/thong-ke">
                     <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
-                    <span class="pull-right-container">
-                        <small class="label pull-right bg-green">FE</small>
-                    </span>
                 </a>
             </li>
 
             <!-- Bán Hàng Tại Quầy -->
             <li>
-                <a href="/admin/ban-hang">
+                <a href="/admin/sell-counter">
                     <i class="fa fa-cash-register"></i> <span>Bán Hàng Tại Quầy</span>
-                    <span class="pull-right-container">
-                        <small class="label pull-right bg-green">FE</small>
-                    </span>
                 </a>
             </li>
 
@@ -46,9 +31,6 @@
             <li>
                 <a href="/admin/hoa-don">
                     <i class="fa fa-file-invoice-dollar"></i> <span>Hóa Đơn</span>
-                    <span class="pull-right-container">
-                        <small class="label pull-right bg-green">FE</small>
-                    </span>
                 </a>
             </li>
 
@@ -56,9 +38,6 @@
             <li>
                 <a href="">
                     <i class="fa fa-undo-alt"></i> <span>Trả Hàng</span>
-                    <span class="pull-right-container">
-                        <small class="label pull-right bg-green">FE</small>
-                    </span>
                 </a>
             </li>
 
@@ -66,9 +45,6 @@
             <li class="treeview">
                 <a href="#">
                     <i class="fa fa-cogs"></i> <span>Quản lý Sản Phẩm</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
                 </a>
                 <ul class="treeview-menu">
                     <li><a href="/admin/san-pham"><i class="fa fa-cube"></i> Sản Phẩm </a></li>
@@ -85,9 +61,6 @@
             <li class="treeview">
                 <a href="#">
                     <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
                 </a>
                 <ul class="treeview-menu">
                     <li><a href="/admin/nhan-vien"><i class="fa fa-users"></i> Nhân Viên </a></li>
@@ -112,9 +85,6 @@
             <li>
                 <a href="">
                     <i class="fa fa-cogs"></i> <span>Widgets</span>
-                    <span class="pull-right-container">
-                        <small class="label pull-right bg-green">Hot</small>
-                    </span>
                 </a>
             </li>
         </ul>

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,5 +19,24 @@ public class HoaDonChiTiet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ManyToOne
+    @JoinColumn(name = "id_san_pham_chi_tiet",referencedColumnName = "id")
+    private SanPhamChiTiet sanPhamChiTiet;
+
+    @ManyToOne
+    @JoinColumn(name = "id_hoa_don",referencedColumnName = "id")
+    private HoaDon hoaDon;
+
+    @Column(name = "so_luong")
+    private Integer soLuong;
+
+    @Column(name = "gia")
+    private Float gia;
+
+    @Column(name = "thanh_tien")
+    private Float thanhTien;
+
+//    @OneToMany(fetch = FetchType.EAGER)
+//    private Set<HinhAnh> hinhAnh;
 
 }

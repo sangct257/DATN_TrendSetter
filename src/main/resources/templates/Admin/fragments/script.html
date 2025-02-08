@@ -1,8 +1,28 @@
+<!--<div th:fragment="script">-->
+<!--    <script th:src="@{/assets/js/jquery.min.js}"></script>-->
+<!--    <script th:src="@{/assets/js/jquery-ui.js}"></script>-->
+<!--    <script th:src="@{/assets/js/bootstrap.min.js}"></script>-->
+<!--    <script th:src="@{/assets/js/adminlte.min.js}"></script>-->
+<!--    <script th:src="@{/assets/js/dashboard.js}"></script>-->
+<!--    <script th:src="@{/assets/js/function.js}"></script>-->
+<!--</div>-->
+
 <div th:fragment="script">
-    <script th:src="@{/assets/js/jquery.min.js}"></script>
-    <script th:src="@{/assets/js/jquery-ui.js}"></script>
-    <script th:src="@{/assets/js/bootstrap.min.js}"></script>
+    <!-- jQuery: Phiên bản mới nhất từ CDN -->
+    <script th:src="@{https://code.jquery.com/jquery-3.6.0.min.js}"></script>
+
+    <!-- jQuery UI: Phiên bản mới nhất từ CDN -->
+    <script th:src="@{https://code.jquery.com/ui/1.12.1/jquery-ui.min.js}"></script>
+
+    <!-- Bootstrap: Phiên bản mới nhất từ CDN -->
+    <script th:src="@{https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js}"></script>
+
+    <!-- AdminLTE: Phiên bản mới nhất từ CDN -->
     <script th:src="@{/assets/js/adminlte.min.js}"></script>
+
+    <!-- Dashboard custom script -->
     <script th:src="@{/assets/js/dashboard.js}"></script>
+
+    <!-- Custom function script -->
     <script th:src="@{/assets/js/function.js}"></script>
 </div>
