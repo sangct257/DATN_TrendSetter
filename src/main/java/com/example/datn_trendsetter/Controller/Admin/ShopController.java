@@ -65,26 +65,12 @@ public class ShopController {
         return shopService.handleProductOrder("update", null, hoaDonId, soLuong, hoaDonChiTietId, redirectAttributes);
     }
 
-//    @PostMapping("delete-product-order")
-//    public String deleteProductOrder(@RequestParam(value = "hoaDonChiTietId", required = false) Integer hoaDonChiTietId,
-//                                     @RequestParam(value = "hoaDonId", required = false) Integer hoaDonId,
-//                                     RedirectAttributes redirectAttributes) {
-//        System.out.println("hoaDonChiTietId: " + hoaDonChiTietId);
-//        System.out.println("hoaDonId: " + hoaDonId);
-//
-//        if (hoaDonChiTietId == null || hoaDonId == null) {
-//            redirectAttributes.addFlashAttribute("errorMessage", "Thiếu thông tin hóa đơn chi tiết hoặc hóa đơn.");
-//            return "redirect:/admin/sell-counter";
-//        }
-//        return shopService.handleProductOrder("delete", null, hoaDonId, null, hoaDonChiTietId, redirectAttributes);
-//    }
 
-
-    @PostMapping("/delete-product-order")
-    public String deleteProductOrder(@RequestParam("hoaDonChiTietId") Integer idHoaDonChiTiet,
-                                     @RequestParam("hoaDonId") Integer idHoaDon,
+    @PostMapping("delete-product-order")
+    public String deleteProductOrder(@RequestParam("hoaDonChiTietId") Integer hoaDonChiTietId,
+                                     @RequestParam("hoaDonId") Integer hoaDonId,
                                      RedirectAttributes redirectAttributes) {
-        return shopService.handleProductOrder("delete", null, idHoaDon, null, idHoaDonChiTiet, redirectAttributes);
+        return shopService.handleProductOrder("delete", null, hoaDonId, null, hoaDonChiTietId, redirectAttributes);
     }
 
     @PostMapping("add-customer")

@@ -136,11 +136,11 @@ public class HoaDonChiTietService {
     }
 
     // Phương thức xóa sản phẩm khỏi hóa đơn
-    public String deleteProductOrder(Integer idHoaDonChiTiet, Integer idHoaDon, RedirectAttributes redirectAttributes) {
-        HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(idHoaDonChiTiet).orElse(null);
+    public String deleteProductOrder(Integer hoaDonChiTietId, Integer hoaDonId, RedirectAttributes redirectAttributes) {
+        HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(hoaDonChiTietId).orElse(null);
         if (hoaDonChiTiet == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Hóa đơn chi tiết không tồn tại.");
-            return "redirect:/admin/sell-counter?hoaDonId=" + idHoaDon;
+            return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
         }
 
         // Hoàn trả lại số lượng tồn kho cho sản phẩm chi tiết
@@ -155,16 +155,16 @@ public class HoaDonChiTietService {
         }
 
         // Xóa hóa đơn chi tiết
-        hoaDonChiTietRepository.deleteById(idHoaDonChiTiet);
+        hoaDonChiTietRepository.deleteById(hoaDonChiTietId);
 
         // Cập nhật tổng tiền hóa đơn
-        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElse(null);
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
         if (hoaDon == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Hóa đơn không tồn tại.");
             return "redirect:/admin/sell-counter";
         }
 
-        updateInvoiceTotal(idHoaDon);
+        updateInvoiceTotal(hoaDonId);
 
         // Kiểm tra tổng tiền và điều kiện phiếu giảm giá
         if (hoaDon.getPhieuGiamGia() != null) {
@@ -179,7 +179,7 @@ public class HoaDonChiTietService {
         }
 
         redirectAttributes.addFlashAttribute("successMessage", "Xóa hóa đơn chi tiết thành công!");
-        return "redirect:/admin/sell-counter?hoaDonId=" + idHoaDon;
+        return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
     }
 
     // Phương thức cập nhật tồn kho cho sản phẩm chính
