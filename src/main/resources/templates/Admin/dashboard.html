@@ -72,8 +72,8 @@
                                             <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                             <button type="submit" class="btn p-0 w-100 text-start">
                                                 <div class="card-header bg-primary text-white text-center py-3">
-                                                    <h6 class="mb-0 text-uppercase">Hóa Đơn # <span
-                                                            th:text="${status.index + 1}"></span></h6>
+                                                    <h6 class="mb-0 text-uppercase"># <span
+                                                            th:text="${hoaDon.maHoaDon}"></span></h6>
                                                 </div>
                                                 <div class="card-body text-center">
                                                     <p class="card-text text-muted">
@@ -262,8 +262,8 @@
                                     </td>
                                     <td>
                                         <form th:action="@{/delete-product-order}" method="post">
-                                            <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                             <input type="hidden" name="hoaDonChiTietId" th:value="${hoaDonChiTiet.id}">
+                                            <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                             <button type="submit" class="btn btn-danger">
                                                 <i class="fas fa-trash"></i> Xóa
                                             </button>
@@ -384,17 +384,16 @@
                         </div>
 
                         <div class="d-flex align-items-center my-2">
-        <span class="me-2 fw-bold">
-            <i class="bi bi-person-circle"></i> Tên khách hàng:
-        </span>
+                            <span class="me-2 fw-bold">
+                                <i class="bi bi-person-circle"></i> Tên khách hàng:
+                            </span>
                             <span class="p-2 rounded border bg-light">
-            <span th:if="${hoaDon.khachHang != null}">
-                <span th:text="${hoaDon.khachHang.hoTen}"></span> -
-                <span class="text-muted"
-                      th:text="${hoaDon.khachHang.soDienThoai != null ? hoaDon.khachHang.soDienThoai : '(Không có số điện thoại)'}"></span>
-            </span>
-            <span th:if="${hoaDon.khachHang == null}" class="text-danger">Khách Lẻ</span>
-        </span>
+                                <span th:if="${hoaDon.khachHang != null}">
+                                    <span th:text="${hoaDon.khachHang.hoTen}"></span> -
+                                <span class="text-muted" th:text="${hoaDon.khachHang.soDienThoai != null ? hoaDon.khachHang.soDienThoai : '(Không có số điện thoại)'}"></span></span>
+                                    <span th:if="${hoaDon.khachHang == null}" class="text-danger">Khách Lẻ</span>
+                            </span>
+
                             <!-- Nút xóa khách hàng (Chỉ hiển thị nếu hoaDon.khachHang != null) -->
                             <form th:if="${hoaDon.khachHang != null}" th:action="@{/delete-customer}" method="post" class="d-inline"
                                   onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng này?')">
@@ -456,11 +455,11 @@
 
                                 <!-- Phương thức thanh toán -->
                                 <div class="d-flex align-items-center mb-4">
-    <span>
-        <i class="fas fa-credit-card"></i>
-        <strong>Phương thức thanh toán: </strong>
-        <span th:text="${hoaDon.phuongThucThanhToan != null ? hoaDon.phuongThucThanhToan.tenPhuongThuc : 'Chưa có phương thức'}"></span>
-    </span>
+                                    <span>
+                                        <i class="fas fa-credit-card"></i>
+                                        <strong>Phương thức thanh toán: </strong>
+                                        <span th:text="${hoaDon.phuongThucThanhToan != null ? hoaDon.phuongThucThanhToan.tenPhuongThuc : 'Chưa có phương thức'}"></span>
+                                    </span>
 
                                     <!-- Mở modal phương thức thanh toán -->
                                     <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal"
@@ -507,11 +506,11 @@
 
                                 <!-- Mã Giảm Giá -->
                                 <div class="d-flex align-items-center mb-4">
-    <span>
-        <i class="fas fa-tag"></i>
-        <strong>Mã giảm giá: </strong>
-        <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenChuongTrinh : 'Chưa có phiếu giảm giá'}"></span>
-    </span>
+                                    <span>
+                                        <i class="fas fa-tag"></i>
+                                        <strong>Mã giảm giá: </strong>
+                                        <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenChuongTrinh : 'Chưa có phiếu giảm giá'}"></span>
+                                    </span>
 
                                     <!-- Mở modal chọn mã giảm giá -->
                                     <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal"
@@ -558,8 +557,10 @@
                                     <i class="fas fa-truck me-2"></i>
                                     <span class="me-auto fw-bold">Giao Hàng:</span>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="deliverySwitch" disabled
-                                               th:checked="${isGiaoHang}">
+                                        <input class="form-check-input" type="checkbox" id="deliverySwitch"
+                                               th:checked="${hoaDon.loaiHoaDon == 'Giao Hàng'}"
+                                               th:disabled="${hoaDon.loaiHoaDon != 'Giao Hàng'}"
+                                               onchange="preventUncheck(this)">
                                     </div>
                                 </div>
 
@@ -581,6 +582,8 @@
                                 <div class="info mb-3">
                                     <strong>Tổng tiền:</strong>
                                     <strong th:text="${hoaDon.tongTien - (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0) + hoaDon.phiShip} + ' VNĐ'"></strong>
+                                        <span class="me-auto fw-bold mb-6">Số Tiền Khách Đưa:</span>
+                                        <input type="number">
                                 </div>
 
                                 <div class="confirm-button mt-3">
@@ -614,6 +617,14 @@
 <!-- jQuery 3 -->
 
 <div th:replace="~{admin/fragments/script :: script}"></div>
+<script>
+    function preventUncheck(checkbox) {
+        if (checkbox.checked === false) {
+            checkbox.checked = true; // Ngăn người dùng tắt nếu đã bật
+        }
+    }
+</script>
+
 <script>
     $(document).ready(function () {
         // Xử lý sự kiện nhấn nút cập nhật phương thức thanh toán

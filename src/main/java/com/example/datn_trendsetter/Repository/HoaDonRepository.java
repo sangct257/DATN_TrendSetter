@@ -24,4 +24,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon,Integer> {
     // Tìm hóa đơn theo trạng thái và phân trang
     Page<HoaDon> findByTrangThai(String trangThai, Pageable pageable);
 
+    boolean existsByMaHoaDon(String maHoaDon);
+
 }

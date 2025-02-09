@@ -7,15 +7,14 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.Random;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class ShopService {
@@ -50,34 +49,48 @@ public class ShopService {
     @Autowired
     private PdfService pdfService;
 
-    // Tạo hóa đơn
     public String createHoaDon(HoaDon hoaDon, RedirectAttributes redirectAttributes) {
         long countDangXuLy = hoaDonRepository.countByTrangThai("Đang xử lý");
         if (countDangXuLy >= 3) {
             redirectAttributes.addFlashAttribute("errorMessage", "Đã đạt giới hạn 3 hóa đơn đang xử lý. Không thể tạo thêm.");
-            return "redirect:/admin/sell-counter"; // Redirect về danh sách hóa đơn
+            return "redirect:/admin/sell-counter";
         }
 
-        // Lấy phương thức thanh toán đầu tiên từ cơ sở dữ liệu
         PhuongThucThanhToan firstPaymentMethod = phuongThucThanhToanRepository.findFirstByOrderByIdAsc();
 
         if (firstPaymentMethod != null) {
-            // Gán phương thức thanh toán đầu tiên cho hóa đơn
             hoaDon.setPhuongThucThanhToan(firstPaymentMethod);
         } else {
-            // Nếu không có phương thức thanh toán, bạn có thể gán một giá trị mặc định hoặc thông báo lỗi
             redirectAttributes.addFlashAttribute("errorMessage", "Không có phương thức thanh toán hợp lệ.");
-            return "redirect:/admin/sell-counter"; // Redirect về danh sách hóa đơn
+            return "redirect:/admin/sell-counter";
         }
 
+        hoaDon.setTongTien(0.0);
         hoaDon.setPhiShip(0.0);
-        hoaDon.setIsGiaoHang(false);
+        hoaDon.setLoaiHoaDon(null);
         hoaDon.setTrangThai("Đang Xử Lý");
         hoaDon.setNgayTao(LocalDateTime.now());
+
+        // Lưu hóa đơn lần đầu để có ID tự động
+        hoaDon = hoaDonRepository.save(hoaDon);
+
+        // Tạo mã hóa đơn ngẫu nhiên với 6 chữ số
+        String maHoaDon;
+        Random random = new Random();
+
+        do {
+            int randomNumber = 100000 + random.nextInt(900000); // Số ngẫu nhiên từ 100000 - 999999
+            maHoaDon = "MH" + randomNumber;
+        } while (hoaDonRepository.existsByMaHoaDon(maHoaDon)); // Đảm bảo không bị trùng
+
+        // Gán mã hóa đơn
+        hoaDon.setMaHoaDon(maHoaDon);
+
+        // Lưu lại để cập nhật mã hóa đơn
         hoaDonRepository.save(hoaDon);
+
         return "redirect:/admin/sell-counter";
     }
-
 
     @Transactional
     public void deleteHoaDon(Integer hoaDonId) {
@@ -168,7 +181,7 @@ public class ShopService {
 
             model.addAttribute("hoaDonChiTiet", hoaDonChiTiet);
             model.addAttribute("hoaDon", hoaDon);
-            model.addAttribute("isGiaoHang", hoaDon.getIsGiaoHang());
+//            model.addAttribute("isGiaoHang", hoaDon.getIsGiaoHang());
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "ID hóa đơn không hợp lệ");
         }
@@ -214,7 +227,7 @@ public class ShopService {
 
         // Cập nhật khách hàng
         hoaDon.setKhachHang(khachHang);
-        hoaDon.setIsGiaoHang(true);
+        hoaDon.setLoaiHoaDon("Giao Hàng");
 
         // Lưu hóa đơn
         hoaDonRepository.save(hoaDon);
@@ -223,7 +236,7 @@ public class ShopService {
         return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
     }
 
-    //     Thêm khách hàng vào hóa đơn
+    //     Xóa khách hàng vào hóa đơn
     public String deleteCustomerToInvoice(Integer hoaDonId, RedirectAttributes redirectAttributes) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
 
@@ -239,7 +252,7 @@ public class ShopService {
         hoaDon.setThanhPho(null);
         hoaDon.setKhachHang(null);
         hoaDon.setPhiShip(0.0);
-        hoaDon.setIsGiaoHang(false);
+        hoaDon.setLoaiHoaDon(null);
 
         // Lưu hóa đơn
         hoaDonRepository.save(hoaDon);
@@ -250,15 +263,15 @@ public class ShopService {
 
 
     // Phương thức xử lý các hành động thêm, sửa, xóa sản phẩm trong hóa đơn
-    public String handleProductOrder(String action, Integer idSanPhamChiTiet, Integer idHoaDon, Integer soLuong,
-                                     Integer idHoaDonChiTiet, RedirectAttributes redirectAttributes) {
+    public String handleProductOrder(String action, Integer sanPhamChiTietId, Integer hoaDonId, Integer soLuong,
+                                     Integer hoaDonChiTietId, RedirectAttributes redirectAttributes) {
         switch (action) {
             case "add":
-                return hoaDonChiTietService.addProductDetailToHoaDon(idSanPhamChiTiet, idHoaDon, soLuong, redirectAttributes);
+                return hoaDonChiTietService.addProductDetailToHoaDon(sanPhamChiTietId, hoaDonId, soLuong, redirectAttributes);
             case "update":
-                return hoaDonChiTietService.updateQuantityOrder(idHoaDonChiTiet, soLuong, idHoaDon, redirectAttributes);
+                return hoaDonChiTietService.updateQuantityOrder(hoaDonChiTietId, soLuong, hoaDonId, redirectAttributes);
             case "delete":
-                return hoaDonChiTietService.deleteProductOrder(idHoaDonChiTiet, idHoaDon, redirectAttributes);
+                return hoaDonChiTietService.deleteProductOrder(hoaDonChiTietId, hoaDonId, redirectAttributes);
             default:
                 return "redirect:/admin/sell-counter"; // Action không hợp lệ
         }
@@ -333,7 +346,7 @@ public class ShopService {
             }
 
             // Kiểm tra trạng thái giao hàng và các thông tin địa chỉ (phường, huyện, thành phố, số nhà)
-            if (hoaDon.getIsGiaoHang() != null && hoaDon.getIsGiaoHang() &&
+            if (hoaDon.getLoaiHoaDon() != null && hoaDon.getLoaiHoaDon().isEmpty() &&
                     (request.getSoNha() == null || request.getPhuong() == null || request.getHuyen() == null || request.getThanhPho() == null)) {
                 throw new RuntimeException("Vui lòng nhập đầy đủ thông tin địa chỉ giao hàng!");
             }
@@ -400,7 +413,7 @@ public class ShopService {
                 }
                 // Cập nhật trạng thái đang vận chuyển nếu có khách
                 hoaDon.setTongTien(hoaDon.getTongTien()-hoaDon.getPhieuGiamGia().getGiaTri()+hoaDon.getPhiShip());
-                hoaDon.setTrangThai("Đặt Hàng");
+                hoaDon.setTrangThai("Chờ Xác Nhận");
             } else {
                 // Cập nhật trạng thái thanh toán thành công nếu không có khách hàng
                 hoaDon.setTongTien(hoaDon.getTongTien()-hoaDon.getPhieuGiamGia().getGiaTri()+hoaDon.getPhiShip());
