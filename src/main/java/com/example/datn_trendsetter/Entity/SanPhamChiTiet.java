@@ -33,10 +33,6 @@ public class SanPhamChiTiet {
     @JoinColumn(name = "id_kich_thuoc",referencedColumnName = "id")
     private KichThuoc kichThuoc;
 
-    @ManyToOne
-    @JoinColumn(name = "id_chat_lieu",referencedColumnName = "id")
-    private ChatLieu chatLieu;
-
     @Column(name = "so_luong")
     private Integer soLuong;
 
@@ -46,7 +42,7 @@ public class SanPhamChiTiet {
     @OneToMany(mappedBy = "sanPhamChiTiet",fetch = FetchType.LAZY)
     private List<HinhAnh> hinhAnh;
 
-    @Column(name = "trang_thai")
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
     @Column(name = "ngay_tao")
@@ -55,10 +51,10 @@ public class SanPhamChiTiet {
     @Column(name = "ngay_sua")
     private LocalDate ngaySua;
 
-    @Column(name = "nguoi_tao")
+    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua")
+    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
     @Column(name = "deleted")

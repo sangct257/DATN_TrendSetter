@@ -20,17 +20,17 @@ public class DiaChi {
     @Column(name = "so_nha")
     private Integer soNha;
 
-    @Column(name = "phuong")
+    @Column(name = "phuong",columnDefinition = "NVARCHAR(255)")
     private String phuong;
 
-    @Column(name = "huyen")
+    @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
     private String huyen;
 
-    @Column(name = "thanh_pho")
+    @Column(name = "thanh_pho",columnDefinition = "NVARCHAR(255)")
     private String thanhPho;
 
-    @Column(name = "trang_thai")
-    private Boolean trangThai;
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
+    private String trangThai;
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")

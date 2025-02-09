@@ -202,7 +202,7 @@ public class ShopService {
         }
 
         // Tìm địa chỉ mặc định của khách hàng (trangThai = true/1)
-        DiaChi diaChi = diaChiRepository.findByKhachHangAndTrangThai(khachHang, true);
+        DiaChi diaChi = diaChiRepository.findByKhachHangAndTrangThai(khachHang, "Mặc Định");
 
         // Nếu không tìm thấy địa chỉ mặc định, gán các trường địa chỉ là null
         if (diaChi == null) {

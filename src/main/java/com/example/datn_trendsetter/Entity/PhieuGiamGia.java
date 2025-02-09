@@ -20,7 +20,7 @@ public class PhieuGiamGia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ten_chuong_trinh")
+    @Column(name = "ten_chuong_trinh",columnDefinition = "NVARCHAR(255)")
     private String tenChuongTrinh;
 
     @Column(name = "gia_tri")
@@ -35,10 +35,10 @@ public class PhieuGiamGia {
     @Column(name = "ngay_ket_thuc")
     private LocalDateTime ngayKetThuc;
 
-    @Column(name = "mo_ta")
+    @Column(name = "mo_ta",columnDefinition = "NVARCHAR(255)")
     private String moTa;
 
-    @Column(name = "trang_thai")
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
     @Column(name = "ngay_tao")
@@ -47,10 +47,10 @@ public class PhieuGiamGia {
     @Column(name = "ngay_sua")
     private LocalDate ngaySua;
 
-    @Column(name = "nguoi_tao")
+    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua")
+    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
     @Column(name = "deleted")

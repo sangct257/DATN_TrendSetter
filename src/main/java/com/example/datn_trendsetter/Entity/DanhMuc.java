@@ -19,10 +19,10 @@ public class DanhMuc {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ten_danh_muc")
+    @Column(name = "ten_danh_muc",columnDefinition = "NVARCHAR(255)")
     private String tenDanhMuc;
 
-    @Column(name = "trang_thai")
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
     @Column(name = "ngay_tao")
@@ -31,10 +31,10 @@ public class DanhMuc {
     @Column(name = "ngay_sua")
     private LocalDate ngaySua;
 
-    @Column(name = "nguoi_tao")
+    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua")
+    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
     @Column(name = "deleted")

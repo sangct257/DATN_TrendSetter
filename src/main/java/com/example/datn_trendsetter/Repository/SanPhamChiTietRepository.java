@@ -16,8 +16,8 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet,I
     // Phương thức tìm các sản phẩm có trạng thái "Còn Hàng"
     List<SanPhamChiTiet> findByTrangThai(String trangThai);
 
-    Optional<SanPhamChiTiet> findBySanPhamAndMauSacAndKichThuocAndChatLieu(
-            SanPham sanPham, MauSac mauSac, KichThuoc kichThuoc, ChatLieu chatLieu);
+    Optional<SanPhamChiTiet> findBySanPhamAndMauSacAndKichThuoc(
+            SanPham sanPham, MauSac mauSac, KichThuoc kichThuoc);
 
     Page<SanPhamChiTiet> findBySanPham_Id(Integer sanPhamId, Pageable pageable);
 }

@@ -37,31 +37,31 @@ public class HoaDon {
     @JoinColumn(name = "id_phuong_thuc_thanh_toan",referencedColumnName = "id")
     private PhuongThucThanhToan phuongThucThanhToan;
 
-    @Column(name = "ma_hoa_don")
+    @Column(name = "ma_hoa_don",columnDefinition = "NVARCHAR(255)")
     private String maHoaDon;
 
     @Column(name = "tong_tien")
     private Double tongTien;
 
-    @Column(name = "nguoi_nhan")
+    @Column(name = "nguoi_nhan",columnDefinition = "NVARCHAR(255)")
     private String nguoiNhan;
 
-    @Column(name = "so_dien_thoai")
+    @Column(name = "so_dien_thoai",columnDefinition = "NVARCHAR(255)")
     private String soDienThoai;
 
     @Column(name = "so_nha")
     private Integer soNha;
 
-    @Column(name = "huyen")
+    @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
     private String huyen;
 
-    @Column(name = "phuong")
+    @Column(name = "phuong",columnDefinition = "NVARCHAR(255)")
     private String phuong;
 
-    @Column(name = "thanh_pho")
+    @Column(name = "thanh_pho",columnDefinition = "NVARCHAR(255)")
     private String thanhPho;
 
-    @Column(name = "ghi_chu")
+    @Column(name = "ghi_chu",columnDefinition = "NVARCHAR(255)")
     private String ghiChu;
 
     @Column(name = "ngay_tao")
@@ -70,16 +70,16 @@ public class HoaDon {
     @Column(name = "ngay_sua")
     private LocalDateTime ngaySua;
 
-    @Column(name = "nguoi_tao")
+    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua")
+    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
-    @Column(name = "trang_thai")
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
-    @Column(name = "qr_image")
+    @Column(name = "qr_image",columnDefinition = "NVARCHAR(255)")
     private String qrImage;
 
     @Column(name = "deleted")
@@ -88,7 +88,7 @@ public class HoaDon {
     @Column(name = "phi_ship")
     private Double phiShip ;
 
-    @Column(name = "loai_hoa_don")
+    @Column(name = "loai_hoa_don",columnDefinition = "NVARCHAR(255)")
     private String loaiHoaDon;
 
     @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)

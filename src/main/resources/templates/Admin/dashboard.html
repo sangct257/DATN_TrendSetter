@@ -149,7 +149,6 @@
                                                         <th>STT</th>
                                                         <th>Sản Phẩm</th>
                                                         <th>Số Lượng</th>
-                                                        <th>Chất Liệu</th>
                                                         <th>Thương Hiệu</th>
                                                         <th>Xuất Sứ</th>
                                                         <th>Trạng Thái</th>
@@ -179,8 +178,6 @@
                                                             <input type="number" name="soLuong" value="1" min="1"
                                                                    max="${sanPhamChiTiet.soLuong}" class="form-control">
                                                         </td>
-                                                        <td class="text-center"
-                                                            th:text="${sanPhamChiTiet.chatLieu.tenChatLieu}"></td>
                                                         <td class="text-center"
                                                             th:text="${sanPhamChiTiet.sanPham.thuongHieu.tenThuongHieu}"></td>
                                                         <td class="text-center"
@@ -215,7 +212,6 @@
                                     <th>STT</th>
                                     <th>Sản Phẩm</th>
                                     <th style="width: 10%">Số Lượng</th>
-                                    <th>Chất Liệu</th>
                                     <th>Thương Hiệu</th>
                                     <th>Xuất Sứ</th>
                                     <th>Thành Tiền</th>
@@ -249,8 +245,6 @@
                                                    class="form-control" required onchange="this.form.submit()">
                                         </form>
                                     </td>
-                                    <td class="text-center"
-                                        th:text="${hoaDonChiTiet.sanPhamChiTiet.chatLieu.tenChatLieu}"></td>
                                     <td class="text-center"
                                         th:text="${hoaDonChiTiet.sanPhamChiTiet.sanPham.thuongHieu.tenThuongHieu}"></td>
                                     <td class="text-center"
@@ -455,50 +449,44 @@
 
                                 <!-- Phương thức thanh toán -->
                                 <div class="d-flex align-items-center mb-4">
-                                    <span>
-                                        <i class="fas fa-credit-card"></i>
-                                        <strong>Phương thức thanh toán: </strong>
-                                        <span th:text="${hoaDon.phuongThucThanhToan != null ? hoaDon.phuongThucThanhToan.tenPhuongThuc : 'Chưa có phương thức'}"></span>
-                                    </span>
+    <span>
+        <i class="fas fa-credit-card"></i>
+        <strong>Phương thức thanh toán: </strong>
+        <span id="paymentMethodText" th:text="${hoaDon.phuongThucThanhToan != null ? hoaDon.phuongThucThanhToan.tenPhuongThuc : 'Chưa có phương thức'}"></span>
+    </span>
 
-                                    <!-- Mở modal phương thức thanh toán -->
-                                    <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal"
-                                            data-bs-target="#paymentModal">
+                                    <!-- Mở modal -->
+                                    <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                         <i class="bi bi-credit-card"></i>
                                     </button>
+                                </div>
 
-                                    <!-- Modal Payment -->
-                                    <div class="modal fade" id="paymentModal" tabindex="-1"
-                                         aria-labelledby="paymentModalLabel"
-                                         aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="paymentModalLabel">Chọn phương thức thanh toán</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form id="paymentMethodForm">
-                                                        <input type="hidden" name="hoaDonId" th:value="${hoaDon != null ? hoaDon.id : ''}">
-                                                        <div class="mb-3">
-                                                            <label for="phuongThucThanhToan" class="form-label">
-                                                                <i class="fas fa-credit-card"></i> Phương thức thanh toán:
-                                                            </label>
-                                                            <select id="phuongThucThanhToan" name="phuongThucThanhToan"
-                                                                    class="form-select">
-                                                                <option value="null" disabled selected>Chọn phương thức thanh toán</option>
-                                                                <th:block th:each="phuongThucThanhToan : ${listPhuongThucThanhToan}">
-                                                                    <option th:value="${phuongThucThanhToan.id}"
-                                                                            th:text="${phuongThucThanhToan.tenPhuongThuc}"></option>
-                                                                </th:block>
-                                                            </select>
-                                                        </div>
-                                                        <button type="button" id="addPaymentMethodButton" class="btn btn-primary">
-                                                            Cập nhật
-                                                        </button>
-                                                    </form>
-                                                </div>
+                                <!-- Modal chọn phương thức thanh toán -->
+                                <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="paymentModalLabel">Chọn phương thức thanh toán</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="paymentMethodForm">
+                                                    <input type="hidden" name="hoaDonId" th:value="${hoaDon != null ? hoaDon.id : ''}">
+                                                    <div class="mb-3">
+                                                        <label for="phuongThucThanhToan" class="form-label">
+                                                            <i class="fas fa-credit-card"></i> Phương thức thanh toán:
+                                                        </label>
+                                                        <select id="phuongThucThanhToan" name="phuongThucThanhToanId" class="form-select">
+                                                            <option value="" disabled selected>Chọn phương thức thanh toán</option>
+                                                            <th:block th:each="phuongThucThanhToan : ${listPhuongThucThanhToan}">
+                                                                <option th:value="${phuongThucThanhToan.id}" th:text="${phuongThucThanhToan.tenPhuongThuc}"></option>
+                                                            </th:block>
+                                                        </select>
+                                                    </div>
+                                                    <button type="button" id="addPaymentMethodButton" class="btn btn-primary">
+                                                        Cập nhật
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -582,8 +570,6 @@
                                 <div class="info mb-3">
                                     <strong>Tổng tiền:</strong>
                                     <strong th:text="${hoaDon.tongTien - (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0) + hoaDon.phiShip} + ' VNĐ'"></strong>
-                                        <span class="me-auto fw-bold mb-6">Số Tiền Khách Đưa:</span>
-                                        <input type="number">
                                 </div>
 
                                 <div class="confirm-button mt-3">
@@ -627,32 +613,29 @@
 
 <script>
     $(document).ready(function () {
-        // Xử lý sự kiện nhấn nút cập nhật phương thức thanh toán
         $('#addPaymentMethodButton').click(function () {
-            var hoaDonId = $('input[name="hoaDonId"]').val(); // Lấy ID của hóa đơn
-            var phuongThucThanhToanId = $('#phuongThucThanhToan').val(); // Lấy ID của phương thức thanh toán
+            var formData = $('#paymentMethodForm').serialize(); // Lấy toàn bộ dữ liệu form
+            var selectedPayment = $('#phuongThucThanhToan').val(); // Lấy giá trị chọn
 
-            if (!phuongThucThanhToanId) {
+            if (!selectedPayment) {
                 alert("Vui lòng chọn phương thức thanh toán!");
                 return;
             }
 
-            // Gửi yêu cầu AJAX
             $.ajax({
-                url: '/add-payment-method',  // URL yêu cầu
+                url: '/add-payment-method',
                 method: 'POST',
-                data: {
-                    hoaDonId: hoaDonId,
-                    phuongThucThanhToan: phuongThucThanhToanId
-                },
+                data: formData,
                 success: function (response) {
-                    // Cập nhật phương thức thanh toán trong giao diện
-                    $('#paymentMethod').text(response.updatedPaymentMethod);
-                    // alert('Phương thức thanh toán đã được cập nhật!');
-                    $('#paymentModal').modal('hide');  // Đóng modal sau khi thành công
+                    if (response.success) {
+                        $('#paymentMethodText').text(response.updatedPaymentMethod); // Cập nhật UI
+                        $('#paymentModal').modal('hide');  // Đóng modal
+                    } else {
+                        alert(response.message || 'Cập nhật không thành công!');
+                    }
                 },
-                error: function () {
-                    alert('Có lỗi xảy ra khi cập nhật phương thức thanh toán.');
+                error: function (xhr) {
+                    alert('Lỗi: ' + xhr.responseText);
                 }
             });
         });

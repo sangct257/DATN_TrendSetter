@@ -22,7 +22,7 @@ public class DanhGia {
     @Column(name = "so_sao")
     private Integer soSao;
 
-    @Column(name = "nhan_xet")
+    @Column(name = "nhan_xet",columnDefinition = "NVARCHAR(255)")
     private String nhanXet;
 
     @Column(name = "ngay_danh_gia")
