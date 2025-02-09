@@ -20,19 +20,19 @@ public class NhanVien {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ho_ten")
+    @Column(name = "ho_ten",columnDefinition = "NVARCHAR(255)")
     private String hoTen;
 
-    @Column(name = "username")
+    @Column(name = "username",columnDefinition = "NVARCHAR(255)")
     private String username;
 
-    @Column(name = "password")
+    @Column(name = "password",columnDefinition = "NVARCHAR(255)")
     private String password;
 
-    @Column(name = "email")
+    @Column(name = "email",columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "dia_chi")
+    @Column(name = "dia_chi",columnDefinition = "NVARCHAR(255)")
     private String diaChi;
 
     @Column(name = "gioi_tinh")
@@ -41,12 +41,12 @@ public class NhanVien {
     @Column(name = "ngay_sinh")
     private LocalDate ngaySinh;
 
-    @Column(name = "trang_thai")
-    private Boolean trangThai;
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
+    private String trangThai;
 
-    @Column(name = "vai_tro")
+    @Column(name = "vai_tro",columnDefinition = "NVARCHAR(255)")
     private String vaiTro;
 
-    @Column(name = "hinh_anh")
+    @Column(name = "hinh_anh",columnDefinition = "NVARCHAR(255)")
     private String hinhAnh;
 }

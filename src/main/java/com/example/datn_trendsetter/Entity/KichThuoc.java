@@ -19,11 +19,11 @@ public class KichThuoc {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ten_kich_thuoc")
+    @Column(name = "ten_kich_thuoc",columnDefinition = "NVARCHAR(255)")
     private String tenKichThuoc;
 
 
-    @Column(name = "trang_thai")
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
     @Column(name = "ngay_tao")
@@ -32,10 +32,10 @@ public class KichThuoc {
     @Column(name = "ngay_sua")
     private LocalDate ngaySua;
 
-    @Column(name = "nguoi_tao")
+    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua")
+    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
     @Column(name = "deleted")

@@ -1,15 +1,26 @@
 package com.example.datn_trendsetter.Controller.Admin;
 
-import org.springframework.stereotype.Controller;
+import com.example.datn_trendsetter.Entity.ChatLieu;
+import com.example.datn_trendsetter.Repository.ChatLieuRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.List;
+
+@RestController
 public class ChatLieuController {
 
 
+    @Autowired
+    private ChatLieuRepository chatLieuRepository;
+
     @RequestMapping("admin/chat-lieu")
     public String chatLieu() {
-        return "Admin/ChatLieu/hien-thi";
+        return "/admin/chat-lieu";
     }
 
+    @GetMapping("/api/chat-lieu")
+    public List<ChatLieu> getChatLieu() {
+        return chatLieuRepository.findAll();
+    }
 }

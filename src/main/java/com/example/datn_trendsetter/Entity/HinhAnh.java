@@ -20,14 +20,14 @@ public class HinhAnh {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "url_hinh_anh")
+    @Column(name = "url_hinh_anh",columnDefinition = "NVARCHAR(255)")
     private String urlHinhAnh;
 
     @ManyToOne
     @JoinColumn(name = "id_san_pham_chi_tiet", referencedColumnName = "id")
     private SanPhamChiTiet sanPhamChiTiet;
 
-    @Column(name = "trang_thai")
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
     @Column(name = "ngay_tao")
@@ -36,10 +36,10 @@ public class HinhAnh {
     @Column(name = "ngay_sua")
     private LocalDate ngaySua;
 
-    @Column(name = "nguoi_tao")
+    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua")
+    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
     @Column(name = "deleted")

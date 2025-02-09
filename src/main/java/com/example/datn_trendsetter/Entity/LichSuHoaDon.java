@@ -31,7 +31,7 @@ public class LichSuHoaDon {
     @JoinColumn(name = "id_nhan_vien",referencedColumnName = "id")
     private NhanVien nhanVien;
 
-    @Column(name = "hanh_dong")
+    @Column(name = "hanh_dong",columnDefinition = "NVARCHAR(255)")
     private String hanhDong;
 
     @Column(name = "ngay_tao")
@@ -40,15 +40,15 @@ public class LichSuHoaDon {
     @Column(name = "ngay_sua")
     private LocalDateTime ngaySua;
 
-    @Column(name = "nguoi_tao")
+    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua")
+    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
     @Column(name = "deleted")
-    private boolean deleted;
+    private Boolean deleted;
 
-    @Column(name = "ghi_chu")
+    @Column(name = "ghi_chu",columnDefinition = "NVARCHAR(255)")
     private String ghiChu;
 }

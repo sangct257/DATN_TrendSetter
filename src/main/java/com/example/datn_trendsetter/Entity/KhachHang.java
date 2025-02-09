@@ -22,19 +22,19 @@ public class KhachHang {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ho_ten")
+    @Column(name = "ho_ten",columnDefinition = "NVARCHAR(255)")
     private String hoTen;
 
-    @Column(name = "username")
+    @Column(name = "username",columnDefinition = "NVARCHAR(255)")
     private String username;
 
-    @Column(name = "password")
+    @Column(name = "password",columnDefinition = "NVARCHAR(255)")
     private String password;
 
-    @Column(name = "so_dien_thoai")
+    @Column(name = "so_dien_thoai",columnDefinition = "NVARCHAR(255)")
     private String soDienThoai;
 
-    @Column(name = "email")
+    @Column(name = "email",columnDefinition = "NVARCHAR(255)")
     private String email;
 
     @Column(name = "gioi_tinh")
@@ -43,10 +43,10 @@ public class KhachHang {
     @Column(name = "ngay_sinh")
     private LocalDate ngaySinh;
 
-    @Column(name = "trang_thai")
+    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
-    @Column(name = "hinh_anh")
+    @Column(name = "hinh_anh",columnDefinition = "NVARCHAR(255)")
     private String hinhAnh;
 
     @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)

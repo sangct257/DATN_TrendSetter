@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DiaChiRepository extends JpaRepository<DiaChi,Integer> {
-    DiaChi findByKhachHangAndTrangThai(KhachHang khachHang, Boolean trangThai);
+    DiaChi findByKhachHangAndTrangThai(KhachHang khachHang, String trangThai);
 
 }
