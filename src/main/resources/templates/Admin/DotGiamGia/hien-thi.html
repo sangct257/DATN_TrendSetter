@@ -18,8 +18,7 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Blank page
-                <small>it all starts here</small>
+               Đợt giảm giá
             </h1>
             <ol class="breadcrumb">
                 <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
@@ -30,11 +29,74 @@
 
         <!-- Main content -->
         <section class="content">
-
+            <!-- Button trigger modal -->
             <!-- Default box -->
-            <div class="box">
-                <div class="box-body">
-                    <h1>Danh sach dot giam gia</h1>
+            <div class="box" style="padding: 20px">
+                <div>
+                    <h4>Danh sách đợt giảm giá</h4>
+                </div>
+                <div>
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Tên</th>
+                            <th scope="col">Thời gian</th>
+                            <th scope="col">Trạng thái</th>
+                            <th scope="col">Xem</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <th scope="row">1</th>
+                            <td>Đọt sale thứ nhất</td>
+                            <td>12/7/2024 - 16/7-2024</td>
+                            <td>
+                                <small style="min-width: 100px" class="btn btn-warning">Upcoming</small>
+                            </td>
+                            <td>
+                                <a href="/admin/dot-giam-gia/dot-giam-gia-chi-tiet">
+                                    <button type="button" class="btn btn-secondary">
+                                        <i class="fa-solid fa-eye"></i>
+                                        Xem chi tiết
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">2</th>
+                            <td>Đọt sale đang diễn ra</td>
+                            <td>12/7/2024 - 16/7-2024</td>
+                            <td>
+                                <small style="min-width: 100px" class="btn btn btn-success">Now</small>
+                            </td>
+                            <td>
+                                <a href="/admin/dot-giam-gia/dot-giam-gia-chi-tiet">
+                                    <button type="button" class="btn btn-secondary">
+                                        <i class="fa-solid fa-eye"></i>
+                                        Xem chi tiết
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">2</th>
+                            <td>Đọt sale đã kết thúc</td>
+                            <td>12/7/2024 - 16/7-2024</td>
+                            <td>
+                                <small style="min-width: 100px" class="btn btn btn-danger">Completed</small>
+                            </td>
+                            <td>
+                                <a href="/admin/dot-giam-gia/dot-giam-gia-chi-tiet">
+                                    <button type="button" class="btn btn-secondary">
+                                        <i class="fa-solid fa-eye"></i>
+                                        Xem chi tiết
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <!-- /.box -->

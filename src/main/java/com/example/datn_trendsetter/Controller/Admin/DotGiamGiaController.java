@@ -9,4 +9,9 @@ public class DotGiamGiaController {
     public String DotGiamGia() {
         return "Admin/DotGiamGia/hien-thi";
     }
+
+    @RequestMapping("admin/dot-giam-gia/dot-giam-gia-chi-tiet")
+    public String DotGiamGiaChiTiet() {
+        return "Admin/DotGiamGia/dot-giam-gia-chi-tiet";
+    }
 }

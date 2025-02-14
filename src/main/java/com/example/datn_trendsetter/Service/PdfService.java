@@ -27,8 +27,7 @@ public class PdfService {
             Document document = new Document(pdf);
 
             // Thêm nội dung vào PDF
-            document.add(new Paragraph("HÓA ĐƠN THANH TOÁN")
-                    .setBold().setFontSize(16));
+            document.add(new Paragraph("HÓA ĐƠN THANH TOÁN").setFontSize(16));
             document.add(new Paragraph("Mã hóa đơn: " + hoaDon.getId()));
             String tenKhachHang = (hoaDon.getKhachHang() != null && hoaDon.getKhachHang().getHoTen() != null)
                     ? hoaDon.getKhachHang().getHoTen()
