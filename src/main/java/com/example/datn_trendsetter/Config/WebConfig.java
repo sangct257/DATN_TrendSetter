@@ -19,5 +19,4 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/invoices/**")
                 .addResourceLocations("file:invoices/");
     }
-
 }

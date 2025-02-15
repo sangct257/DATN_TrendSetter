@@ -44,4 +44,6 @@ public class HinhAnh {
 
     @Column(name = "deleted")
     private Boolean deleted;
+
+
 }

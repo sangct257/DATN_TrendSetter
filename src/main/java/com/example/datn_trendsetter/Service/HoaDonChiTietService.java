@@ -1,18 +1,20 @@
 package com.example.datn_trendsetter.Service;
 
-import com.example.datn_trendsetter.Entity.HoaDon;
-import com.example.datn_trendsetter.Entity.HoaDonChiTiet;
-import com.example.datn_trendsetter.Entity.SanPham;
-import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
-import com.example.datn_trendsetter.Repository.HoaDonChiTietRepository;
-import com.example.datn_trendsetter.Repository.HoaDonRepository;
-import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
-import com.example.datn_trendsetter.Repository.SanPhamRepository;
+import com.example.datn_trendsetter.DTO.ProductInfoDTO;
+import com.example.datn_trendsetter.Entity.*;
+import com.example.datn_trendsetter.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HoaDonChiTietService {
@@ -24,9 +26,10 @@ public class HoaDonChiTietService {
     private HoaDonRepository hoaDonRepository;
     @Autowired
     private SanPhamRepository sanPhamRepository;
+    @Autowired
+    private PhieuGiamGiaRepository phieuGiamGiaRepository;
 
-
-    // Phương thức cập nhật số lượng trong hóa đơn chi tiết
+    // Phương thức sửa chi tiết sản phẩm vào hóa đơn
     public String updateQuantityOrder(Integer hoaDonChiTietId, Integer soLuong, Integer hoaDonId, RedirectAttributes redirectAttributes) {
         HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(hoaDonChiTietId).orElse(null);
         if (hoaDonChiTiet == null) {
@@ -34,63 +37,62 @@ public class HoaDonChiTietService {
             return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
         }
 
-        // Kiểm tra số lượng mới
         if (soLuong < 1) {
             redirectAttributes.addFlashAttribute("errorMessage", "Số lượng phải lớn hơn 0!");
             return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
         }
 
-        // Lấy sản phẩm chi tiết
         SanPhamChiTiet sanPhamChiTiet = hoaDonChiTiet.getSanPhamChiTiet();
-
-        // Kiểm tra số lượng tồn kho
         int soLuongTonKho = sanPhamChiTiet.getSoLuong();
-        int soLuongBanHang = hoaDonChiTiet.getSoLuong();
-        int soLuongMoi = soLuong - soLuongBanHang;
+        int soLuongBanDau = hoaDonChiTiet.getSoLuong();
+        int thayDoiSoLuong = soLuong - soLuongBanDau;
 
-        if (soLuongTonKho < soLuongMoi) {
+        // Kiểm tra tồn kho hợp lệ
+        if (thayDoiSoLuong > 0 && soLuongTonKho < thayDoiSoLuong) {
             redirectAttributes.addFlashAttribute("errorMessage", "Số lượng tồn kho không đủ.");
             return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
         }
 
-        // Cập nhật thông tin hóa đơn chi tiết
+        // Cập nhật số lượng hóa đơn chi tiết
         hoaDonChiTiet.setSoLuong(soLuong);
-        Float thanhTien = sanPhamChiTiet.getGia().floatValue() * soLuong;
-        hoaDonChiTiet.setThanhTien(thanhTien);
+        hoaDonChiTiet.setThanhTien(sanPhamChiTiet.getGia().floatValue() * soLuong);
         hoaDonChiTietRepository.save(hoaDonChiTiet);
 
-        // Cập nhật tồn kho sản phẩm chi tiết
-        sanPhamChiTiet.setSoLuong(soLuongTonKho - soLuongMoi);
-
-        // Kiểm tra số lượng còn lại và cập nhật trạng thái
-        if (sanPhamChiTiet.getSoLuong() == 0) {
-            sanPhamChiTiet.setTrangThai("Hết Hàng");
-        } else {
-            sanPhamChiTiet.setTrangThai("Còn Hàng");
-        }
-
+        // Cập nhật tồn kho
+        sanPhamChiTiet.setSoLuong(soLuongTonKho - thayDoiSoLuong);
+        sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() == 0 ? "Hết Hàng" : "Còn Hàng");
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 
         // Cập nhật tồn kho sản phẩm chính
-        SanPham sanPham = sanPhamChiTiet.getSanPham();
-        updateStockForProduct(sanPham);
+        updateStockForProduct(sanPhamChiTiet.getSanPham());
 
         // Cập nhật tổng tiền hóa đơn
         updateInvoiceTotal(hoaDonId);
 
+        // Kiểm tra và cập nhật phiếu giảm giá
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
+        if (hoaDon != null) {
+            PhieuGiamGia bestVoucher = findBestVoucherForInvoice(hoaDon.getTongTien());
+            if (bestVoucher != null && !bestVoucher.equals(hoaDon.getPhieuGiamGia())) {
+                hoaDon.setPhieuGiamGia(bestVoucher);
+                hoaDonRepository.save(hoaDon);
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật số lượng thành công!");
         return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
     }
 
-
-
     // Phương thức thêm chi tiết sản phẩm vào hóa đơn
     public String addProductDetailToHoaDon(Integer sanPhamChiTietId, Integer hoaDonId, Integer soLuong, RedirectAttributes redirectAttributes) {
+        // Tìm sản phẩm chi tiết
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(sanPhamChiTietId).orElse(null);
         if (sanPhamChiTiet == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Sản phẩm chi tiết không tồn tại.");
             return "redirect:/admin/sell-counter";
         }
 
+        // Tìm hóa đơn
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
         if (hoaDon == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Hóa đơn không tồn tại.");
@@ -103,7 +105,7 @@ public class HoaDonChiTietService {
             return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
         }
 
-        // Tạo mới hoặc cập nhật sản phẩm chi tiết trong hóa đơn
+        // Tạo hoặc cập nhật sản phẩm chi tiết trong hóa đơn
         HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonIdAndSanPhamChiTietId(hoaDonId, sanPhamChiTietId).orElse(new HoaDonChiTiet());
         hoaDonChiTiet.setHoaDon(hoaDon);
         hoaDonChiTiet.setSanPhamChiTiet(sanPhamChiTiet);
@@ -114,14 +116,7 @@ public class HoaDonChiTietService {
 
         // Trừ số lượng tồn kho
         sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() - soLuong);
-
-        // Kiểm tra số lượng còn lại và cập nhật trạng thái sản phẩm chi tiết
-        if (sanPhamChiTiet.getSoLuong() == 0) {
-            sanPhamChiTiet.setTrangThai("Hết Hàng");
-        } else {
-            sanPhamChiTiet.setTrangThai("Còn Hàng");
-        }
-
+        sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() == 0 ? "Hết Hàng" : "Còn Hàng");
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 
         // Cập nhật số lượng tồn kho cho sản phẩm chính
@@ -131,12 +126,22 @@ public class HoaDonChiTietService {
         // Cập nhật tổng tiền hóa đơn
         updateInvoiceTotal(hoaDonId);
 
+        // Tìm phiếu giảm giá tốt nhất cho hóa đơn
+        PhieuGiamGia bestVoucher = findBestVoucherForInvoice(hoaDon.getTongTien());
+        if (bestVoucher != null) {
+            hoaDon.setPhieuGiamGia(bestVoucher);  // Gán phiếu giảm giá vào hóa đơn
+            hoaDonRepository.save(hoaDon);  // Lưu hóa đơn với phiếu giảm giá
+        }
+
+        // Thêm thông báo thành công
         redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm vào hóa đơn thành công!");
+
         return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
     }
 
     // Phương thức xóa sản phẩm khỏi hóa đơn
     public String deleteProductOrder(Integer hoaDonChiTietId, Integer hoaDonId, RedirectAttributes redirectAttributes) {
+        // Tìm hóa đơn chi tiết
         HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(hoaDonChiTietId).orElse(null);
         if (hoaDonChiTiet == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Hóa đơn chi tiết không tồn tại.");
@@ -168,16 +173,16 @@ public class HoaDonChiTietService {
 
         // Kiểm tra tổng tiền và điều kiện phiếu giảm giá
         if (hoaDon.getPhieuGiamGia() != null) {
-            Double tongTien = hoaDon.getTongTien();
+            Float tongTien = hoaDon.getTongTien();
             Float dieuKienPhieuGiamGia = hoaDon.getPhieuGiamGia().getDieuKien();
             if (tongTien < dieuKienPhieuGiamGia) {
                 // Gỡ bỏ phiếu giảm giá khỏi hóa đơn
                 hoaDon.setPhieuGiamGia(null);
                 hoaDonRepository.save(hoaDon);
-                redirectAttributes.addFlashAttribute("warningMessage", "Tổng tiền nhỏ hơn điều kiện áp dụng phiếu giảm giá. Phiếu giảm giá đã bị gỡ bỏ.");
             }
         }
 
+        // Thêm thông báo thành công
         redirectAttributes.addFlashAttribute("successMessage", "Xóa hóa đơn chi tiết thành công!");
         return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
     }
@@ -197,11 +202,37 @@ public class HoaDonChiTietService {
     private void updateInvoiceTotal(Integer hoaDonId) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
         if (hoaDon != null) {
-            double tongTien = hoaDonChiTietRepository.findByHoaDonId(hoaDonId).stream()
+            Float tongTien = (float) hoaDonChiTietRepository.findByHoaDonId(hoaDonId).stream()
                     .mapToDouble(HoaDonChiTiet::getThanhTien)
                     .sum();
             hoaDon.setTongTien(tongTien);
             hoaDonRepository.save(hoaDon);
         }
+    }
+
+    public PhieuGiamGia findBestVoucherForInvoice(Float tongTien) {
+        // Lấy danh sách các phiếu giảm giá còn hiệu lực và đang hoạt động
+        List<PhieuGiamGia> availableVouchers = phieuGiamGiaRepository.findAllByTrangThai("Đang Hoạt Động");
+
+        // Lọc các phiếu giảm giá có điều kiện phù hợp với tổng tiền hóa đơn
+        List<PhieuGiamGia> validVouchers = availableVouchers.stream()
+                .filter(voucher -> tongTien >= voucher.getDieuKien())  // Điều kiện tổng tiền >= điều kiện phiếu giảm giá
+                .filter(voucher -> voucher.getNgayBatDau().isBefore(LocalDateTime.now()) &&  // Phiếu giảm giá còn hiệu lực
+                        voucher.getNgayKetThuc().isAfter(LocalDateTime.now()))
+                .sorted(Comparator.comparing(PhieuGiamGia::getGiaTri).reversed())  // Sắp xếp giảm dần theo giá trị phiếu
+                .toList();
+
+        // Trả về phiếu giảm giá có giá trị cao nhất nếu có, nếu không trả về null
+        return validVouchers.isEmpty() ? null : validVouchers.get(0);
+    }
+
+
+    public int getTongSanPhamBanTrongThang() {
+        return hoaDonChiTietRepository.getTongSanPhamBanTrongThang();
+    }
+
+    public Page<Object[]> getTotalSoldByProductInMonthWithImages(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size); // page bắt đầu từ 0
+        return hoaDonChiTietRepository.getTotalSoldByProductInMonth(pageable);
     }
 }

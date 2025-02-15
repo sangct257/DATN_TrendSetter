@@ -9,4 +9,7 @@ public interface PhuongThucThanhToanRepository extends JpaRepository<PhuongThucT
 
     // Lấy phương thức thanh toán đầu tiên theo ID tăng dần
     PhuongThucThanhToan findFirstByOrderByIdAsc();
+
+    PhuongThucThanhToan findByTenPhuongThuc(String tenPhuongThuc);
+
 }
