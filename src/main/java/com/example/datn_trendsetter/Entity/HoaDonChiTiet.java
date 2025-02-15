@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -35,8 +37,5 @@ public class HoaDonChiTiet {
 
     @Column(name = "thanh_tien")
     private Float thanhTien;
-
-//    @OneToMany(fetch = FetchType.EAGER)
-//    private Set<HinhAnh> hinhAnh;
 
 }

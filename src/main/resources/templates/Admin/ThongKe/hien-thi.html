@@ -1,6 +1,92 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<!-- Thêm một chút CSS để cải thiện giao diện -->
 <head th:replace="admin/fragments/head :: head"></head>
+<style>
+    /* Thiết kế tổng thể cho card */
+    .card1 {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Thêm hiệu ứng hover cho card */
+    .card1:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Cải thiện card-body */
+    .card1-body {
+        padding: 20px;
+        background-color: #000000;
+        border-radius: 10px;
+        color: #333;
+    }
+
+    /* Thiết kế tiêu đề */
+    h2 {
+        font-family: 'Roboto', sans-serif;
+        font-size: 28px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    /* Khoảng cách giữa các card */
+    .mb-3 {
+        margin-bottom: 20px;
+    }
+
+    /* Làm đậm các nhãn và cải thiện không gian */
+    .font-weight-bold {
+        font-weight: 700;
+        font-size: 16px;
+        color: #16a085;
+    }
+
+    /* Các phần tử tăng trưởng với màu sắc */
+    .growth {
+        font-size: 16px;
+        color: #e74c3c; /* Màu đỏ để tạo điểm nhấn */
+    }
+
+    /* Cải thiện khoảng cách giữa các phần tử */
+    .ml-2 {
+        margin-left: 10px;
+    }
+
+    /* Cải thiện giao diện của các số liệu */
+    #doanhThuNgayNay,
+    #doanhThuThangNay,
+    #doanhThuNamNay,
+    #soLuongSanPhamThangNay,
+    #soLuongHoaDonNgayNay,
+    #soLuongHoaDonThangNay {
+        font-size: 18px;
+        font-weight: bold;
+        color: #27ae60; /* Màu xanh lá cây cho các giá trị */
+    }
+
+    /* Cải thiện vị trí và căn giữa */
+    .text-center {
+        text-align: center;
+    }
+
+    /* Tạo hiệu ứng đẹp cho chữ số và % */
+    #tangTruongNgay,
+    #tangTruongThang,
+    #tangTruongNam,
+    #tangTruongSanPham,
+    #tangTruongHoaDonNgay,
+    #tangTruongHoaDonThang {
+        font-size: 16px;
+        font-weight: 600;
+        color: #f39c12; /* Màu vàng để làm nổi bật phần tăng trưởng */
+    }
+
+</style>
+<!-- Thêm một số hiệu ứng CSS cho đẹp hơn -->
 <body class="hold-transition skin-blue sidebar-mini">
 <!-- Site wrapper -->
 <div class="wrapper">
@@ -18,13 +104,11 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Blank page
-                <small>it all starts here</small>
+                Thống Kê
             </h1>
             <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
+                <li><a href="#"><i class="fa fa-dashboard"></i><a href="/admin">Home</a></a></li>
+                <li><a href="#">Thống Kê</a></li>
             </ol>
         </section>
 
@@ -34,7 +118,282 @@
             <!-- Default box -->
             <div class="box">
                 <div class="box-body">
-                    <h1>Danh sach thong ke</h1>
+                    <div class="container mt-4">
+                        <div class="row">
+                            <!-- Cột bên trái chứa các thẻ thông tin (cards) -->
+                            <div class="col-md-4">
+                                <div class="card text-white bg-primary mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Doanh số tháng này</h5>
+                                        <p class="display-4" th:text="${soLuongHoaDonThangNay}"></p>
+                                        <!-- Hiển thị số lượng hóa đơn -->
+                                        <p class="h4" th:if="${doanhThuThangNay == 0}">0 VND</p>
+                                        <p class="h4" th:if="${doanhThuThangNay != 0}"
+                                           th:text="${#numbers.formatInteger(doanhThuThangNay, 3, 'COMMA') + ' VND'}"></p>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card text-white bg-warning mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Doanh số hôm nay</h5>
+                                        <p class="display-4" th:text="${soLuongHoaDonNgayNay}"></p>
+                                        <!-- Hiển thị số lượng hóa đơn -->
+                                        <p class="h4" th:if="${doanhThuNgayNay == 0}">0 VND</p>
+                                        <p class="h4" th:if="${doanhThuNgayNay != 0}"
+                                           th:text="${#numbers.formatInteger(doanhThuNgayNay, 3, 'COMMA') + ' VND'}"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card text-white bg-success mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Sản phẩm bán được trong tháng</h5>
+                                        <p class="display-4" th:text="${soLuongSanPhamThangNay}"></p>
+                                        <!-- Tổng sản phẩm -->
+                                        <p class="h4">Sản phẩm</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container mt-5">
+                            <h2 class="text-center mb-4">Biểu đồ Thống Kê Bán Hàng</h2>
+
+                            <!-- Bộ lọc -->
+                            <div class="row justify-content-center mb-4">
+                                <div class="col-md-10 d-flex justify-content-around">
+                                    <button type="button" class="btn btn-outline-primary" id="dayFilter">Ngày</button>
+                                    <button type="button" class="btn btn-outline-primary" id="sevenDaysFilter">7 Ngày
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" id="monthFilter">Tháng
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" id="yearFilter">Năm</button>
+                                    <button type="button" class="btn btn-outline-primary" id="customFilter">Tùy chỉnh
+                                    </button>
+                                </div>
+                                <!-- Tùy chỉnh ngày (hiển thị khi chọn Tùy chỉnh) -->
+                                <div class="row justify-content-center text-center" id="customDateRange"
+                                     style="display: none;">
+                                    <div class="col-md-10 d-flex justify-content-around">
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <input type="date" id="startDate"
+                                                       class="form-control form-control-lg rounded-pill border-0 shadow-sm"
+                                                       placeholder="Ngày bắt đầu">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2"></div>
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <input type="date" id="endDate"
+                                                       class="form-control form-control-lg rounded-pill border-0 shadow-sm"
+                                                       placeholder="Ngày kết thúc">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Biểu đồ -->
+                            <div class="row justify-content-center mt-5">
+                                <div class="col-md-10">
+                                    <div class="card shadow-lg border-0 rounded-4">
+                                        <div class="card-header text-center bg-gradient-primary text-black rounded-4">
+                                            <h4 class="m-1">Biểu Đồ Thống Kê Bán Hàng</h4>
+                                        </div>
+                                        <div class="card-body py-4 px-5">
+                                            <canvas id="myChart" height="500"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top sản phẩm Trong tháng -->
+                        <div class="container mt-5">
+                            <!-- Dòng đầu tiên: Top Sản Phẩm Bán Chạy và Trạng Thái Đơn Hàng -->
+                            <div class="row mt-5">
+                                <!-- Cột bên trái: Top Sản Phẩm Bán Chạy -->
+                                <div class="col-md-6 border-dark shadow-lg border-0 rounded-4">
+                                    <h2 class="text-center">Top Sản Phẩm Bán Chạy Trong Tháng</h2>
+                                    <div id="productsList" class="list-group">
+                                        <div class="shadow-lg border-0 rounded-4">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr class="text-center">
+                                                    <th scope="col">STT</th>
+                                                    <th scope="col">Hình Ảnh</th>
+                                                    <th scope="col">Tên Sản Phẩm</th>
+                                                    <th scope="col">Giá</th>
+                                                    <th scope="col">Tổng Số Lượng Bán</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody class="text-center">
+                                                <tr th:each="product, iterStat : ${productsPage}">
+                                                    <td th:text="${iterStat.index + 1}"></td> <!-- STT -->
+                                                    <td>
+                                                        <img th:src="@{${'/images/'+product[0]}}" alt="Hình Ảnh" width="80">
+                                                    </td> <!-- Hình ảnh -->
+                                                    <td th:text="${product[1]}"></td> <!-- Tên sản phẩm -->
+                                                    <td th:text="${#numbers.formatInteger(product[2], 3, 'COMMA') + ' VND'}"></td> <!-- Giá sản phẩm -->
+                                                    <td style="color: red; font-weight: bold; font-size: 1.2em;" th:text="${product[4]}"></td> <!-- Tổng số lượng bán -->
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <!-- Phân trang -->
+                                        <div id="productsPagination" class="pagination">
+                                            <div class="container mt-4">
+                                                <ul class="pagination justify-content-center">
+                                                    <li th:class="${productsPage.hasPrevious() ? '' : 'disabled'}"
+                                                        class="page-item">
+                                                        <a href="#" class="page-link"
+                                                           th:attr="data-page=${productsPage.number - 1}">Previous</a>
+                                                    </li>
+                                                    <li th:each="i : ${#numbers.sequence(0, productsPage.totalPages - 1)}"
+                                                        th:class="${i == productsPage.number ? 'page-item active' : 'page-item'}">
+                                                        <a href="#" class="page-link" th:attr="data-page=${i}"
+                                                           th:text="${i + 1}"></a>
+                                                    </li>
+                                                    <li th:class="${productsPage.hasNext() ? '' : 'disabled'}"
+                                                        class="page-item">
+                                                        <a href="#" class="page-link"
+                                                           th:attr="data-page=${productsPage.number + 1}">Next</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cột bên phải: Trạng Thái Đơn Hàng -->
+                                <div class="col-md-6 border-dark shadow-lg border-0 rounded-4">
+                                    <h2 class="text-center">Trạng Thái Đơn Hàng Tháng Này</h2>
+                                    <canvas id="orderStatusChart" class="card shadow-lg border-0 rounded-4"
+                                            style="width: 60%; height: 200px;"></canvas>
+                                </div>
+
+                            </div>
+
+                            <!-- Dòng thứ hai: Sản Phẩm Sắp Hết Hàng và Tốc Độ Tăng Trưởng -->
+                            <div class="row mt-5">
+                                <!-- Cột bên trái: Sản Phẩm Sắp Hết Hàng -->
+                                <div class="col-md border-dark shadow-lg border-0 rounded-4">
+                                    <h2 class="text-center">Sản Phẩm Sắp Hết Hàng</h2>
+                                    <div id="lowStockList" class="list-group">
+                                        <div class="shadow-lg border-0 rounded-4">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr class="text-center">
+                                                    <th scope="col">STT</th>
+                                                    <th scope="col">Hình Ảnh</th>
+                                                    <th scope="col">Tên Sản Phẩm</th>
+                                                    <th scope="col">Giá</th>
+                                                    <th scope="col">Tổng Số Lượng Bán</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody class="text-center">
+                                                <tr th:each="lowStockProduct, iterStat : ${lowStockProducts.content}">
+                                                    <td th:text="${iterStat.index + 1}"></td>
+                                                    <td>
+                                                        <img th:src="@{${'/images/'+lowStockProduct.hinhAnh[0].urlHinhAnh}}"
+                                                             alt="Hình Ảnh" width="80">
+                                                    </td>
+                                                    <td th:text="${lowStockProduct.sanPham.tenSanPham + ' - ' + lowStockProduct.mauSac.tenMauSac + ' - ' + lowStockProduct.kichThuoc.tenKichThuoc}"></td>
+                                                    <td th:text="${#numbers.formatInteger(lowStockProduct.gia, 3, 'COMMA') + ' VND'}"></td>
+                                                    <td style="color: red; font-weight: bold; font-size: 1.2em;"
+                                                        th:text="${lowStockProduct.soLuong}"></td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <!-- Phân trang -->
+                                        <div id="lowStockProducts" class="pagination">
+                                            <div class="container mt-4">
+                                                <ul class="pagination justify-content-center">
+                                                    <li th:class="${lowStockProducts.hasPrevious() ? '' : 'disabled'}" class="page-item">
+                                                        <a href="#" class="page-link" th:attr="data-page=${lowStockProducts.number - 1}">Previous</a>
+                                                    </li>
+                                                    <li th:each="i : ${#numbers.sequence(1, lowStockProducts.totalPages)}"
+                                                        th:class="${i == lowStockProducts.number + 1 ? 'page-item active' : 'page-item'}">
+                                                        <a href="#" class="page-link" th:attr="data-page=${i - 1}" th:text="${i}"></a>
+                                                    </li>
+                                                    <li th:class="${lowStockProducts.hasNext() ? '' : 'disabled'}" class="page-item">
+                                                        <a href="#" class="page-link" th:attr="data-page=${lowStockProducts.number + 1}">Next</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cột bên phải: Tốc Độ Tăng Trưởng Cửa Hàng -->
+                                <div class="col-md-6 border-dark shadow-lg border-0 rounded-4">
+                                    <h2 class="text-center mb-4">Tốc Độ Tăng Trưởng Cửa Hàng</h2>
+                                    <div class="shadow-lg border-0 rounded-4">
+                                        <!-- Doanh thu ngày -->
+                                        <div class="card1 mb-3">
+                                            <div class="card1-body d-flex justify-content-between align-items-center">
+                                                <span class="font-weight-bold">📅 Doanh thu ngày </span>
+                                                <span id="doanhThuNgayNay" class="font-weight-bold">1.000.000 ₫</span>
+                                                <span class="growth ml-2 text-center" id="tangTruongNgay">100%</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Doanh thu tháng -->
+                                        <div class="card1 mb-3">
+                                            <div class="card1-body d-flex justify-content-between align-items-center">
+                                                <span class="font-weight-bold">📅 Doanh thu tháng </span>
+                                                <span id="doanhThuThangNay">...</span>
+                                                <span class="growth ml-2 text-center" id="tangTruongThang">...</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Doanh thu năm -->
+                                        <div class="card1 mb-3">
+                                            <div class="card1-body d-flex justify-content-between align-items-center">
+                                                <span class="font-weight-bold">📅 Doanh thu năm </span>
+                                                <span id="doanhThuNamNay">...</span>
+                                                <span class="growth ml-2 text-center" id="tangTruongNam">...</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sản phẩm tháng -->
+                                        <div class="card1 mb-3">
+                                            <div class="card1-body d-flex justify-content-between align-items-center">
+                                                <span class="font-weight-bold">📦 Sản phẩm tháng </span>
+                                                <span id="soLuongSanPhamThangNay">...</span>
+                                                <span class="growth ml-2 text-center" id="tangTruongSanPham">...</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Hóa đơn ngày -->
+                                        <div class="card1 mb-3">
+                                            <div class="card1-body d-flex justify-content-between align-items-center">
+                                                <span class="font-weight-bold">🧾 Hóa đơn ngày </span>
+                                                <span id="soLuongHoaDonNgayNay">...</span>
+                                                <span class="growth ml-2 text-center" id="tangTruongHoaDonNgay">...</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Hóa đơn tháng -->
+                                        <div class="card1 mb-3">
+                                            <div class="card1-body d-flex justify-content-between align-items-center">
+                                                <span class="font-weight-bold">🧾 Hóa đơn tháng </span>
+                                                <span id="soLuongHoaDonThangNay">...</span>
+                                                <span class="growth ml-2 text-center" id="tangTruongHoaDonThang">...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- /.box -->
@@ -51,6 +410,291 @@
 <!-- ./wrapper -->
 
 <!-- jQuery 3 -->
+<!-- Thêm Chart.js JS để tạo biểu đồ -->
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        // Lấy giá trị từ các thuộc tính data-value
+        const doanhThuNgayNay = /*[[${doanhThuNgayNay}]]*/ 0;
+        const doanhThuThangNay = /*[[${doanhThuThangNay}]]*/ 0;
+        const doanhThuNamNay = /*[[${doanhThuNamNay}]]*/ 0;
+        const soLuongSanPhamThangNay = /*[[${soLuongSanPhamThangNay}]]*/ 0;
+        const soLuongHoaDonNgayNay = /*[[${soLuongHoaDonNgayNay}]]*/ 0;
+        const soLuongHoaDonThangNay = /*[[${soLuongHoaDonThangNay}]]*/ 0;
+
+        // Dữ liệu trước để tính toán tăng trưởng
+        const tangTruongNgay = /*[[${prevTangTruongNgay}]]*/ 0;
+        const doanhThuThang = /*[[${prevDoanhThuThang}]]*/ 0; // Đã được cập nhật từ backend
+        const doanhThuNam = /*[[${prevDoanhThuNam}]]*/ 0;
+        const tangTruongSanPham = /*[[${tangTruongSanPham}]]*/ 0;
+        const tangTruongHoaDonNgay = /*[[${tangTruongHoaDonNgay}]]*/ 0;
+        const tangTruongHoaDonThang = /*[[${tangTruongHoaDonThang}]]*/ 0;
+
+        // Hiển thị doanh thu
+        document.getElementById("doanhThuNgayNay").textContent = formatCurrency(doanhThuNgayNay);
+        document.getElementById("doanhThuThangNay").textContent = formatCurrency(doanhThuThangNay);
+        document.getElementById("doanhThuNamNay").textContent = formatCurrency(doanhThuNamNay);
+        document.getElementById("soLuongSanPhamThangNay").textContent = soLuongSanPhamThangNay + " Sản phẩm";
+        document.getElementById("soLuongHoaDonNgayNay").textContent = soLuongHoaDonNgayNay + " Hóa đơn";
+        document.getElementById("soLuongHoaDonThangNay").textContent = soLuongHoaDonThangNay + " Hóa đơn";
+
+        // Hiển thị tăng trưởng
+        document.getElementById("tangTruongNgay").textContent = calculateGrowth(tangTruongNgay, doanhThuNgayNay) + "%";
+        document.getElementById("tangTruongThang").textContent = calculateGrowth(doanhThuThang, doanhThuThangNay) + "%";
+        document.getElementById("tangTruongNam").textContent = calculateGrowth(doanhThuNam, doanhThuNamNay) + "%";
+        document.getElementById("tangTruongSanPham").textContent = tangTruongSanPham + "%";
+        document.getElementById("tangTruongHoaDonNgay").textContent = tangTruongHoaDonNgay + "%";
+        document.getElementById("tangTruongHoaDonThang").textContent = tangTruongHoaDonThang + "%";
+
+    });
+
+    // Hàm tính toán % tăng trưởng
+    function calculateGrowth(prevValue, currentValue) {
+        if (prevValue === 0 || currentValue === 0) return 0; // Trả về 0 nếu không có dữ liệu
+        return ((currentValue - prevValue) / prevValue * 100).toFixed(2);
+    }
+
+    // Hàm định dạng số tiền
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+</script>
+
+<script th:inline="javascript">
+
+    var labels = /*[[${dates}]]*/ [];
+    var salesData = /*[[${salesData}]]*/ [];
+    var invoiceData = /*[[${invoiceData}]]*/ [];
+    var originalLabels = labels;
+    var originalSalesData = salesData;
+    var originalInvoiceData = invoiceData;
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Số lượng sản phẩm bán ra',
+                    data: salesData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Số lượng hóa đơn',
+                    data: invoiceData,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    ticks: {autoSkip: false},
+                    min: Math.max(0, labels.length - 12),
+                    max: labels.length - 1
+                },
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    },
+                    zoom: {
+                        wheel: {enabled: true},
+                        pinch: {enabled: true},
+                        mode: 'x',
+                    }
+                }
+            }
+        }
+    });
+
+    // Chọn bộ lọc ngày
+    document.getElementById('dayFilter').addEventListener('click', function () {
+        updateChartData('1');
+    });
+
+    document.getElementById('sevenDaysFilter').addEventListener('click', function () {
+        updateChartData('7');
+    });
+
+    document.getElementById('monthFilter').addEventListener('click', function () {
+        updateChartData('30');
+    });
+
+    document.getElementById('yearFilter').addEventListener('click', function () {
+        updateChartData('365');
+    });
+
+    document.getElementById('customFilter').addEventListener('click', function () {
+        document.getElementById('customDateRange').style.display = 'block';
+        updateChartData(); // reset chart if the custom filter is clicked
+    });
+
+    // Sử dụng ngày tùy chỉnh
+    document.getElementById('startDate').addEventListener('change', applyCustomDateFilter);
+    document.getElementById('endDate').addEventListener('change', applyCustomDateFilter);
+
+    function applyCustomDateFilter() {
+        var startDate = document.getElementById('startDate').value;
+        var endDate = document.getElementById('endDate').value;
+        if (startDate && endDate) {
+            updateChartData(null, startDate, endDate);
+        }
+    }
+
+    // Hàm chuẩn hóa ngày (loại bỏ giờ, phút, giây)
+    function normalizeDate(date) {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Chỉ lấy năm, tháng, ngày
+    }
+
+    function updateChartData(filterValue, startDate = null, endDate = null) {
+        var filteredLabels = [];
+        var filteredSalesData = [];
+        var filteredInvoiceData = [];
+
+        var currentDate = new Date();
+        var filterDate;
+
+        // Chuẩn hóa ngày hiện tại
+        currentDate = normalizeDate(currentDate);
+
+        // Xử lý bộ lọc theo ngày, 7 ngày, tháng, năm
+        if (filterValue) {
+            switch (filterValue) {
+                case '1': // Ngày
+                    filterDate = normalizeDate(new Date()); // Lấy ngày hôm nay
+                    break;
+                case '7': // 7 Ngày
+                    filterDate = new Date();
+                    filterDate.setDate(currentDate.getDate() - 7); // 7 ngày trước
+                    filterDate = normalizeDate(filterDate); // Chuẩn hóa ngày
+                    break;
+                case '30': // Tháng
+                    filterDate = new Date();
+                    filterDate.setMonth(currentDate.getMonth() - 1); // 1 tháng trước
+                    filterDate = normalizeDate(filterDate); // Chuẩn hóa ngày
+                    break;
+                case '365': // Năm
+                    filterDate = new Date();
+                    filterDate.setFullYear(currentDate.getFullYear() - 1); // 1 năm trước
+                    filterDate = normalizeDate(filterDate); // Chuẩn hóa ngày
+                    break;
+            }
+
+            // Lọc dữ liệu theo ngày
+            for (var i = 0; i < originalLabels.length; i++) {
+                var dateParts = originalLabels[i].split(' - '); // Chia ngày thành các phần
+                var labelDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); // Tạo đối tượng Date từ ngày trong label
+                labelDate = normalizeDate(labelDate); // Chuẩn hóa ngày trong label
+
+                // Điều kiện lọc: labelDate phải lớn hơn hoặc bằng filterDate
+                if (labelDate >= filterDate) {
+                    filteredLabels.push(originalLabels[i]);
+                    filteredSalesData.push(originalSalesData[i]);
+                    filteredInvoiceData.push(originalInvoiceData[i]);
+                }
+            }
+        } else if (startDate && endDate) { // Tùy chỉnh ngày
+            var start = new Date(startDate);
+            var end = new Date(endDate);
+
+            // Chuẩn hóa ngày bắt đầu và ngày kết thúc
+            start = normalizeDate(start);
+            end = normalizeDate(end);
+
+            for (var i = 0; i < originalLabels.length; i++) {
+                var dateParts = originalLabels[i].split(' - '); // Chia ngày thành các phần
+                var labelDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); // Tạo đối tượng Date từ ngày trong label
+                labelDate = normalizeDate(labelDate); // Chuẩn hóa ngày trong label
+
+                // Điều kiện lọc: labelDate phải trong khoảng start và end
+                if (labelDate >= start && labelDate <= end) {
+                    filteredLabels.push(originalLabels[i]);
+                    filteredSalesData.push(originalSalesData[i]);
+                    filteredInvoiceData.push(originalInvoiceData[i]);
+                }
+            }
+        }
+
+        // Cập nhật lại dữ liệu biểu đồ
+        myChart.data.labels = filteredLabels;
+        myChart.data.datasets[0].data = filteredSalesData;
+        myChart.data.datasets[1].data = filteredInvoiceData;
+        myChart.update();
+    }
+</script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var processingPercentage = [[${processingPercentage}]];
+    var waitingConfirmationPercentage = [[${waitingConfirmationPercentage}]];
+    var confirmedPercentage = [[${confirmedPercentage}]];
+    var waitingDeliveryPercentage = [[${waitingDeliveryPercentage}]];
+    var shippingPercentage = [[${shippingPercentage}]];
+    var completedPercentage = [[${completedPercentage}]];
+    var paidPercentage = [[${paidPercentage}]];
+    var finishedPercentage = [[${finishedPercentage}]];
+    var cancelledPercentage = [[${cancelledPercentage}]];
+    var failedPercentage = [[${failedPercentage}]];
+
+    var ctx = document.getElementById('orderStatusChart').getContext('2d');
+
+    var orderStatusChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Đang Xử Lý', 'Chờ Xác Nhận', 'Đã Xác Nhận', 'Chờ Vận Chuyển', 'Đang Giao Hàng',
+                'Đã Giao Hàng', 'Đã Thanh Toán', 'Đã Hoàn Thành', 'Đã Hủy', 'Hoàn Trả'],
+            datasets: [{
+                label: 'Trạng Thái Đơn Hàng',
+                data: [
+                    processingPercentage,
+                    waitingConfirmationPercentage,
+                    confirmedPercentage,
+                    waitingDeliveryPercentage,
+                    shippingPercentage,
+                    completedPercentage,
+                    paidPercentage,
+                    finishedPercentage,
+                    cancelledPercentage,
+                    failedPercentage
+                ],
+                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#ffc0cb', '#dc3545', '#6c757d', '#007bff', '#8e44ad', '#f39c12', '#d35400'],
+                borderColor: ['#218838', '#e0a800', '#138496', '#e0a0a0', '#c82333', '#5a6268', '#0056b3', '#6c3483', '#d68910', '#b03a2e'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    /*]]>*/
+</script>
+
+<!-- Thêm các tài nguyên JavaScript (jQuery, v.v.) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div th:replace="admin/fragments/script :: script"></div>
 

@@ -41,7 +41,7 @@ public class HoaDon {
     private String maHoaDon;
 
     @Column(name = "tong_tien")
-    private Double tongTien;
+    private Float tongTien;
 
     @Column(name = "nguoi_nhan",columnDefinition = "NVARCHAR(255)")
     private String nguoiNhan;
@@ -61,9 +61,6 @@ public class HoaDon {
     @Column(name = "thanh_pho",columnDefinition = "NVARCHAR(255)")
     private String thanhPho;
 
-    @Column(name = "ghi_chu",columnDefinition = "NVARCHAR(255)")
-    private String ghiChu;
-
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
 
@@ -82,14 +79,17 @@ public class HoaDon {
     @Column(name = "qr_image",columnDefinition = "NVARCHAR(255)")
     private String qrImage;
 
-    @Column(name = "deleted")
-    private Boolean deleted;
+    @Column(name = "ghi_chu",columnDefinition = "NVARCHAR(255)")
+    private String ghiChu;
 
     @Column(name = "phi_ship")
-    private Double phiShip ;
+    private Float phiShip ;
 
     @Column(name = "loai_hoa_don",columnDefinition = "NVARCHAR(255)")
     private String loaiHoaDon;
+
+    @Column(name = "loai_giao_dich",columnDefinition = "NVARCHAR(255)")
+    private String loaiGiaoDich;
 
     @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HoaDonChiTiet> hoaDonChiTiet = new ArrayList<>();

@@ -1,9 +1,6 @@
 package com.example.datn_trendsetter.Controller.Admin;
 
-import com.example.datn_trendsetter.DTO.ShippingUpdateRequest;
 import com.example.datn_trendsetter.Entity.*;
-import com.example.datn_trendsetter.Repository.HoaDonRepository;
-import com.example.datn_trendsetter.Repository.PhuongThucThanhToanRepository;
 import com.example.datn_trendsetter.Service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,28 +22,43 @@ public class ShopController {
 
     @GetMapping("admin/sell-counter")
     public String sellCounter(@RequestParam(value = "hoaDonId", required = false) Integer hoaDonId,
-                              Model model,
-                              RedirectAttributes redirectAttributes) {
-        shopService.getHoaDonAndProducts(hoaDonId, model, redirectAttributes);
+                              Model model) {
+        shopService.getHoaDonAndProducts(hoaDonId, model);
         return "Admin/dashboard"; // Return to the page where the form is rendered
     }
 
+
+    @GetMapping("admin/add-product-modal")
+    public String addproductmodal(@RequestParam(value = "hoaDonId", required = false) Integer hoaDonId,
+                              Model model) {
+        shopService.getProducts(hoaDonId, model);
+        return "Admin/add-product-modal"; // Return to the page where the form is rendered
+    }
+
     @PostMapping("create-hoa-don")
-    public String createHoaDon(HoaDon hoaDon, RedirectAttributes redirectAttributes) {
-        return shopService.createHoaDon(hoaDon, redirectAttributes);
+    public String createHoaDon(HoaDon hoaDon) {
+         shopService.createHoaDon(hoaDon);
+        return "redirect:/admin/sell-counter";
     }
 
     @PostMapping("delete/{id}")
-    public String deleteHoaDon(@PathVariable("id") Integer hoaDonId) {
+    public String deleteHoaDon(@PathVariable("id") Integer hoaDonId, RedirectAttributes redirectAttributes) {
         try {
+            // Gọi service để xóa hóa đơn
             shopService.deleteHoaDon(hoaDonId);
-            return "redirect:/admin/sell-counter"; // Chuyển hướng đến danh sách hóa đơn
+
+            // Thêm thông báo thành công
+            redirectAttributes.addFlashAttribute("successMessage", "Hóa đơn đã được xóa thành công!");
+
         } catch (Exception e) {
-            // Thực hiện xử lý khi có lỗi xảy ra, ví dụ: thông báo lỗi cho người dùng
-            return "redirect:/admin/sell-counter";
-            // Chuyển hướng đến danh sách với thông báo lỗi
+            // Thêm thông báo lỗi nếu có ngoại lệ
+            redirectAttributes.addFlashAttribute("errorMessage", "Xóa hóa đơn thất bại: " + e.getMessage());
         }
+
+        // Chuyển hướng về trang danh sách hóa đơn
+        return "redirect:/admin/sell-counter";
     }
+
 
     // Xử lý thêm sản phẩm vào hóa đơn
     @PostMapping("add-product-order")
@@ -118,12 +130,28 @@ public class ShopController {
 
 
 
-    @PostMapping("update-shipping")
-    public String updateShipping(@ModelAttribute ShippingUpdateRequest request,
+    @PostMapping("/update-shipping")
+    public String updateShipping(@RequestParam("hoaDonId") Integer hoaDonId,
+                                 @RequestParam("soNha") Integer soNha,
+                                 @RequestParam("nguoiNhan") String nguoiNhan,
+                                 @RequestParam("soDienThoai") String soDienThoai,
+                                 @RequestParam("phuong") String phuong,
+                                 @RequestParam("huyen") String huyen,
+                                 @RequestParam("thanhPho") String thanhPho,
                                  RedirectAttributes redirectAttributes) {
-        return shopService.updateShippingAddress(request, redirectAttributes);
+        return shopService.updateShippingAddress(hoaDonId, soNha, nguoiNhan, soDienThoai, phuong, huyen, thanhPho, redirectAttributes);
     }
 
+
+
+    @PostMapping("/add-new-customer")
+    public String addNewCustomer(@RequestParam("hoaDonId") Integer hoaDonId,
+                                 @RequestParam("nguoiNhan") String nguoiNhan,
+                                 @RequestParam("soDienThoai") String soDienThoai,
+                                 RedirectAttributes redirectAttributes) {
+
+        return shopService.addNewCustomer(hoaDonId,nguoiNhan, soDienThoai, redirectAttributes);
+    }
 
 
 }

@@ -37,7 +37,7 @@ public class SanPhamChiTiet {
     private Integer soLuong;
 
     @Column(name = "gia")
-    private Double gia;
+    private Float gia;
 
     @OneToMany(mappedBy = "sanPhamChiTiet",fetch = FetchType.LAZY)
     private List<HinhAnh> hinhAnh;
