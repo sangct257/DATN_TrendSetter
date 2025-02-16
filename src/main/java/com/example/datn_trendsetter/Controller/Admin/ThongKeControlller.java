@@ -30,7 +30,7 @@ public class ThongKeControlller {
     private ThongKeService thongKeService;
 
     @RequestMapping("admin/thong-ke")
-    public String ThongKe(@RequestParam(defaultValue = "1") int page,
+    public String ThongKe(@RequestParam(value = "page", defaultValue = "1") Integer page,
                           Model model) {
 
         // Lấy tháng và năm hiện tại nếu không được truyền từ giao diện
