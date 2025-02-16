@@ -80,7 +80,11 @@ public class HoaDonChiTietService {
         }
 
         redirectAttributes.addFlashAttribute("successMessage", "Cập nhật số lượng thành công!");
-        return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+        if (hoaDon.getTrangThai().equals("Đang Xử Lý")) {
+            return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+        } else {
+            return "redirect:/admin/order-details?hoaDonId=" + hoaDonId;
+        }
     }
 
     // Phương thức thêm chi tiết sản phẩm vào hóa đơn
@@ -136,7 +140,11 @@ public class HoaDonChiTietService {
         // Thêm thông báo thành công
         redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm vào hóa đơn thành công!");
 
-        return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+        if (hoaDon.getTrangThai().equals("Đang Xử Lý")) {
+            return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+        } else {
+            return "redirect:/admin/order-details?hoaDonId=" + hoaDonId;
+        }
     }
 
     // Phương thức xóa sản phẩm khỏi hóa đơn
@@ -184,7 +192,12 @@ public class HoaDonChiTietService {
 
         // Thêm thông báo thành công
         redirectAttributes.addFlashAttribute("successMessage", "Xóa hóa đơn chi tiết thành công!");
-        return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+        if (hoaDon.getTrangThai().equals("Đang Xử Lý")) {
+            return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+        } else {
+            return "redirect:/admin/order-details?hoaDonId=" + hoaDonId;
+        }
+
     }
 
     // Phương thức cập nhật tồn kho cho sản phẩm chính

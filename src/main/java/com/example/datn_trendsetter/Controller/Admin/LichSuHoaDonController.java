@@ -33,11 +33,15 @@ public class LichSuHoaDonController {
     private LichSuHoaDonRepository lichSuHoaDonRepository;
 
     @GetMapping("admin/order-details")
-    public String OderDetails(@RequestParam(value = "hoaDonId", required = false) Integer hoaDonId,
-                              Model model,
-                              @RequestParam(defaultValue = "0") int page) {
-        lichSuHoaDonService.getOrderDetails(hoaDonId, model,page);
-        return "Admin/order-details"; // Return to the page where the form is rendered
+    public String orderDetails(@RequestParam(value = "hoaDonId") Integer hoaDonId,
+                               Model model,
+                               @RequestParam(value = "page", defaultValue = "0") Integer page) {
+        if (hoaDonId == null) {
+            throw new IllegalArgumentException("hoaDonId không được để trống.");
+        }
+
+        lichSuHoaDonService.getOrderDetails(hoaDonId, model, page);
+        return "Admin/order-details";
     }
 
     @PostMapping("xac-nhan")
@@ -224,6 +228,7 @@ public class LichSuHoaDonController {
             HoaDon hoaDon = optionalHoaDon.get();
 
             // Cập nhật trạng thái hóa đơn
+            hoaDon.setLoaiGiaoDich("Trả Sau");
             hoaDon.setTrangThai("Chờ Xác Nhận");
             hoaDonRepository.save(hoaDon);
 
@@ -253,13 +258,13 @@ public class LichSuHoaDonController {
             HoaDon hoaDon = optionalHoaDon.get();
 
             // Cập nhật trạng thái hóa đơn
-            hoaDon.setTrangThai("Hủy");
+            hoaDon.setTrangThai("Đã Hủy");
             hoaDonRepository.save(hoaDon);
 
             // Thêm lịch sử hóa đơn
             LichSuHoaDon lichSu = new LichSuHoaDon();
             lichSu.setHoaDon(hoaDon);
-            lichSu.setHanhDong("Hủy");
+            lichSu.setHanhDong("Đã Hủy");
             lichSu.setNgayTao(LocalDateTime.now());
             lichSu.setNguoiTao(hoaDon.getNguoiTao()); // Hoặc lấy từ session
             lichSu.setGhiChu("Hóa đơn : " +hoaDon.getMaHoaDon() + "đã bị hủy");

@@ -36,9 +36,15 @@ public class ShopController {
     }
 
     @PostMapping("create-hoa-don")
-    public String createHoaDon(HoaDon hoaDon) {
-         shopService.createHoaDon(hoaDon);
+    public String createHoaDon(HoaDon hoaDon,RedirectAttributes redirectAttributes) {
+        try {
+            shopService.createHoaDon(hoaDon);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã tạo hóa đơn thành công");
+        }catch (Exception e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/admin/sell-counter";
+
     }
 
     @PostMapping("delete/{id}")
