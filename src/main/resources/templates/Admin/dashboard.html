@@ -550,8 +550,6 @@
                                     <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri + ' VNĐ' : '0 VNĐ'}"></span>
                                 </div>
 
-
-
                                 <!-- Tổng Tiền -->
                                 <div class="info mb-3">
                                     <!-- Tổng Tiền -->
@@ -592,6 +590,7 @@
                                     </div>
 
                                 </div>
+
                                 <!-- Xác Nhận Thanh Toán -->
                                 <div class="confirm-button mt-3">
                                     <form th:action="@{/confirm-payment}" method="POST">
@@ -655,7 +654,6 @@
 
 <script th:inline="javascript">
     // Hàm tìm kiếm sản phẩm
-    // Hàm tìm kiếm sản phẩm
     function showSuggestions() {
         const searchQuery = document.getElementById('searchInput').value.trim();
         const suggestionsBox = document.getElementById('suggestions');
@@ -717,7 +715,6 @@
     });
 
 </script>
-
 <script>
     $(document).ready(function () {
         $('#addPaymentMethodButton').click(function () {

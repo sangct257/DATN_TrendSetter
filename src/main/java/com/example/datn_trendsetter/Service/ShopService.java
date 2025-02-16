@@ -428,7 +428,7 @@ public class ShopService {
         }
     }
 
-    public String updateShippingAddress(Integer hoaDonId, Integer soNha, String nguoiNhan ,String soDienThoai,  String phuong, String huyen, String thanhPho, RedirectAttributes redirectAttributes) {
+    public String updateShippingAddress(Integer hoaDonId, Integer soNha, String nguoiNhan, String soDienThoai, String phuong, String huyen, String thanhPho, RedirectAttributes redirectAttributes) {
         try {
             // Lấy hóa đơn từ cơ sở dữ liệu
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
@@ -456,8 +456,12 @@ public class ShopService {
 
             // Thêm thông báo thành công
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật địa chỉ giao hàng thành công!");
+            if (hoaDon.getTrangThai().equals("Đang Xử Lý")){
+                return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+            } else {
+                return "redirect:/admin/order-details?hoaDonId=" + hoaDonId;
+            }
 
-            return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
         } catch (Exception e) {
             // Xử lý lỗi
             redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật địa chỉ thất bại: " + e.getMessage());
@@ -501,6 +505,8 @@ public class ShopService {
             if (hasReceiverInfo) {
                 hoaDon.setLoaiHoaDon("Giao Hàng");
                 hoaDon.setLoaiGiaoDich("Trả Sau");
+                // Thiết lập thời gian nhận dự kiến (ví dụ: sau 3 ngày)
+                hoaDon.setThoiGianNhanDuKien(LocalDate.now().plusDays(3));
                 hoaDon.setTrangThai("Chờ Xác Nhận");
             } else {
                 hoaDon.setLoaiHoaDon("Tại Quầy");
@@ -516,9 +522,9 @@ public class ShopService {
 
             // Cập nhật thời gian sửa đổi hóa đơn
             hoaDon.setNgaySua(LocalDateTime.now());
-
             // Lưu hóa đơn vào cơ sở dữ liệu
             hoaDonRepository.save(hoaDon);
+
 
             // Tạo lịch sử hóa đơn
             LichSuHoaDon lichSuHoaDon = new LichSuHoaDon();
@@ -529,7 +535,7 @@ public class ShopService {
             lichSuHoaDon.setNgayTao(LocalDateTime.now());
             lichSuHoaDon.setNguoiTao(hoaDon.getNguoiTao());
             lichSuHoaDon.setDeleted(false);
-            lichSuHoaDon.setGhiChu("Xác nhận hóa đơn, mã: " + hoaDon.getMaHoaDon());
+            lichSuHoaDon.setGhiChu("Hóa đơn: " + hoaDon.getMaHoaDon() + "chờ xác nhận");
 
             // Lưu lịch sử hóa đơn
             lichSuHoaDonRepository.save(lichSuHoaDon);

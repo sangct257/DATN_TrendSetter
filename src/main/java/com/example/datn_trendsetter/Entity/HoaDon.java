@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +68,9 @@ public class HoaDon {
 
     @Column(name = "ngay_sua")
     private LocalDateTime ngaySua;
+
+    @Column(name = "thoi_gian_nhan_du_kien")
+    private LocalDate thoiGianNhanDuKien;
 
     @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
