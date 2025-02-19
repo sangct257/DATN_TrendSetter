@@ -51,8 +51,14 @@ public class HoaDon {
     @Column(name = "so_dien_thoai",columnDefinition = "NVARCHAR(255)")
     private String soDienThoai;
 
+    @Column(name = "email",columnDefinition = "NVARCHAR(255)")
+    private String email;
+
     @Column(name = "so_nha")
     private Integer soNha;
+
+    @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
+    private String tenDuong;
 
     @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
     private String huyen;

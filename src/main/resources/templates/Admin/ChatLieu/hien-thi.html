@@ -100,10 +100,10 @@
                                 <!-- Phân trang -->
                                 <nav aria-label="Page navigation" class="text-center">
                                     <ul class="pagination justify-content-center">
-                                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                                            th:classappend="${pageNumber == i} ? 'active'">
-                                            <a class="page-link" th:href="@{|?page=${i}|}" th:text="${i + 1}"></a>
-                                        </li>
+<!--                                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"-->
+<!--                                            th:classappend="${pageNumber == i} ? 'active'">-->
+<!--                                            <a class="page-link" th:href="@{|?page=${i}|}" th:text="${i + 1}"></a>-->
+<!--                                        </li>-->
                                     </ul>
                                 </nav>
                             </div>

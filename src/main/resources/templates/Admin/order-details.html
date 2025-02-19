@@ -456,7 +456,9 @@
                                     </h4>
                                 </div>
                                 <div class="col-md-6 text-end">
-                                    <button class="btn btn-white border-dark" data-bs-toggle="modal"
+                                    <button class="btn btn-white border-dark"
+                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận'}"
+                                            data-bs-toggle="modal"
                                             data-bs-target="#changeOrderModal">
                                         Thay Đổi
                                     </button>
@@ -464,8 +466,8 @@
                                 <!-- Modal -->
                                 <div class="modal fade" id="changeOrderModal" tabindex="-1"
                                      aria-labelledby="changeOrderLabel" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
+                                    <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="changeOrderLabel">Chỉnh sửa đơn hàng</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
@@ -474,48 +476,80 @@
                                             <form th:action="@{/update-shipping}" method="post">
                                                 <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                                 <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="form-label">Người Nhận:</label>
-                                                        <input type="text" name="nguoiNhan" class="form-control"
-                                                               th:value="${hoaDon.nguoiNhan}" required>
+                                                    <div class="col-md-12 mb-3">
+                                                        <input type="text" name="nguoiNhan" class="form-control w-100"
+                                                               id="shippingNguoiNhan"
+                                                               th:value="${hoaDon.nguoiNhan != null ? hoaDon.nguoiNhan : '(Không có tên khách hàng)'}"
+                                                               th:disabled="${hoaDon.khachHang == null}">
+                                                        <span class="text-danger" id="shippingNguoiNhanError"></span>
                                                     </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="form-label">Số Điện Thoại:</label>
-                                                        <input type="tel" name="soDienThoai" class="form-control"
-                                                               th:value="${hoaDon.soDienThoai}" required>
+
+                                                    <div class="col-md-12 mb-3">
+                                                        <input type="text" name="soDienThoai" class="form-control w-100"
+                                                               id="shippingSoDienThoai"
+                                                               th:value="${hoaDon.soDienThoai != null ? hoaDon.soDienThoai : '(Không có số điện thoại)'}"
+                                                               th:disabled="${hoaDon.khachHang == null}">
+                                                        <span class="text-danger" id="shippingSoDienThoaiError"></span>
                                                     </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="soNha" class="form-label">Số Nhà:</label>
-                                                        <input type="text" id="soNha" name="soNha" class="form-control"
-                                                               th:value="${hoaDon.soNha}" required>
+
+                                                    <div class="col-md-12 mb-3">
+                                                        <input type="text" name="email" class="form-control w-100"
+                                                               id="shippingEmail"
+                                                               th:value="${hoaDon.email != null ? hoaDon.email : '(Không có email)'}"
+                                                               th:disabled="${hoaDon.email == null}">
+                                                        <span class="text-danger" id="shippingEmailError"></span>
                                                     </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="phuong" class="form-label">Phường:</label>
-                                                        <input type="text" id="phuong" name="phuong"
-                                                               class="form-control" th:value="${hoaDon.phuong}"
-                                                               required>
+
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-3">
+                                                            <input type="text" id="soNha" name="soNha" class="form-control"
+                                                                   th:value="${hoaDon.soNha}" placeholder="Số nhà">
+                                                            <span class="text-danger" id="soNhaError"></span>
+                                                        </div>
+
+                                                        <div class="col-md-6 mb-3">
+                                                            <input type="text" id="tenDuong" name="tenDuong"
+                                                                   class="form-control" th:value="${hoaDon.tenDuong}"
+                                                                   placeholder="Tên đường">
+                                                            <span class="text-danger" id="tenDuongError"></span>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="huyen" class="form-label">Huyện:</label>
-                                                        <input type="text" id="huyen" name="huyen" class="form-control"
-                                                               th:value="${hoaDon.huyen}" required>
+
+                                                    <div class="row">
+                                                        <div class="col-md-4 mb-3">
+                                                            <select id="thanhPho" name="thanhPho" class="form-control">
+                                                                <option th:value="${hoaDon.thanhPho}" th:text="${hoaDon.thanhPho != null ? hoaDon.thanhPho : 'Chọn Tỉnh/Thành phố'}"></option>
+                                                            </select>
+                                                            <input type="hidden" id="thanhPhoHidden" name="thanhPhoHidden" th:value="${hoaDon.thanhPho}">
+
+                                                            <span class="text-danger" id="thanhPhoError"></span>
+                                                        </div>
+
+                                                        <div class="col-md-4 mb-3">
+                                                            <select id="huyen" name="huyen" class="form-control">
+                                                                <option th:value="${hoaDon.huyen}" th:text="${hoaDon.huyen != null ? hoaDon.huyen : 'Chọn Quận/Huyện'}"></option>
+                                                            </select>
+                                                            <input type="hidden" id="huyenHidden" name="huyenHidden" th:value="${hoaDon.huyen}">
+                                                            <span class="text-danger" id="huyenError"></span>
+                                                        </div>
+
+                                                        <div class="col-md-4 mb-3">
+                                                            <select id="phuong" name="phuong" class="form-control">
+                                                                <option th:value="${hoaDon.phuong}" th:text="${hoaDon.phuong != null ? hoaDon.phuong : 'Chọn Phường/Xã'}"></option>
+                                                            </select>
+                                                            <input type="hidden" id="phuongHidden" name="phuongHidden" th:value="${hoaDon.phuong}">
+                                                            <span class="text-danger" id="phuongError"></span>
+                                                        </div>
+
                                                     </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="thanhPho" class="form-label">Thành Phố:</label>
-                                                        <input type="text" id="thanhPho" name="thanhPho"
-                                                               class="form-control" th:value="${hoaDon.thanhPho}"
-                                                               required>
+
+                                                    <div class="form-group">
+                                                    <textarea id="ghiChu" placeholder="Nhập ghi chú nếu có"
+                                                              name="ghiChu" class="form-control" rows="3"></textarea>
                                                     </div>
                                                 </div>
-                                                <!-- Nút submit phải nằm trong form -->
-                                                <div class="modal-footer">
-                                                    <button type="submit" class="btn btn-primary w-100">Cập nhật giao
-                                                        hàng
-                                                    </button>
-                                                    <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Hủy
-                                                    </button>
-                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100">Cập nhật giao hàng
+                                                </button>
                                             </form>
                                         </div>
 
@@ -704,8 +738,10 @@
     </span>
 
                                         <!-- Mở modal -->
-                                        <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal"
-                                                data-bs-target="#paymentModal">
+                                        <button type="button" class="btn btn-outline-primary ms-auto"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#paymentModal"
+                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}">
                                             <i class="bi bi-credit-card"></i>
                                         </button>
                                     </div>
@@ -726,6 +762,8 @@
                                                             <label class="form-label"><i class="fas fa-credit-card"></i> Phương thức thanh toán:</label>
                                                             <div class="btn-group w-100" role="group" aria-label="Chọn phương thức thanh toán">
                                                                 <th:block th:each="phuongThucThanhToan : ${listPhuongThucThanhToan}">
+                                                                    <input type="hidden" id="phiShip" th:value="${hoaDon.phiShip}">
+                                                                    <input type="hidden" id="listPhieuGiamGia" th:value="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0}">
                                                                     <input type="radio" class="btn-check" name="phuongThucThanhToanId" th:id="'payment-' + ${phuongThucThanhToan.id}" th:value="${phuongThucThanhToan.id}" autocomplete="off">
                                                                     <label class="btn btn-outline-primary" th:for="'payment-' + ${phuongThucThanhToan.id}" th:text="${phuongThucThanhToan.tenPhuongThuc}"></label>
                                                                 </th:block>
@@ -756,8 +794,10 @@
                                     </span>
 
                                         <!-- Mở modal chọn mã giảm giá -->
-                                        <button type="button" class="btn btn-outline-primary ms-auto" data-bs-toggle="modal"
-                                                data-bs-target="#discountModal">
+                                        <button type="button" class="btn btn-outline-primary ms-auto"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#discountModal"
+                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}">
                                             <i class="fas fa-tag"></i>
                                         </button>
 
@@ -882,7 +922,7 @@
 
 <!-- Dữ liệu Thymeleaf được nhúng vào JavaScript -->
 <div th:replace="admin/fragments/script :: script"></div>
-<script th:inline="javascript">
+<script>
     document.addEventListener("DOMContentLoaded", function () {
         var successMessage = /*[[${successMessage}]]*/ null;
         var errorMessage = /*[[${errorMessage}]]*/ null;
@@ -913,59 +953,170 @@
 <!-- JavaScript xử lý modal -->
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let paymentOptions = document.querySelectorAll("input[name='phuongThucThanhToanId']");
-        let paymentDetails = document.getElementById("paymentDetails");
+    $(document).ready(function () {
+        let paymentOptions = $("input[name='phuongThucThanhToanId']");
+        let paymentDetails = $("#paymentDetails");
+        let paymentMethodText = $("#paymentMethodText");
 
         // Lấy tổng tiền hóa đơn từ Thymeleaf
-        let tongTienHoaDon = parseFloat([[${hoaDon != null ? hoaDon.tongTien : 0}]]);
+        let tongTienHoaDon = parseFloat('[[${hoaDon != null ? hoaDon.tongTien : 0}]]');
 
-        paymentOptions.forEach(option => {
-            option.addEventListener("change", function () {
-                let selectedText = document.querySelector(`label[for="${this.id}"]`).innerText.trim();
-                paymentDetails.innerHTML = ""; // Xóa nội dung cũ
+        // Xử lý khi chọn phương thức thanh toán
+        paymentOptions.change(function () {
+            let selectedText = $("label[for='" + this.id + "']").text().trim();
+            paymentDetails.html(""); // Xóa nội dung cũ
 
-                if (selectedText === "Tiền Mặt") {
-                    paymentDetails.innerHTML = `
-                        <div class="mb-3">
-                            <label for="cashAmount" class="form-label"><i class="fas fa-money-bill-wave"></i> Nhập số tiền khách đưa:</label>
-                            <input type="number" id="cashAmount" name="cashAmount" class="form-control" placeholder="Nhập số tiền khách đưa" min="0">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label"><i class="fas fa-coins"></i> Số tiền thối lại:</label>
-                            <input type="text" id="changeAmount" class="form-control" readonly>
-                        </div>
-                    `;
+            if (selectedText === "Tiền Mặt") {
+                paymentDetails.html(`
+                <div class="mb-3">
+                    <label for="cashAmount" class="form-label"><i class="fas fa-money-bill-wave"></i> Nhập số tiền khách đưa:</label>
+                    <input type="number" id="cashAmount" name="cashAmount" class="form-control" placeholder="Nhập số tiền khách đưa" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-coins"></i> Số tiền thối lại:</label>
+                    <input type="text" id="changeAmount" class="form-control" readonly>
+                </div>
+            `);
 
-                    let cashInput = document.getElementById("cashAmount");
-                    let changeOutput = document.getElementById("changeAmount");
+                let cashInput = $("#cashAmount");
+                let changeOutput = $("#changeAmount");
 
-                    cashInput.addEventListener("input", function () {
-                        let cashGiven = parseFloat(cashInput.value) || 0;
-                        let change = cashGiven - tongTienHoaDon;
+                cashInput.on("input", function () {
+                    let cashGiven = parseFloat($(this).val()) || 0;
+                    let change = cashGiven - tongTienHoaDon;
 
-                        if (change < 0) {
-                            changeOutput.value = `Thiếu ${Math.abs(change).toLocaleString()} VND`;
-                            changeOutput.style.color = "red";
-                        } else {
-                            changeOutput.value = `${change.toLocaleString()} VND`;
-                            changeOutput.style.color = "green";
-                        }
-                    });
+                    if (change < 0) {
+                        changeOutput.val(`Thiếu ${Math.abs(change).toLocaleString()} VND`).css("color", "red");
+                    } else {
+                        changeOutput.val(`${change.toLocaleString()} VND`).css("color", "green");
+                    }
+                });
 
-                } else if (selectedText === "Chuyển Khoản") {
-                    paymentDetails.innerHTML = `
-                        <div class="mb-3 text-center">
-                            <label class="form-label"><i class="fas fa-qrcode"></i> Quét mã QR để thanh toán:</label>
-                            <img id="qrCodeImage" src="http://localhost:8080/images/path-to-qr-code.jpg" alt="QR Code" class="img-fluid" style="max-width: 250px;">
-                        </div>
-                    `;
+            } else if (selectedText === "Chuyển Khoản") {
+                paymentDetails.html(`
+                <div class="mb-3 text-center">
+                    <img id="qrCodeImage" src="http://localhost:8080/images/path-to-qr-code.jpg" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                </div>
+            `);
+            }
+        });
+
+        // Xử lý khi nhấn nút "Cập nhật" để chọn phương thức thanh toán
+        $("#addPaymentMethodButton").click(function () {
+            var formData = $("#paymentMethodForm").serialize(); // Lấy toàn bộ dữ liệu form
+            var selectedPayment = $("input[name='phuongThucThanhToanId']:checked").val(); // Lấy giá trị chọn
+
+            if (!selectedPayment) {
+                alert("Vui lòng chọn phương thức thanh toán!");
+                return;
+            }
+
+            $.ajax({
+                url: '/add-payment-method',
+                method: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        paymentMethodText.text(response.updatedPaymentMethod); // Cập nhật UI
+                        $("#paymentModal").modal("hide"); // Đóng modal
+                    } else {
+                        alert(response.message || "Cập nhật không thành công!");
+                    }
+                },
+                error: function (xhr) {
+                    alert("Lỗi: " + xhr.responseText);
                 }
             });
         });
     });
 </script>
+
 <script>
+    $(document).ready(function () {
+        let paymentOptions = $("input[name='phuongThucThanhToanId']");
+        let paymentDetails = $("#paymentDetails");
+        let paymentMethodText = $("#paymentMethodText");
+
+        // Lấy tổng tiền hóa đơn từ Thymeleaf
+        let tongTienHoaDon = parseFloat('[[${hoaDon != null ? hoaDon.tongTien : 0}]]');
+
+        // Xử lý khi chọn phương thức thanh toán
+        paymentOptions.change(function () {
+            let selectedText = $("label[for='" + this.id + "']").text().trim();
+            paymentDetails.html(""); // Xóa nội dung cũ
+
+            if (selectedText === "Tiền Mặt") {
+                paymentDetails.html(`
+                <div class="mb-3">
+                    <label for="cashAmount" class="form-label"><i class="fas fa-money-bill-wave"></i> Nhập số tiền khách đưa:</label>
+                    <input type="number" id="cashAmount" name="cashAmount" class="form-control" placeholder="Nhập số tiền khách đưa" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-coins"></i> Số tiền thối lại:</label>
+                    <input type="text" id="changeAmount" class="form-control" readonly>
+                </div>
+            `);
+
+                let cashInput = $("#cashAmount");
+                let changeOutput = $("#changeAmount");
+
+                cashInput.on("input", function () {
+                    let cashGiven = parseFloat($(this).val()) || 0;
+                    let phiShip = parseFloat($("#phiShip").val()) || 0;
+                    let maGiamGia = parseFloat($("#listPhieuGiamGia").val()) || 0;
+                    let totalAmount = tongTienHoaDon + phiShip - maGiamGia;
+
+                    let change = cashGiven - totalAmount;
+
+                    if (change < 0) {
+                        changeOutput.val(`Thiếu ${Math.abs(change).toLocaleString()} VND`).css("color", "red");
+                    } else {
+                        changeOutput.val(`${change.toLocaleString()} VND`).css("color", "green");
+                    }
+                });
+
+
+            } else if (selectedText === "Chuyển Khoản") {
+                paymentDetails.html(`
+                <div class="mb-3 text-center">
+                    <img id="qrCodeImage" src="http://localhost:8080/images/path-to-qr-code.jpg" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                </div>
+            `);
+            }
+        });
+
+        // Xử lý khi nhấn nút "Cập nhật" để chọn phương thức thanh toán
+        $("#addPaymentMethodButton").click(function () {
+            var formData = $("#paymentMethodForm").serialize(); // Lấy toàn bộ dữ liệu form
+            var selectedPayment = $("input[name='phuongThucThanhToanId']:checked").val(); // Lấy giá trị chọn
+
+            if (!selectedPayment) {
+                alert("Vui lòng chọn phương thức thanh toán!");
+                return;
+            }
+
+            $.ajax({
+                url: '/add-payment-method',
+                method: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        paymentMethodText.text(response.updatedPaymentMethod); // Cập nhật UI
+                        $("#paymentModal").modal("hide"); // Đóng modal
+                    } else {
+                        alert(response.message || "Cập nhật không thành công!");
+                    }
+                },
+                error: function (xhr) {
+                    alert("Lỗi: " + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+
+
+<script >
     function showConfirmModal(event, form) {
         event.preventDefault(); // Ngăn form gửi ngay lập tức
 
@@ -983,6 +1134,115 @@
         let confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
         confirmModal.show();
     }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const thanhPhoSelect = document.getElementById("thanhPho");
+        const huyenSelect = document.getElementById("huyen");
+        const phuongSelect = document.getElementById("phuong");
+
+        const thanhPhoHidden = document.getElementById("thanhPhoHidden");
+        const huyenHidden = document.getElementById("huyenHidden");
+        const phuongHidden = document.getElementById("phuongHidden");
+
+        // Hàm fetch tỉnh/thành phố
+        function fetchProvinces(selectedValue = "") {
+            fetch("/api/ghn/provinces")
+                .then(response => response.json())
+                .then(data => {
+                    thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+                    let selectedProvinceId = "";
+
+                    data.data.forEach(province => {
+                        const selected = province.ProvinceName === selectedValue ? "selected" : "";
+                        if (selected) selectedProvinceId = province.ProvinceID;
+                        thanhPhoSelect.innerHTML += `<option value="${province.ProvinceName}" data-id="${province.ProvinceID}" ${selected}>${province.ProvinceName}</option>`;
+                    });
+
+                    if (selectedProvinceId) fetchDistricts(selectedProvinceId, huyenHidden.value);
+                })
+                .catch(error => console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error));
+        }
+
+        // Hàm fetch quận/huyện
+        function fetchDistricts(provinceId, selectedValue = "") {
+            fetch(`/api/ghn/districts?province_id=${provinceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+                    let selectedDistrictId = "";
+
+                    data.data.forEach(district => {
+                        const selected = district.DistrictName === selectedValue ? "selected" : "";
+                        if (selected) selectedDistrictId = district.DistrictID;
+                        huyenSelect.innerHTML += `<option value="${district.DistrictName}" data-id="${district.DistrictID}" ${selected}>${district.DistrictName}</option>`;
+                    });
+
+                    if (selectedDistrictId) fetchWards(selectedDistrictId, phuongHidden.value);
+                })
+                .catch(error => console.error("Lỗi khi lấy danh sách quận/huyện:", error));
+        }
+
+        // Hàm fetch phường/xã
+        function fetchWards(districtId, selectedValue = "") {
+            fetch(`/api/ghn/wards?district_id=${districtId}`)
+                .then(response => response.json())
+                .then(data => {
+                    phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+                    data.data.forEach(ward => {
+                        const selected = ward.WardName === selectedValue ? "selected" : "";
+                        phuongSelect.innerHTML += `<option value="${ward.WardName}" data-id="${ward.WardCode}" ${selected}>${ward.WardName}</option>`;
+                    });
+                })
+                .catch(error => console.error("Lỗi khi lấy danh sách phường/xã:", error));
+        }
+
+        // Xử lý khi chọn tỉnh/thành phố
+        thanhPhoSelect.addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const provinceId = selectedOption.getAttribute("data-id");
+
+            thanhPhoHidden.value = selectedOption.value;
+            huyenHidden.value = "";
+            phuongHidden.value = "";
+
+            huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+            if (provinceId) {
+                fetchDistricts(provinceId);
+            }
+        });
+
+        // Xử lý khi chọn quận/huyện
+        huyenSelect.addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const districtId = selectedOption.getAttribute("data-id");
+
+            huyenHidden.value = selectedOption.value;
+            phuongHidden.value = "";
+
+            phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+            if (districtId) {
+                fetchWards(districtId);
+            }
+        });
+
+        // Xử lý khi chọn phường/xã
+        phuongSelect.addEventListener("change", function () {
+            phuongHidden.value = this.value;
+        });
+
+        // Nếu có dữ liệu cũ, hiển thị trước rồi cho phép thay đổi
+        if (thanhPhoHidden.value) {
+            fetchProvinces(thanhPhoHidden.value);
+        } else {
+            fetchProvinces();
+        }
+    });
 </script>
 
 </body>

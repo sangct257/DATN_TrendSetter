@@ -1,6 +1,8 @@
 package com.example.datn_trendsetter.Controller.Admin;
 
+import com.example.datn_trendsetter.DTO.ShippingCostResponse;
 import com.example.datn_trendsetter.Entity.*;
+import com.example.datn_trendsetter.Service.GhnApiService;
 import com.example.datn_trendsetter.Service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +20,6 @@ public class ShopController {
 
     @Autowired
     private ShopService shopService;
-
 
     @GetMapping("admin/sell-counter")
     public String sellCounter(@RequestParam(value = "hoaDonId", required = false) Integer hoaDonId,
@@ -139,13 +140,12 @@ public class ShopController {
     @PostMapping("/update-shipping")
     public String updateShipping(@RequestParam("hoaDonId") Integer hoaDonId,
                                  @RequestParam("soNha") Integer soNha,
-                                 @RequestParam("nguoiNhan") String nguoiNhan,
-                                 @RequestParam("soDienThoai") String soDienThoai,
+                                 @RequestParam("tenDuong") String tenDuong,
                                  @RequestParam("phuong") String phuong,
                                  @RequestParam("huyen") String huyen,
                                  @RequestParam("thanhPho") String thanhPho,
                                  RedirectAttributes redirectAttributes) {
-        return shopService.updateShippingAddress(hoaDonId, soNha, nguoiNhan, soDienThoai, phuong, huyen, thanhPho, redirectAttributes);
+        return shopService.updateShippingAddress(hoaDonId, soNha, tenDuong, phuong, huyen, thanhPho, redirectAttributes);
     }
 
 
