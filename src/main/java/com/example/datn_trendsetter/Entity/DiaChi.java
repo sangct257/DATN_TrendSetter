@@ -20,6 +20,9 @@ public class DiaChi {
     @Column(name = "so_nha")
     private Integer soNha;
 
+    @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
+    private String tenDuong;
+
     @Column(name = "phuong",columnDefinition = "NVARCHAR(255)")
     private String phuong;
 

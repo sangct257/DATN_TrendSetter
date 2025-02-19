@@ -6,10 +6,35 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HoaDonService {
     private final HoaDonRepository hoaDonRepository;
+
+    public boolean updateLoaiHoaDon(Integer hoaDonId, boolean delivery) {
+        System.out.println("Cập nhật hóa đơn: ID = " + hoaDonId + ", Delivery = " + delivery);
+
+        Optional<HoaDon> hoaDonOpt = hoaDonRepository.findById(hoaDonId);
+        if (hoaDonOpt.isEmpty()) {
+            System.out.println("Không tìm thấy hóa đơn với ID: " + hoaDonId);
+            return false;
+        }
+
+        HoaDon hoaDon = hoaDonOpt.get();
+        hoaDon.setLoaiHoaDon(delivery ? "Giao Hàng" : "Tại Quầy");
+
+        if (!delivery) {
+            hoaDon.setTenDuong(null);
+            hoaDon.setHuyen(null);
+            hoaDon.setPhuong(null);
+            hoaDon.setThanhPho(null);
+        }
+
+        hoaDonRepository.save(hoaDon);
+        System.out.println("Đã cập nhật hóa đơn thành công");
+        return true;
+    }
 
     public HoaDonService(HoaDonRepository hoaDonRepository) {
         this.hoaDonRepository = hoaDonRepository;

@@ -65,6 +65,11 @@
 			<artifactId>lombok</artifactId>
 			<scope>true</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20210307</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.xhtmlrenderer</groupId>

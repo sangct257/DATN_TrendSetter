@@ -54,7 +54,7 @@ public class ShopService {
     private PdfService pdfService;
 
     @Autowired
-    private GHNService ghnService;
+    private GhnApiService ghnApiService;
 
     public ResponseEntity<?> createHoaDon(HoaDon hoaDon) {
         // Kiểm tra xem có ít nhất 2 phương thức thanh toán (tiền mặt và chuyển khoản) chưa
@@ -98,7 +98,7 @@ public class ShopService {
 
         hoaDon.setTongTien(0.0F);
         hoaDon.setPhiShip(0.0F);
-        hoaDon.setLoaiHoaDon(null);
+        hoaDon.setLoaiHoaDon("Tại Quầy");
         hoaDon.setTrangThai("Đang Xử Lý");
         hoaDon.setNgayTao(LocalDateTime.now());
 
@@ -291,6 +291,7 @@ public class ShopService {
         // Thêm họ tên và số điện thoại khách hàng vào hóa đơn
         hoaDon.setNguoiNhan(khachHang.getHoTen());
         hoaDon.setSoDienThoai(khachHang.getSoDienThoai());
+        hoaDon.setEmail(khachHang.getEmail());
 
         // Tìm địa chỉ mặc định của khách hàng
         DiaChi diaChi = diaChiRepository.findByKhachHangAndTrangThai(khachHang, "Mặc Định");
@@ -300,26 +301,17 @@ public class ShopService {
             hoaDon.setPhuong(null);
             hoaDon.setHuyen(null);
             hoaDon.setThanhPho(null);
+            hoaDon.setTenDuong(null);
         } else {
             hoaDon.setSoNha(diaChi.getSoNha());
+            hoaDon.setTenDuong(diaChi.getTenDuong());
             hoaDon.setPhuong(diaChi.getPhuong());
             hoaDon.setHuyen(diaChi.getHuyen());
             hoaDon.setThanhPho(diaChi.getThanhPho());
         }
 
-        // Xác định phí ship
-        if (hoaDon.getThanhPho() == null) {
-            hoaDon.setPhiShip(0.0F);
-        } else if ("Hà Nội".equalsIgnoreCase(hoaDon.getThanhPho())) {
-            hoaDon.setPhiShip(30000.0F);
-        } else {
-            hoaDon.setPhiShip(100000.0F);
-        }
-
         // Cập nhật khách hàng vào hóa đơn
         hoaDon.setKhachHang(khachHang);
-        hoaDon.setLoaiHoaDon("Giao Hàng");
-
         // Lưu hóa đơn
         hoaDonRepository.save(hoaDon);
 
@@ -344,9 +336,8 @@ public class ShopService {
         hoaDon.setHuyen(null);
         hoaDon.setThanhPho(null);
         hoaDon.setKhachHang(null);
+        hoaDon.setEmail(null);
         hoaDon.setPhiShip(0.0F);
-        hoaDon.setLoaiHoaDon(null);
-        hoaDon.setLoaiHoaDon("Tại Quầy");
 
         // Lưu hóa đơn
         hoaDonRepository.save(hoaDon);
@@ -428,39 +419,49 @@ public class ShopService {
         }
     }
 
-    public String updateShippingAddress(Integer hoaDonId, Integer soNha, String nguoiNhan, String soDienThoai, String phuong, String huyen, String thanhPho, RedirectAttributes redirectAttributes) {
+    public String updateShippingAddress(Integer hoaDonId, Integer soNha, String tenDuong, String phuong, String huyen, String thanhPho, RedirectAttributes redirectAttributes) {
         try {
             // Lấy hóa đơn từ cơ sở dữ liệu
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                     .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
 
             // Cập nhật địa chỉ vào hóa đơn
-            hoaDon.setNguoiNhan(nguoiNhan);
-            hoaDon.setSoDienThoai(soDienThoai);
-            hoaDon.setSoNha(soNha);  // Gán số nhà
-            hoaDon.setPhuong(phuong);  // Gán phường
-            hoaDon.setHuyen(huyen);  // Gán huyện
-            hoaDon.setThanhPho(thanhPho);  // Gán thành phố
+            hoaDon.setNguoiNhan(hoaDon.getNguoiNhan());
+            hoaDon.setSoDienThoai(hoaDon.getSoDienThoai());
+            hoaDon.setEmail(hoaDon.getEmail());
+            hoaDon.setSoNha(soNha);
+            hoaDon.setTenDuong(tenDuong);
+            hoaDon.setPhuong(phuong);
+            hoaDon.setHuyen(huyen);
+            hoaDon.setThanhPho(thanhPho);
+            hoaDon.setLoaiHoaDon("Giao Hàng");
 
-            // Kiểm tra nếu thành phố là Hà Nội, gán phí ship = 30k
-            if (hoaDon.getThanhPho() == null) {
-                hoaDon.setPhiShip(0.0F); // Nếu thành phố là null thì gán phí ship là 0
-            } else if ("Hà Nội".equalsIgnoreCase(hoaDon.getThanhPho())) {
-                hoaDon.setPhiShip(30000.0F); // Gán phí ship là 30k nếu thành phố là Hà Nội
-            } else {
-                hoaDon.setPhiShip(100000.0F); // Hoặc phí ship là 100k nếu không phải Hà Nội
+            // Cập nhật phí ship dựa trên địa chỉ
+            float phiShip = 100000.0F; // Mặc định phí ship tỉnh khác
+
+            if ("Hà Nội".equalsIgnoreCase(thanhPho) || "Hồ Chí Minh".equalsIgnoreCase(thanhPho)) {
+                phiShip = 30000.0F;
+
+                // Nếu thuộc quận trung tâm, giảm phí ship
+                List<String> quanTrungTamHN = List.of("Quận Hoàn Kiếm", "Quận Ba Đình", "Quận Đống Đa", "Quận Hai Bà Trưng");
+                List<String> quanTrungTamHCM = List.of("Quận 1", "Quận 3", "Quận 5", "Quận 10");
+
+                if ((thanhPho.equalsIgnoreCase("Hà Nội") && quanTrungTamHN.contains(huyen)) ||
+                        (thanhPho.equalsIgnoreCase("Hồ Chí Minh") && quanTrungTamHCM.contains(huyen))) {
+                    phiShip = 20000.0F;
+                }
             }
 
-            // Lưu lại hóa đơn sau khi cập nhật
+            hoaDon.setPhiShip(phiShip);
+
+            // Lưu lại hóa đơn
             hoaDonRepository.save(hoaDon);
 
             // Thêm thông báo thành công
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật địa chỉ giao hàng thành công!");
-            if (hoaDon.getTrangThai().equals("Đang Xử Lý")){
-                return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
-            } else {
-                return "redirect:/admin/order-details?hoaDonId=" + hoaDonId;
-            }
+
+            // Chuyển hướng tùy theo trạng thái của hóa đơn
+            return "redirect:/admin/" + (hoaDon.getTrangThai().equals("Đang Xử Lý") ? "sell-counter" : "order-details") + "?hoaDonId=" + hoaDonId;
 
         } catch (Exception e) {
             // Xử lý lỗi
@@ -522,6 +523,7 @@ public class ShopService {
 
             // Cập nhật thời gian sửa đổi hóa đơn
             hoaDon.setNgaySua(LocalDateTime.now());
+            hoaDon.setGhiChu(hoaDon.getGhiChu());
             // Lưu hóa đơn vào cơ sở dữ liệu
             hoaDonRepository.save(hoaDon);
 
@@ -579,11 +581,11 @@ public class ShopService {
             // Cập nhật họ tên và số điện thoại vào hóa đơn
             hoaDon.setNguoiNhan(nguoiNhan);  // Gán họ tên vào hóa đơn
             hoaDon.setSoDienThoai(soDienThoai);  // Gán số điện thoại vào hóa đơn
-            hoaDon.setLoaiHoaDon("Giao Hàng");
             hoaDon.setSoNha(null);
             hoaDon.setPhuong(null);
             hoaDon.setHuyen(null);
             hoaDon.setThanhPho(null);
+            hoaDon.setKhachHang(null);
 
             if (hoaDon.getThanhPho() == null) {
                 hoaDon.setPhiShip(0.0F); // Nếu thành phố là null thì gán phí ship là 0

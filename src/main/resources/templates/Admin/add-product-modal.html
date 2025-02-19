@@ -137,6 +137,69 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
+<script >
+    // Hàm tìm kiếm sản phẩm
+    function showSuggestions() {
+        const searchQuery = document.getElementById('searchInput').value.trim();
+        const suggestionsBox = document.getElementById('suggestions');
+
+        if (searchQuery !== '') {
+            fetch(`/suggest-products?search=${searchQuery}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsBox.innerHTML = ''; // Xóa các gợi ý cũ
+                    if (data.length > 0) {
+                        suggestionsBox.style.display = 'block'; // Hiển thị hộp gợi ý
+                        data.forEach(product => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.textContent = `${product.tenSanPham} - ${product.tenMauSac} - ${product.tenKichThuoc}`;
+                            suggestionItem.onclick = function () {
+                                document.getElementById('searchInput').value = `${product.tenSanPham} - ${product.tenMauSac} - ${product.tenKichThuoc}`;
+                                suggestionsBox.style.display = 'none'; // Ẩn hộp gợi ý khi chọn sản phẩm
+                                submitForm(product); // Gọi hàm gửi form
+                            };
+                            suggestionsBox.appendChild(suggestionItem);
+                        });
+                    } else {
+                        suggestionsBox.style.display = 'none'; // Ẩn hộp gợi ý nếu không có kết quả
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        } else {
+            suggestionsBox.style.display = 'none'; // Ẩn hộp gợi ý nếu không có từ khóa
+        }
+    }
+
+    // Sự kiện khi người dùng gõ trong ô tìm kiếm
+    document.getElementById('searchInput').addEventListener('input', function () {
+        showSuggestions(); // Gọi hàm hiển thị gợi ý khi người dùng gõ
+    });
+
+    // Hàm gửi form khi sản phẩm được chọn từ gợi ý hoặc khi ấn Enter
+    document.getElementById('searchForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // Ngừng việc gửi form mặc định
+        const selectedProduct = document.getElementById('searchInput').value;
+        // Tìm sản phẩm tương ứng và gửi form nếu cần
+        if (selectedProduct) {
+            const form = document.querySelector('form[th\\:action="@{/add-product-order}"]');
+            form.submit();
+        }
+    });
+
+    // Hàm xử lý khi người dùng ấn Enter sau khi chọn sản phẩm
+    document.getElementById('searchInput').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Ngừng việc gửi form mặc định
+            const selectedProduct = document.getElementById('searchInput').value;
+            // Nếu đã chọn sản phẩm thì tự động gửi form
+            if (selectedProduct) {
+                const form = document.querySelector('form[th\\:action="@{/add-product-order}"]');
+                form.submit();
+            }
+        }
+    });
+
+</script>
 
 </body>
 </html>
