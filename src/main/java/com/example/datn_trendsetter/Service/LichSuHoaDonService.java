@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,23 +50,33 @@ public class LichSuHoaDonService {
             List<HoaDonChiTiet> hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
 
 
-            //Lấy tất cả sản phẩm có trạng thái "Còn Hàng"
+            // Lấy danh sách tất cả sản phẩm chi tiết có trạng thái "Còn Hàng"
             List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
-            // Sử dụng HashSet để đảm bảo không có sản phẩm bị trùng
-            Set<SanPhamChiTiet> uniqueSanPhamChiTiet = new HashSet<>(allSanPhamChiTiet);
+            // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
+            Set<String> seenImages = new HashSet<>();
 
-            // Trộn danh sách sản phẩm ngẫu nhiên
-            List<SanPhamChiTiet> shuffledSanPhamChiTiet = new ArrayList<>(uniqueSanPhamChiTiet);
-            Collections.shuffle(shuffledSanPhamChiTiet);
+            // Danh sách sản phẩm không trùng hình ảnh
+            List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
-            // Chỉ lấy 5 sản phẩm ngẫu nhiên
-            List<SanPhamChiTiet> sanPhamChiTiet = shuffledSanPhamChiTiet.stream().limit(5).collect(Collectors.toList());
+            for (SanPhamChiTiet sp : allSanPhamChiTiet) {
+                if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
+                    String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
+                    if (!seenImages.contains(imageUrl)) {
+                        seenImages.add(imageUrl);
+                        uniqueSanPhamChiTiet.add(sp);
+                    }
+                }
+            }
 
+            // Trộn danh sách để có thứ tự ngẫu nhiên
+            Collections.shuffle(uniqueSanPhamChiTiet);
+
+            // Gán vào model
+            model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
 
-            model.addAttribute("sanPhamChiTiet", sanPhamChiTiet);
             model.addAttribute("khachHangs", khachHangs);
             model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);
 
@@ -84,9 +95,42 @@ public class LichSuHoaDonService {
             // Lọc danh sách phiếu giảm giá dựa trên tổng tiền
             model.addAttribute("hoaDon", hoaDon);
             model.addAttribute("listLichSuHoaDon", listLichSuHoaDon);
-            model.addAttribute("hoaDonChiTiet", hoaDonChiTiet);
+            model.addAttribute("danhSachHoaDonChiTiet", hoaDonChiTiet);
             model.addAttribute("hoaDon", hoaDon);
         }
     }
 
+    public Map<String, Object> xacNhanHoaDon(Integer hoaDonId) {
+        Map<String, Object> response = new HashMap<>();
+
+        Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
+        if (optionalHoaDon.isPresent()) {
+            HoaDon hoaDon = optionalHoaDon.get();
+
+            // Kiểm tra trạng thái hiện tại của hóa đơn (tránh xác nhận 2 lần)
+            if ("Đã Xác Nhận".equals(hoaDon.getTrangThai())) {
+                response.put("error", "Hóa đơn đã được xác nhận trước đó!");
+                return response;
+            }
+
+            // Cập nhật trạng thái hóa đơn
+            hoaDon.setTrangThai("Đã Xác Nhận");
+            hoaDonRepository.save(hoaDon);
+
+            // Thêm lịch sử hóa đơn
+            LichSuHoaDon lichSu = new LichSuHoaDon();
+            lichSu.setHoaDon(hoaDon);
+            lichSu.setHanhDong("Đã Xác Nhận");
+            lichSu.setNgayTao(LocalDateTime.now());
+            lichSu.setNguoiTao(hoaDon.getNguoiTao());
+            lichSu.setGhiChu("Đã Xác Nhận Hóa Đơn: " + hoaDon.getMaHoaDon());
+            lichSuHoaDonRepository.save(lichSu);
+
+            response.put("message", "Hóa đơn đã được xác nhận thành công!");
+        } else {
+            response.put("error", "Hóa đơn không tồn tại!");
+        }
+
+        return response;
+    }
 }

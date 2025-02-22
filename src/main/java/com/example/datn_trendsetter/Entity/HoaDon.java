@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Cascade;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -41,6 +42,9 @@ public class HoaDon {
 
     @Column(name = "ma_hoa_don",columnDefinition = "NVARCHAR(255)")
     private String maHoaDon;
+
+    @Column(name = "ma_giao_dich",columnDefinition = "NVARCHAR(255)")
+    private String maGiaoDich;
 
     @Column(name = "tong_tien")
     private Float tongTien;
@@ -110,5 +114,4 @@ public class HoaDon {
 
     @Transient // Không lưu vào cơ sở dữ liệu
     private int tongSanPham;
-
 }

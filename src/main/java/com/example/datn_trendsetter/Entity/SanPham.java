@@ -1,5 +1,7 @@
 package com.example.datn_trendsetter.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,12 +31,12 @@ public class SanPham {
     @Column(name = "mo_ta",columnDefinition = "NVARCHAR(255)")
     private String moTa;
 
-    @ManyToOne
-    @JoinColumn(name = "id_thuong_hieu",referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_thuong_hieu", referencedColumnName = "id")
     private ThuongHieu thuongHieu;
 
-    @ManyToOne
-    @JoinColumn(name = "id_xuat_xu",referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_xuat_xu", referencedColumnName = "id")
     private XuatXu xuatXu;
 
     @ManyToOne
@@ -64,6 +66,7 @@ public class SanPham {
     private Boolean deleted;
 
     @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<SanPhamChiTiet> sanPhamChiTiet;
 
 }
