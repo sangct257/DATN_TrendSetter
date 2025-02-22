@@ -5,6 +5,7 @@ import com.example.datn_trendsetter.DTO.LoginRequest;
 import com.example.datn_trendsetter.DTO.RegisterRequest;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Repository.KhachHangRepository;
+import com.example.datn_trendsetter.Repository.NhanVienRepository;
 import com.example.datn_trendsetter.security.JwtUtil;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,14 +43,14 @@ public class AuthService {
 
 
     public AuthResponse login(LoginRequest request) {
-        KhachHang user = khachHangRepository.findByUsername(request.getUsername())
+        KhachHang user = khachHangRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getUsername());
+        String token = jwtUtil.generateToken(user.getEmail());
         return new AuthResponse(token);
     }
 }
