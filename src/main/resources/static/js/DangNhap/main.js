@@ -14,14 +14,14 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("loginForm").addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        const username = document.getElementById("login-username").value;
+        const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
 
         try {
             const response = await fetch("http://localhost:8080/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({email, password })
             });
 
             if (!response.ok) {
@@ -39,8 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("An error occurred during login.");
         }
     });
-
-
 
     // Xử lý đăng ký
     const registerForm = document.getElementById("registerForm");
