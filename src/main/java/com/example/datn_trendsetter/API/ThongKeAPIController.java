@@ -5,5 +5,5 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin/thong-ke")
-public class ThongKeRestController {
+public class ThongKeAPIController {
 }

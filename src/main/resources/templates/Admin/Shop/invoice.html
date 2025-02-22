@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Hóa Đơn Thanh Toán</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Arial', sans-serif;
+        }
+        .invoice-container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+        .invoice-header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .invoice-header img {
+            max-width: 120px;
+        }
+        .table thead th {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-custom {
+            background: #007bff;
+            color: white;
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-custom:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <img src="http://localhost:8080/images/logo.jpg" alt="Logo cửa hàng">
+            <h2 class="mt-2 text-primary">HÓA ĐƠN THANH TOÁN</h2>
+            <p>Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM</p>
+            <p>SĐT: 0123 456 789 - Email: contact@shop.com</p>
+        </div>
+
+        <table class="table table-bordered">
+            <tr><th>Mã Hóa Đơn</th><td th:text="${hoaDon.maHoaDon}"></td></tr>
+            <tr><th>Ngày Tạo</th><td th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm')}"></td></tr>
+            <tr><th>Loại Hóa Đơn</th><td th:text="${hoaDon.loaiHoaDon}"></td></tr>
+
+            <!-- Hiển thị nhân viên -->
+            <tr th:if="${hoaDon.nhanVien != null}">
+                <th>Nhân Viên</th>
+                <td th:text="${hoaDon.nhanVien.hoTen}"></td>
+            </tr>
+
+            <!-- Hiển thị khách hàng -->
+            <tr th:if="${hoaDon.khachHang != null}">
+                <th>Khách Hàng</th>
+                <td th:text="${hoaDon.nguoiNhan + ' - ' + hoaDon.soDienThoai}"></td>
+            </tr>
+
+            <tr th:if="${hoaDon.loaiHoaDon != 'Tại Quầy'}">
+                <th>Địa Chỉ Nhận Hàng</th>
+                <td th:text="${hoaDon.soNha + ' - ' + hoaDon.tenDuong + ' - ' + hoaDon.phuong + ' - ' + hoaDon.huyen + ' - ' + hoaDon.thanhPho}"></td>
+            </tr>
+
+            <tr th:if="${hoaDon.loaiHoaDon == 'Online'}">
+                <th>Phương Thức Thanh Toán</th>
+                <td th:text="${hoaDon.phuongThucThanhToan.tenPhuongThuc}"></td>
+            </tr>
+
+            <tr th:if="${hoaDon.loaiHoaDon == 'Online' and hoaDon.phuongThucThanhToan.tenPhuongThuc == 'VNPay' and hoaDon.maGiaoDich != null}">
+                <th>Mã Giao Dịch VNPay</th>
+                <td th:text="${hoaDon.maGiaoDich}"></td>
+            </tr>
+        </table>
+
+        <h4 class="mt-4 text-primary">Chi Tiết Sản Phẩm</h4>
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>Sản Phẩm</th>
+                <th>Số Lượng</th>
+                <th>Giá</th>
+                <th>Thành Tiền</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="chiTiet : ${hoaDonChiTiet}">
+                <td th:text="${chiTiet.sanPhamChiTiet.sanPham.tenSanPham}"></td>
+                <td th:text="${chiTiet.soLuong}"></td>
+                <td th:text="${#numbers.formatDecimal(chiTiet.gia, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+                <td th:text="${#numbers.formatDecimal(chiTiet.thanhTien, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-bordered">
+            <tr>
+                <th>Tổng Số Sản Phẩm</th>
+                <td th:text="${hoaDon.tongSanPham}"></td>
+            </tr>
+
+            <!-- Giá ban đầu = Tổng tiền + Giá giảm -->
+            <tr>
+                <th>Giá Ban Đầu</th>
+                <td th:text="${#numbers.formatDecimal(hoaDon.tongTien
+    + (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0 ) - hoaDon.phiShip, 0, 'COMMA', 0, 'POINT')
+    } + ' VND'"></td>
+            </tr>
+
+
+            <!-- Hiển thị giá giảm nếu có mã giảm giá -->
+            <tr th:if="${hoaDon.phieuGiamGia != null and hoaDon.phieuGiamGia.giaTri > 0}">
+                <th>Giá Giảm</th>
+                <td th:text="'-' + ${#numbers.formatDecimal(hoaDon.phieuGiamGia.giaTri, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+            </tr>
+
+            <!-- Hiển thị phí ship nếu có -->
+            <tr th:if="${hoaDon.loaiHoaDon == 'Online' or hoaDon.loaiHoaDon == 'Giao Hàng'}">
+                <th>Phí Ship</th>
+                <td th:text="${hoaDon.phiShip != null ? #numbers.formatDecimal(hoaDon.phiShip, 0, 'COMMA', 0, 'POINT') + ' VND' : 'Miễn phí'}"></td>
+            </tr>
+
+            <!-- Giá sau khi giảm giữ nguyên = Tổng tiền -->
+            <tr>
+                <th>Giá Sau Khi Giảm</th>
+                <td th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+            </tr>
+
+            <tr>
+                <th>Ghi Chú</th>
+                <td th:text="${hoaDon.ghiChu != null ? hoaDon.ghiChu : 'Không có'}"></td>
+            </tr>
+        </table>
+
+        <div class="text-center mt-4">
+            <button onclick="window.print()" class="btn btn-custom me-2">🖨 In Hóa Đơn</button>
+            <a th:href="@{/admin/sales}" class="btn btn-outline-secondary">🔙 Quay Lại</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

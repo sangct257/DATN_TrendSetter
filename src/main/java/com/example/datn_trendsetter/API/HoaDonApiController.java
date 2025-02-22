@@ -1,6 +1,8 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Service.HoaDonService;
+import com.example.datn_trendsetter.Service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,22 @@ public class HoaDonApiController {
 
     @Autowired
     private HoaDonService hoaDonService;
+
+    @Autowired
+    private ShopService shopService;
+
+    @PostMapping("/create-hoa-don")
+    public ResponseEntity<?> createHoaDon(@RequestBody(required = false) HoaDon hoaDon) {
+        try {
+            if (hoaDon == null) {
+                throw new Exception("Dữ liệu hóa đơn không hợp lệ hoặc thiếu.");
+            }
+            return ResponseEntity.ok(shopService.createHoaDon(hoaDon));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 
     @PutMapping("/toggle-delivery/{hoaDonId}")
     public ResponseEntity<Map<String, String>> toggleDelivery(@PathVariable Integer hoaDonId, @RequestParam boolean delivery) {

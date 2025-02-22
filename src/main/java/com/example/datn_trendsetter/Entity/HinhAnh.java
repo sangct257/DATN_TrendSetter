@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,6 +26,7 @@ public class HinhAnh {
 
     @ManyToOne
     @JoinColumn(name = "id_san_pham_chi_tiet", referencedColumnName = "id")
+    @JsonIgnore
     private SanPhamChiTiet sanPhamChiTiet;
 
     @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
