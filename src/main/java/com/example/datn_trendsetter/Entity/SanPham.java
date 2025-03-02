@@ -1,6 +1,5 @@
 package com.example.datn_trendsetter.Entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,6 +21,9 @@ public class SanPham {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ma_san_pham",columnDefinition = "NVARCHAR(255)")
+    private String maSanPham;
+
     @Column(name = "ten_san_pham",columnDefinition = "NVARCHAR(255)")
     private String tenSanPham;
 
@@ -39,8 +41,8 @@ public class SanPham {
     @JoinColumn(name = "id_xuat_xu", referencedColumnName = "id")
     private XuatXu xuatXu;
 
-    @ManyToOne
-    @JoinColumn(name = "id_danh_muc",referencedColumnName = "id")
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_danh_muc", referencedColumnName = "id")
     private DanhMuc danhMuc;
 
     @ManyToOne
@@ -65,7 +67,7 @@ public class SanPham {
     @Column(name = "deleted")
     private Boolean deleted;
 
-    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<SanPhamChiTiet> sanPhamChiTiet;
 

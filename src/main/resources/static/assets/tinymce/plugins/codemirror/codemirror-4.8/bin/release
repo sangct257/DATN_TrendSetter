@@ -40,7 +40,7 @@ rewrite("doc/compress.html", function(cmp) {
                      "<option value=\"http://codemirror.net/\">HEAD</option>\n        <option value=\"http://marijnhaverbeke.nl/git/codemirror?a=blob_plain;hb=" + number + ";f=\">" + simple + "</option>");
 });
 
-rewrite("index.html", function(index) {
+rewrite("add-san-pham.html", function(index) {
   return index.replace(/<strong>version \d+\.\d+<\/strong>/,
                        "<strong>version " + simple + "</strong>");
 });

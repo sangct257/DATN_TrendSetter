@@ -4,6 +4,7 @@ import com.example.datn_trendsetter.DTO.ProductOrderRequest;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
+import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import com.example.datn_trendsetter.Service.HoaDonChiTietService;
 import com.example.datn_trendsetter.Service.ShopService;
@@ -18,10 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,7 +28,8 @@ public class ShopApiController {
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @Autowired
-    private HoaDonChiTietService hoaDonChiTietService;
+    private HoaDonRepository hoaDonRepository;
+
     @Autowired
     private ShopService shopService;
 
@@ -177,6 +176,33 @@ public class ShopApiController {
     }
 
 
+    @PutMapping("/cap-nhat-loai-giao-dich/{id}")
+    public ResponseEntity<String> capNhatLoaiGiaoDich(@PathVariable Integer id) {
+        System.out.println("Nhận yêu cầu cập nhật hóa đơn ID: " + id);
 
+        Optional<HoaDon> hoaDonOpt = hoaDonRepository.findById(id);
+
+        if (hoaDonOpt.isEmpty()) {
+            System.out.println("Hóa đơn không tồn tại.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Hóa đơn không tồn tại");
+        }
+
+        HoaDon hoaDon = hoaDonOpt.get();
+        System.out.println("Loại hóa đơn: " + hoaDon.getLoaiHoaDon() + ", Loại giao dịch: " + hoaDon.getLoaiGiaoDich());
+
+        if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
+            if ("Trả Sau".equals(hoaDon.getLoaiGiaoDich())) {
+                hoaDon.setLoaiGiaoDich("Đã Hoàn Thành");
+            } else if ("Đã Hoàn Thành".equals(hoaDon.getLoaiGiaoDich())) {
+                hoaDon.setLoaiGiaoDich("Trả Sau");
+            }
+            hoaDonRepository.save(hoaDon);
+            System.out.println("Cập nhật thành công!");
+            return ResponseEntity.ok("Cập nhật loại giao dịch thành công");
+        }
+
+        System.out.println("Hóa đơn không hợp lệ.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Hóa đơn không thuộc loại Giao Hàng");
+    }
 
 }

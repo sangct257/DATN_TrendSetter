@@ -110,7 +110,7 @@ public class HoaDon {
     private List<HoaDonChiTiet> hoaDonChiTiet = new ArrayList<>();
 
     @OneToMany(mappedBy = "hoaDon",cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LichSuHoaDon> lichSuHoaDons = new ArrayList<>();
+    private List<LichSuHoaDon> lichSuHoaDon = new ArrayList<>();
 
     @Transient // Không lưu vào cơ sở dữ liệu
     private int tongSanPham;

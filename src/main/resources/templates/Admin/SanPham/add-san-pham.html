@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="admin/fragments/head :: head"></head>
+<body class="hold-transition skin-blue sidebar-mini">
+<!-- Site wrapper -->
+<div class="wrapper">
+
+    <div th:replace="admin/fragments/header :: header"></div>
+    <!-- =============================================== -->
+
+    <!-- Left side column. contains the sidebar -->
+    <div th:replace="admin/fragments/sidebar :: sidebar"></div>
+
+    <!-- =============================================== -->
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <h1>
+                <h5>Thêm Sản Phẩm</h5>
+            </h1>
+            <ol class="breadcrumb">
+                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+                <li><a href="#">Examples</a></li>
+                <li class="active">Blank page</li>
+            </ol>
+            <!-- Toast Notification -->
+            <!-- Toast Thông Báo -->
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
+                     aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <span id="toast-text">Đang tạo hóa đơn, vui lòng chờ...</span>
+                            <div id="toast-loading-bar" class="progress mt-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
+                                     style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                                aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+
+            <!-- Default box -->
+            <div class="box">
+                <div class="box-body">
+                    <div class="container mt-5">
+                        <h2 class="text-center fw-bold">THÊM SẢN PHẨM</h2>
+
+                        <form id="sanPhamForm">
+                            <div class="container mt-5 d-flex justify-content-center">
+                                <div class="shadow p-4 rounded bg-light w-100">
+                                    <div class="text-center">
+                                        <div class="mb-3 d-flex justify-content-center align-items-center">
+                                            <span class="form-label fw-semibold me-3">Tên sản phẩm:</span>
+                                            <input type="text" class="form-control" name="tenSanPham" id="tenSanPham"
+                                                   style="max-width: 600px;" placeholder="Nhập tên sản phẩm">
+                                        </div>
+                                        <div class="mb-3 d-flex justify-content-center align-items-center">
+                                            <span class="form-label fw-semibold me-3">Mô tả:</span>
+                                            <textarea class="form-control" name="moTa" id="moTa"
+                                                      style="max-width: 600px;" rows="3"
+                                                      placeholder="Nhập mô tả sản phẩm"></textarea>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="container">
+                                        <div class="row justify-content-center g-4">
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Danh Mục:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="danhMuc" id="danhMuc">
+                                                        <option selected>Chọn danh mục</option>
+                                                        <option th:each="dm :${danhMuc}" th:value="${dm.id}"
+                                                                th:text="${dm.tenDanhMuc}"></option>
+                                                    </select>
+                                                    <button class="btn btn-primary">+</button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Thương Hiệu:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="thuongHieu" id="thuongHieu">
+                                                        <option selected>Chọn thương hiệu</option>
+                                                        <option th:each="th :${thuongHieu}" th:value="${th.id}"
+                                                                th:text="${th.tenThuongHieu}">Chọn thương hiệu
+                                                        </option>
+                                                    </select>
+                                                    <button class="btn btn-primary">+</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row justify-content-center g-4 mt-1">
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Chất liệu:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="chatLieu" id="chatLieu">
+                                                        <option selected>Chọn chất liệu</option>
+                                                        <option th:each="cl :${chatLieu}" th:value="${cl.id}"
+                                                                th:text="${cl.tenChatLieu}"></option>
+                                                    </select>
+                                                    <button class="btn btn-primary">+</button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Xuất Xứ:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="xuatXu" id="xuatXu">
+                                                        <option selected>Chọn xuất xứ</option>
+                                                        <option th:each="xx :${xuatXu}" th:value="${xx.id}"
+                                                                th:text="${xx.quocGia}">Chọn xuất xứ
+                                                        </option>
+                                                    </select>
+                                                    <button class="btn btn-primary">+</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-center mt-3">
+                                            <button type="button" id="btnAddSanPham" class="btn btn-success">Xác Nhận</button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+            <!-- /.box -->
+
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+    <div th:replace="admin/fragments/footer :: footer"></div>
+
+
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery 3 -->
+
+<div th:replace="admin/fragments/script :: script"></div>
+<script>
+    document.getElementById("btnAddSanPham").addEventListener("click", function() {
+        let sanPhamData = {
+            tenSanPham: document.getElementById("tenSanPham").value,
+            moTa: document.getElementById("moTa").value,
+            danhMucId: document.getElementById("danhMuc").value,
+            thuongHieuId: document.getElementById("thuongHieu").value,
+            chatLieuId: document.getElementById("chatLieu").value,
+            xuatXuId: document.getElementById("xuatXu").value
+        };
+
+        // Hiển thị toast thông báo
+        let toast = new bootstrap.Toast(document.getElementById("toast-message"));
+        let toastText = document.getElementById("toast-text");
+        let progressBar = document.querySelector("#toast-loading-bar .progress-bar");
+
+        toastText.innerText = "Đang thêm sản phẩm, vui lòng chờ...";
+        toast.show();
+
+        let progress = 0;
+        let progressInterval = setInterval(() => {
+            progress += 10;
+            progressBar.style.width = progress + "%";
+
+            if (progress >= 100) {
+                clearInterval(progressInterval);
+            }
+        }, 200);
+
+        // Gửi request đến server
+        fetch("/api/san-pham/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(sanPhamData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Lỗi khi thêm sản phẩm!");
+                }
+                return response.json();
+            })
+            .then(data => {
+                toastText.innerText = "Thêm sản phẩm thành công!";
+                progressBar.classList.replace("bg-light", "bg-success");
+
+                setTimeout(() => {
+                    window.location.href = "http://localhost:8080/admin/san-pham";
+                }, 1500);
+            })
+            .catch(error => {
+                toastText.innerText = "Thêm sản phẩm thất bại!";
+                progressBar.classList.replace("bg-light", "bg-danger");
+                console.error("Lỗi:", error);
+            });
+    });
+</script>
+
+</body>
+</html>
