@@ -24,6 +24,9 @@ public class HinhAnh {
     @Column(name = "url_hinh_anh",columnDefinition = "NVARCHAR(255)")
     private String urlHinhAnh;
 
+    @Column(name = "public_id", columnDefinition = "NVARCHAR(255)")
+    private String publicId;
+
     @ManyToOne
     @JoinColumn(name = "id_san_pham_chi_tiet", referencedColumnName = "id")
     @JsonIgnore

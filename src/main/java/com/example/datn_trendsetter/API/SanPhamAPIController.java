@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.API;
 
+import com.cloudinary.utils.ObjectUtils;
 import com.example.datn_trendsetter.DTO.ProductDetailDTO;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietRequest;
@@ -154,48 +155,46 @@ public class SanPhamAPIController {
     @PostMapping("/upload/{sanPhamChiTietId}")
     public ResponseEntity<?> uploadImages(@PathVariable Integer sanPhamChiTietId, @RequestParam("files") MultipartFile[] files) {
         try {
+            if (files == null || files.length == 0) {
+                return ResponseEntity.badRequest().body("Không có tệp nào được tải lên!");
+            }
+
             SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(sanPhamChiTietId).orElse(null);
             if (sanPhamChiTiet == null) {
                 return ResponseEntity.badRequest().body("Sản phẩm không tồn tại!");
             }
 
-            List<String> imageUrls = hinhAnhService.uploadImages(files);
-            List<String> savedImageUrls = new ArrayList<>();
+            List<HinhAnh> hinhAnhs = hinhAnhService.uploadImages(files, sanPhamChiTiet);
+            List<String> savedImageUrls = hinhAnhs.stream().map(HinhAnh::getUrlHinhAnh).toList();
 
-            for (String url : imageUrls) {
-                HinhAnh hinhAnh = new HinhAnh();
-                hinhAnh.setUrlHinhAnh(url);
-                hinhAnh.setSanPhamChiTiet(sanPhamChiTiet);
-                hinhAnh.setNgayTao(LocalDate.now());
-                hinhAnh.setTrangThai("ACTIVE");
-                hinhAnh.setDeleted(false);
-                hinhAnhRepository.save(hinhAnh);
-                savedImageUrls.add(url);
-            }
-
-            return ResponseEntity.ok(savedImageUrls); // Trả về danh sách ảnh vừa upload
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Lỗi upload: " + e.getMessage());
+            return ResponseEntity.ok(savedImageUrls);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi upload: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/xoa/{hinhAnhId}")
     public ResponseEntity<String> xoaHinhAnh(@PathVariable Integer hinhAnhId) {
-        System.out.println("Nhận yêu cầu xóa ảnh ID: " + hinhAnhId);
-
         Optional<HinhAnh> optionalHinhAnh = hinhAnhRepository.findById(hinhAnhId);
-
         if (optionalHinhAnh.isEmpty()) {
-            System.out.println("Hình ảnh không tồn tại!");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Hình ảnh không tồn tại!");
         }
 
         HinhAnh hinhAnh = optionalHinhAnh.get();
+        String publicId = hinhAnh.getPublicId(); // Lấy đúng public_id
+
+        boolean xoaThanhCong = hinhAnhService.xoaAnhTrenCloudinary(publicId);
+        if (!xoaThanhCong) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi xóa ảnh trên Cloudinary!");
+        }
+
+        // Xóa hoàn toàn khỏi database sau khi xóa trên Cloudinary thành công
         hinhAnhRepository.delete(hinhAnh);
-        System.out.println("Xóa thành công ảnh ID: " + hinhAnhId);
+
 
         return ResponseEntity.ok("Xóa hình ảnh thành công!");
     }
+
 
 
     @DeleteMapping("/{id}")
