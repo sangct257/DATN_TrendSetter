@@ -19,6 +19,9 @@ public class MauSac {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ma_mau_sac",columnDefinition = "NVARCHAR(255)")
+    private String maMauSac;
+
     @Column(name = "ten_mau_sac",columnDefinition = "NVARCHAR(255)")
     private String tenMauSac;
 
