@@ -1,8 +1,6 @@
 package com.example.datn_trendsetter.API;
 
-import com.example.datn_trendsetter.Entity.DanhMuc;
 import com.example.datn_trendsetter.Entity.KichThuoc;
-import com.example.datn_trendsetter.Repository.DanhMucRepository;
 import com.example.datn_trendsetter.Repository.KichThuocRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

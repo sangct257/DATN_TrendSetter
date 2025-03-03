@@ -84,7 +84,7 @@ public class ShopService {
 
         // Lấy phương thức thanh toán đầu tiên (nếu có)
         Optional<PhuongThucThanhToan> optionalPaymentMethod = phuongThucThanhToanRepository.findFirstByOrderByIdAsc();
-        hoaDon.setPhuongThucThanhToan(optionalPaymentMethod.orElse(null)); // Cho phép null
+        hoaDon.setPhuongThucThanhToan(null); // Cho phép null
 
         // Thiết lập thông tin hóa đơn
         hoaDon.setTongTien(0.0F);

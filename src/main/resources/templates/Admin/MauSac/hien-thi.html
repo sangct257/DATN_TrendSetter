@@ -85,7 +85,8 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                    </button>
                                     <button type="button" class="btn btn-success" onclick="saveMauSac()">Lưu</button>
                                 </div>
                             </div>
@@ -109,7 +110,13 @@
                                 <input type="hidden" th:value="${mauSac.id}">
                                 <span th:text="${status.index + 1}"></span>
                             </td>
-                            <td class="text-center" th:text="${mauSac.maMauSac}"></td>
+                            <td class="text-center">
+                                <button th:text="${mauSac.maMauSac}"
+                                      th:style="'background-color:' + ${mauSac.maMauSac}"
+                                      style="opacity: 0; user-select: none; width: 40px; height: 40px; flex-shrink: 0;"
+                                      class="rounded border border-secondary d-flex align-items-center justify-content-center shadow mx-auto">
+                                </button>
+                            </td>
                             <td class="text-center" th:text="${mauSac.tenMauSac}"></td>
                             <td class="text-center">
                                 <button th:class="${mauSac.trangThai == 'Đang Hoạt Động' ? 'badge bg-success' : 'badge bg-danger'}"
@@ -158,8 +165,10 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="button" class="btn btn-primary" onclick="updateMauSac()">Chỉnh Sửa</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                    </button>
+                                    <button type="button" class="btn btn-primary" onclick="updateMauSac()">Chỉnh Sửa
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -245,7 +254,7 @@
         animateProgressBar(progressBar, 3000, () => {
             fetch('/api/mau-sac/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             })
                 .then(response => response.text())
@@ -272,7 +281,7 @@
             animateProgressBar(progressBar, 3000, () => {
                 fetch(`/api/mau-sac/delete/${mauSacId}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: {'Content-Type': 'application/json'}
                 })
                     .then(response => {
                         if (!response.ok) throw new Error("Xóa thất bại!");
@@ -302,7 +311,7 @@
         animateProgressBar(progressBar, 3000, () => {
             fetch('/api/mau-sac/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(updatedMauSac)
             })
                 .then(response => response.text())

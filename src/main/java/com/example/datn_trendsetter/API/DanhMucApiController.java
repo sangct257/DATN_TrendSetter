@@ -55,7 +55,7 @@ public class DanhMucApiController {
             danhMuc.setNgaySua(LocalDate.now());
             danhMuc.setNguoiTao(danhMuc.getNguoiTao());
             danhMuc.setNguoiSua(danhMuc.getNguoiSua());
-            danhMuc.setTrangThai(danhMuc.getTrangThai());
+            danhMuc.setTrangThai(updatedDanhMuc.getTrangThai());
             danhMuc.setDeleted(danhMuc.getDeleted());
             danhMucRepository.save(danhMuc);
             return ResponseEntity.ok("Cập nhật thành công");

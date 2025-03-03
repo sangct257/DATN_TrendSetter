@@ -165,7 +165,6 @@
             xuatXuId: document.getElementById("xuatXu").value
         };
 
-        // Hiển thị toast thông báo
         let toast = new bootstrap.Toast(document.getElementById("toast-message"));
         let toastText = document.getElementById("toast-text");
         let progressBar = document.querySelector("#toast-loading-bar .progress-bar");
@@ -183,7 +182,6 @@
             }
         }, 200);
 
-        // Gửi request đến server
         fetch("/api/san-pham/add", {
             method: "POST",
             headers: {
@@ -191,22 +189,24 @@
             },
             body: JSON.stringify(sanPhamData)
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Lỗi khi thêm sản phẩm!");
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                if (status === 409) { // Trùng sản phẩm
+                    throw new Error(body.message || "Sản phẩm đã tồn tại!");
                 }
-                return response.json();
-            })
-            .then(data => {
+                if (status !== 200) {
+                    throw new Error(body.message || "Lỗi không xác định!");
+                }
+
                 toastText.innerText = "Thêm sản phẩm thành công!";
                 progressBar.classList.replace("bg-light", "bg-success");
 
                 setTimeout(() => {
-                    window.location.href = "http://localhost:8080/admin/san-pham";
+                    window.location = "http://localhost:8080/admin/detail-san-pham?sanPhamId=" + data.id;
                 }, 1500);
             })
             .catch(error => {
-                toastText.innerText = "Thêm sản phẩm thất bại!";
+                toastText.innerText = error.message;
                 progressBar.classList.replace("bg-light", "bg-danger");
                 console.error("Lỗi:", error);
             });

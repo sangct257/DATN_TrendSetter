@@ -44,7 +44,8 @@ public class HinhAnhService {
                 hinhAnh.setPublicId(publicId);
                 hinhAnh.setSanPhamChiTiet(sanPhamChiTiet);
                 hinhAnh.setNgayTao(LocalDate.now());
-                hinhAnh.setTrangThai("ACTIVE");
+                hinhAnh.setNgaySua(LocalDate.now());
+                hinhAnh.setTrangThai("Đang Hoạt Động");
                 hinhAnh.setDeleted(false);
 
                 hinhAnhRepository.save(hinhAnh);
