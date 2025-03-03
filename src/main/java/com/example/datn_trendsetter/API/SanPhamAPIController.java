@@ -1,14 +1,11 @@
 package com.example.datn_trendsetter.API;
 
-import com.cloudinary.utils.ObjectUtils;
 import com.example.datn_trendsetter.DTO.ProductDetailDTO;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
-import com.example.datn_trendsetter.DTO.SanPhamChiTietRequest;
 import com.example.datn_trendsetter.DTO.SanPhamDTO;
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.*;
 import com.example.datn_trendsetter.Service.HinhAnhService;
-import com.example.datn_trendsetter.Service.SanPhamChiTietService;
 import com.example.datn_trendsetter.Service.SanPhamService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.time.LocalDate;
 import java.util.*;
 
 @RestController
@@ -52,22 +47,27 @@ public class SanPhamAPIController {
     @PostMapping("/add")
     @ResponseBody
     public ResponseEntity<?> addSanPham(@RequestBody SanPhamDTO sanPhamDTO) {
-        try {
-            SanPham sanPham = sanPhamService.addSanPham(sanPhamDTO);
-            return ResponseEntity.ok(sanPham);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi thêm sản phẩm");
-        }
+        return sanPhamService.addSanPham(sanPhamDTO);
     }
+
 
     @PutMapping("/update-san-pham/{id}")
     public ResponseEntity<?> updateSanPham(@PathVariable Integer id, @RequestBody SanPhamDTO sanPhamDTO) {
         try {
             return ResponseEntity.ok(sanPhamService.updateSanPham(id, sanPhamDTO));
         } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of(
+                    "error", e.getReason(),
+                    "status", e.getStatusCode().value()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Lỗi hệ thống! Vui lòng thử lại sau.",
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR.value()
+            ));
         }
     }
+
 
 
     @PostMapping("/add-mau-sac-kich-thuoc")
@@ -95,7 +95,7 @@ public class SanPhamAPIController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietRequest request) {
+    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request) {
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
         if (sanPhamChiTiet == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
@@ -207,24 +207,31 @@ public class SanPhamAPIController {
         SanPham sanPham = optionalSanPham.get();
 
         // Kiểm tra nếu sản phẩm có biến thể
-        if (sanPham.getSanPhamChiTiet() != null && !sanPham.getSanPhamChiTiet().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không thể xóa vì còn biến thể sản phẩm");
+        List<SanPhamChiTiet> sanPhamChiTietList = sanPham.getSanPhamChiTiet();
+        if (sanPhamChiTietList != null && !sanPhamChiTietList.isEmpty()) {
+            boolean coTrongHoaDon = sanPhamChiTietList.stream()
+                    .anyMatch(spct -> hoaDonChiTietRepository.existsBySanPhamChiTiet(spct));
+
+            if (coTrongHoaDon) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Không thể xóa vì sản phẩm đã có trong hóa đơn");
+            }
+
+            // Xóa tất cả biến thể sản phẩm trước khi xóa sản phẩm chính
+            sanPhamChiTietRepository.deleteAll(sanPhamChiTietList);
         }
 
-        // Kiểm tra nếu sản phẩm có trong hóa đơn
-        boolean coTrongHoaDon = sanPham.getSanPhamChiTiet().stream()
-                .anyMatch(spct -> hoaDonChiTietRepository.existsBySanPhamChiTiet(spct));
+        // Xóa quan hệ với danh mục, thương hiệu, xuất xứ, chất liệu trước khi xóa
+        sanPham.setDanhMuc(null);
+        sanPham.setThuongHieu(null);
+        sanPham.setXuatXu(null);
+        sanPham.setChatLieu(null);
 
-        if (coTrongHoaDon) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không thể xóa vì sản phẩm đã có trong hóa đơn");
-        }
-
-        // Xóa mềm (nếu có cột deleted)
-        sanPham.setTrangThai("Không Hoạt Động");
-        sanPham.setDeleted(true);
-        sanPhamRepository.save(sanPham);
+        // Xóa sản phẩm
+        sanPhamRepository.delete(sanPham);
 
         return ResponseEntity.ok("Xóa sản phẩm thành công");
     }
+
 
 }

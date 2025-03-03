@@ -190,11 +190,16 @@
                 fetch(`/api/san-pham/${sanPhamId}`, {
                     method: "DELETE"
                 })
-                    .then(response => response.text().then(text => ({ status: response.status, message: text })))
+                    .then(response => response.json()
+                        .then(data => ({
+                            status: response.status,
+                            message: data.error || data.message || "Có lỗi xảy ra!"
+                        }))
+                    )
                     .then(({ status, message }) => {
                         animateProgressBar(progressBar, 4000, () => {
                             if (status === 200) {
-                                showToast(message, "success");
+                                showToast("Xóa sản phẩm thành công!", "success");
                                 setTimeout(() => location.reload(), 1500);
                             } else {
                                 showToast("Lỗi: " + message, "danger");

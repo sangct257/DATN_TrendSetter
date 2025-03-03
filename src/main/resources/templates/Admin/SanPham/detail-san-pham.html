@@ -123,7 +123,6 @@
                                                                 th:selected="${sanPham.danhMuc != null && sanPham.danhMuc.id == dm.id}">
                                                         </option>
                                                     </select>
-                                                    <button type="button" class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
                                             <div class="col-md-5">
@@ -137,7 +136,6 @@
                                                                 th:selected="${sanPham.thuongHieu != null && sanPham.thuongHieu.id == th.id}">
                                                         </option>
                                                     </select>
-                                                    <button type="button" class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -153,7 +151,6 @@
                                                                 th:selected="${sanPham.chatLieu != null && sanPham.chatLieu.id == cl.id}">
                                                         </option>
                                                     </select>
-                                                    <button type="button" class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
                                             <div class="col-md-5">
@@ -166,7 +163,6 @@
                                                                 th:selected="${sanPham.xuatXu != null && sanPham.xuatXu.id == xx.id}">
                                                         </option>
                                                     </select>
-                                                    <button type="button" class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -204,7 +200,11 @@
                                             <label class="form-label fw-semibold">Màu Sắc:</label>
                                             <div class="border rounded p-2 d-flex flex-wrap gap-2">
                                                 <label th:each="ms : ${mauSacSanPham}" class="border rounded px-3 py-1">
-                                                    <span th:text="${ms.tenMauSac}"></span>
+                                                    <span th:text="${ms.maMauSac}"
+                                                          th:style="'background-color:' + ${ms.maMauSac}"
+                                                          style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
+                                                          class="rounded border border-secondary shadow">
+                                                    </span>
                                                 </label>
                                             </div>
                                         </div>
@@ -246,12 +246,19 @@
 
                                         <h6 class="fw-bold">Màu Sắc</h6>
                                         <div class="d-flex flex-wrap gap-2">
-                                            <label th:each="ms : ${mauSac}" class="border rounded px-3 py-1">
-                                                <input type="checkbox" name="mauSacIds" class="mau-sac me-1"
+                                            <label th:each="ms : ${mauSac}"
+                                                   class="border rounded px-2 py-1 d-flex align-items-center"
+                                                   style="cursor: pointer;">
+                                                <input type="checkbox" name="mauSacIds" class="mau-sac me-2"
                                                        th:value="${ms.id}">
-                                                <span th:text="${ms.tenMauSac}"></span>
+                                                <div th:text="${ms.maMauSac}"
+                                                     th:style="'background-color:' + ${ms.maMauSac}"
+                                                     style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
+                                                     class="rounded border border-secondary shadow">
+                                                </div>
                                             </label>
                                         </div>
+
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
@@ -566,13 +573,24 @@
             .then(({status, body}) => {
                 if (status === 200) {
                     animateProgressBar(progressBar, 3000); // Chạy tiến trình trong 3 giây
-
                     setTimeout(() => {
                         showToast("Cập nhật thành công!", "success");
                         setTimeout(() => window.location.reload(), 1000); // Tải lại trang sau khi hoàn thành
                     }, 3000);
                 } else {
-                    throw new Error(body.error || "Có lỗi xảy ra!");
+                    let errorMessage = body.error || "Có lỗi xảy ra!";
+                    switch (status) {
+                        case 400:
+                            errorMessage = "Lỗi dữ liệu! " + errorMessage;
+                            break;
+                        case 409:
+                            errorMessage = "Xung đột dữ liệu! " + errorMessage;
+                            break;
+                        case 500:
+                            errorMessage = "Lỗi hệ thống! " + errorMessage;
+                            break;
+                    }
+                    throw new Error(errorMessage);
                 }
             })
             .catch(error => {

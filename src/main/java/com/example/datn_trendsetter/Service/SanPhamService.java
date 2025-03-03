@@ -33,22 +33,13 @@ public class SanPhamService {
     @Autowired
     private XuatXuRepository xuatXuRepository;
 
-    @Autowired
-    private MauSacRepository mauSacRepository;
-
-    @Autowired
-    private KichThuocRepository kichThuocRepository;
-
-    @Autowired
-    private SanPhamChiTietRepository sanPhamChiTietRepository;
-
     // Tạo mã sản phẩm ngẫu nhiên: SP + 6 số
     private String generateMaSanPham() {
         return "SP" + (100000 + new Random().nextInt(900000));
     }
 
     @Transactional
-    public synchronized SanPham addSanPham(SanPhamDTO sanPhamDTO) {
+    public synchronized ResponseEntity<?> addSanPham(SanPhamDTO sanPhamDTO) {
         try {
             Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPhamAndDanhMucIdAndThuongHieuId(
                     sanPhamDTO.getTenSanPham(),
@@ -57,7 +48,9 @@ public class SanPhamService {
             );
 
             if (existingSanPhamOpt.isPresent()) {
-                throw new RuntimeException("Sản phẩm đã tồn tại trong danh mục và thương hiệu này!");
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT) // 409 Conflict
+                        .body(Map.of("message", "Sản phẩm đã tồn tại trong danh mục và thương hiệu này!"));
             }
 
             SanPham sanPham = new SanPham();
@@ -72,17 +65,31 @@ public class SanPhamService {
             sanPham.setNguoiSua(sanPhamDTO.getNguoiSua());
             sanPham.setDeleted(false);
 
-            // Set quan hệ
-            sanPham.setThuongHieu(thuongHieuRepository.findById(sanPhamDTO.getThuongHieuId()).orElse(null));
-            sanPham.setDanhMuc(danhMucRepository.findById(sanPhamDTO.getDanhMucId()).orElse(null));
-            sanPham.setChatLieu(chatLieuRepository.findById(sanPhamDTO.getChatLieuId()).orElse(null));
-            sanPham.setXuatXu(xuatXuRepository.findById(sanPhamDTO.getXuatXuId()).orElse(null));
-            return sanPhamRepository.save(sanPham);
+            // Kiểm tra xem các đối tượng có tồn tại trước khi set không
+            sanPham.setThuongHieu(thuongHieuRepository.findById(sanPhamDTO.getThuongHieuId()).orElseThrow(
+                    () -> new RuntimeException("Thương hiệu không tồn tại!")));
+            sanPham.setDanhMuc(danhMucRepository.findById(sanPhamDTO.getDanhMucId()).orElseThrow(
+                    () -> new RuntimeException("Danh mục không tồn tại!")));
+            sanPham.setChatLieu(chatLieuRepository.findById(sanPhamDTO.getChatLieuId()).orElseThrow(
+                    () -> new RuntimeException("Chất liệu không tồn tại!")));
+            sanPham.setXuatXu(xuatXuRepository.findById(sanPhamDTO.getXuatXuId()).orElseThrow(
+                    () -> new RuntimeException("Xuất xứ không tồn tại!")));
+
+            SanPham savedSanPham = sanPhamRepository.save(sanPham);
+            return ResponseEntity.ok(Map.of("message", "Thêm sản phẩm thành công!", "sanPham", savedSanPham));
 
         } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("Lỗi dữ liệu! Vui lòng kiểm tra lại thông tin sản phẩm.", e);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Lỗi dữ liệu! Vui lòng kiểm tra lại thông tin sản phẩm."));
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            throw new RuntimeException("Đã xảy ra lỗi trong quá trình thêm/cập nhật sản phẩm.", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi trong quá trình thêm sản phẩm."));
         }
     }
 
@@ -117,17 +124,23 @@ public class SanPhamService {
             sanPham.setNguoiSua(sanPhamDTO.getNguoiSua());
 
             // Cập nhật quan hệ
-            sanPham.setThuongHieu(thuongHieuRepository.findById(sanPhamDTO.getThuongHieuId()).orElse(null));
-            sanPham.setDanhMuc(danhMucRepository.findById(sanPhamDTO.getDanhMucId()).orElse(null));
-            sanPham.setChatLieu(chatLieuRepository.findById(sanPhamDTO.getChatLieuId()).orElse(null));
-            sanPham.setXuatXu(xuatXuRepository.findById(sanPhamDTO.getXuatXuId()).orElse(null));
+            sanPham.setThuongHieu(thuongHieuRepository.findById(sanPhamDTO.getThuongHieuId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Thương hiệu không hợp lệ!")));
+            sanPham.setDanhMuc(danhMucRepository.findById(sanPhamDTO.getDanhMucId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Danh mục không hợp lệ!")));
+            sanPham.setChatLieu(chatLieuRepository.findById(sanPhamDTO.getChatLieuId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chất liệu không hợp lệ!")));
+            sanPham.setXuatXu(xuatXuRepository.findById(sanPhamDTO.getXuatXuId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Xuất xứ không hợp lệ!")));
 
             return sanPhamRepository.save(sanPham);
 
         } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lỗi dữ liệu! Vui lòng kiểm tra lại thông tin sản phẩm.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lỗi dữ liệu! Vui lòng kiểm tra lại thông tin sản phẩm.", e);
+        } catch (ResponseStatusException e) {
+            throw e; // Giữ nguyên lỗi có sẵn
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Sản phẩm đã tồn tại trong danh mục và thương hiệu này!");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Đã xảy ra lỗi trong quá trình cập nhật sản phẩm.", e);
         }
     }
 
