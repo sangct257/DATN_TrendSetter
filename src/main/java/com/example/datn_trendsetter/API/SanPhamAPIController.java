@@ -9,6 +9,7 @@ import com.example.datn_trendsetter.Service.HinhAnhService;
 import com.example.datn_trendsetter.Service.SanPhamService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,32 @@ public class SanPhamAPIController {
     @Autowired
     private HoaDonChiTietRepository hoaDonChiTietRepository;
 
+    @GetMapping("/list")
+    public ResponseEntity<List<SanPham>> getSanPhamByTrangThai(@RequestParam(required = false) String trangThai) {
+        List<SanPham> sanPhamList;
+        if (trangThai != null && !trangThai.isEmpty()) {
+            sanPhamList = sanPhamRepository.findByTrangThai(trangThai, Sort.by(Sort.Direction.DESC, "id"));
+        } else {
+            sanPhamList = sanPhamRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        }
+        return ResponseEntity.ok(sanPhamList);
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Long>> countSanPhamByTrangThai() {
+        long hoatDong = sanPhamRepository.countByTrangThai("Đang Hoạt Động");
+        long ngungHoatDong = sanPhamRepository.countByTrangThai("Ngừng Hoạt Động");
+        long tong = sanPhamRepository.count();
+
+        Map<String, Long> countMap = Map.of(
+                "Đang Hoạt Động", hoatDong,
+                "Ngừng Hoạt Động", ngungHoatDong,
+                "Tất Cả", tong
+        );
+
+        return ResponseEntity.ok(countMap);
+    }
+
     @PostMapping("/add")
     @ResponseBody
     public ResponseEntity<?> addSanPham(@RequestBody SanPhamDTO sanPhamDTO) {
@@ -69,6 +96,16 @@ public class SanPhamAPIController {
     }
 
 
+    // API để xóa mềm sản phẩm (khi nhấn vào trạng thái)
+    @PutMapping("/toggle-status/{id}")
+    public ResponseEntity<?> toggleSanPhamStatus(@PathVariable Integer id) {
+        boolean updated = sanPhamService.toggleSanPhamStatus(id);
+        if (updated) {
+            return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công!"));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "Sản phẩm không tồn tại!"));
+        }
+    }
 
     @PostMapping("/add-mau-sac-kich-thuoc")
     public ResponseEntity<String> addMauSacKichThuoc(@RequestBody ProductDetailDTO request) {
@@ -106,7 +143,6 @@ public class SanPhamAPIController {
         sanPhamChiTiet.setGia(request.getGia().floatValue());
         sanPhamChiTiet.setTrangThai(request.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
         sanPhamChiTietRepository.save(sanPhamChiTiet);
-
 
 
         capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
@@ -181,57 +217,17 @@ public class SanPhamAPIController {
         }
 
         HinhAnh hinhAnh = optionalHinhAnh.get();
-        String publicId = hinhAnh.getPublicId(); // Lấy đúng public_id
+        String publicId = hinhAnh.getPublicId();
 
         boolean xoaThanhCong = hinhAnhService.xoaAnhTrenCloudinary(publicId);
         if (!xoaThanhCong) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi xóa ảnh trên Cloudinary!");
         }
 
-        // Xóa hoàn toàn khỏi database sau khi xóa trên Cloudinary thành công
         hinhAnhRepository.delete(hinhAnh);
-
-
         return ResponseEntity.ok("Xóa hình ảnh thành công!");
     }
 
-
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> xoaSanPham(@PathVariable Integer id) {
-        Optional<SanPham> optionalSanPham = sanPhamRepository.findById(id);
-        if (optionalSanPham.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Sản phẩm không tồn tại");
-        }
-
-        SanPham sanPham = optionalSanPham.get();
-
-        // Kiểm tra nếu sản phẩm có biến thể
-        List<SanPhamChiTiet> sanPhamChiTietList = sanPham.getSanPhamChiTiet();
-        if (sanPhamChiTietList != null && !sanPhamChiTietList.isEmpty()) {
-            boolean coTrongHoaDon = sanPhamChiTietList.stream()
-                    .anyMatch(spct -> hoaDonChiTietRepository.existsBySanPhamChiTiet(spct));
-
-            if (coTrongHoaDon) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Không thể xóa vì sản phẩm đã có trong hóa đơn");
-            }
-
-            // Xóa tất cả biến thể sản phẩm trước khi xóa sản phẩm chính
-            sanPhamChiTietRepository.deleteAll(sanPhamChiTietList);
-        }
-
-        // Xóa quan hệ với danh mục, thương hiệu, xuất xứ, chất liệu trước khi xóa
-        sanPham.setDanhMuc(null);
-        sanPham.setThuongHieu(null);
-        sanPham.setXuatXu(null);
-        sanPham.setChatLieu(null);
-
-        // Xóa sản phẩm
-        sanPhamRepository.delete(sanPham);
-
-        return ResponseEntity.ok("Xóa sản phẩm thành công");
-    }
 
 
 }

@@ -235,26 +235,28 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <!-- Kích Thước -->
                                         <h6 class="fw-bold">Kích Cỡ</h6>
                                         <div class="d-flex flex-wrap gap-2 mb-3">
                                             <label th:each="kt : ${kichThuoc}" class="border rounded px-3 py-1">
                                                 <input type="checkbox" name="kichThuocIds" class="kich-thuoc me-1"
-                                                       th:value="${kt.id}">
+                                                       th:value="${kt.id}"
+                                                       th:attr="data-kich-thuoc=${kt.id}">
                                                 <span th:text="${kt.tenKichThuoc}"></span>
                                             </label>
                                         </div>
 
+
+                                        <!-- Màu Sắc -->
                                         <h6 class="fw-bold">Màu Sắc</h6>
                                         <div class="d-flex flex-wrap gap-2">
-                                            <label th:each="ms : ${mauSac}"
-                                                   class="border rounded px-2 py-1 d-flex align-items-center"
-                                                   style="cursor: pointer;">
+                                            <label th:each="ms : ${mauSac}" class="border rounded px-2 py-1 d-flex align-items-center">
                                                 <input type="checkbox" name="mauSacIds" class="mau-sac me-2"
-                                                       th:value="${ms.id}">
+                                                       th:value="${ms.id}"
+                                                       th:attr="data-mau-sac=${ms.id}">
                                                 <div th:text="${ms.maMauSac}"
                                                      th:style="'background-color:' + ${ms.maMauSac}"
-                                                     style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
-                                                     class="rounded border border-secondary shadow">
+                                                     style="width: 30px; height: 30px;" class="rounded border border-secondary shadow">
                                                 </div>
                                             </label>
                                         </div>
@@ -336,11 +338,10 @@
                                                                     th:data-url="${hinhAnh.urlHinhAnh}">
                                                                 <i class="bi bi-eye"></i>
                                                             </button>
-                                                            <button type="button"
-                                                                    class="btn btn-sm btn-outline-light delete-image"
-                                                                    th:data-id="${hinhAnh.id}">
+                                                            <button type="button" class="btn btn-sm btn-outline-light delete-image" th:data-id="${hinhAnh.id}">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
+
                                                         </div>
                                                     </div>
                                                 </th:block>
@@ -414,6 +415,7 @@
                 requestAnimationFrame(updateProgress);
             } else {
                 progressBar.style.width = "100%";
+                setTimeout(() => hideToast(), 1000); // Ẩn toast sau 1 giây
                 if (callback) callback();
             }
         }
@@ -425,12 +427,18 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // Upload ảnh khi chọn file
-        document.querySelectorAll(".file-input").forEach(input => {
-            input.addEventListener("change", function () {
-                let closestRow = this.closest("tr");
-                let spctId = closestRow.querySelector(".spct-id").value;
+        document.addEventListener("change", function (event) {
+            if (event.target.classList.contains("file-input")) {
+                let input = event.target;
+                let closestRow = input.closest("tr");
+                let spctIdElement = closestRow.querySelector(".spct-id");
+                if (!spctIdElement) {
+                    showToast("Không tìm thấy ID sản phẩm!", "danger");
+                    return;
+                }
+                let spctId = spctIdElement.value;
                 let imgContainer = closestRow.querySelector(".d-flex");
-                let files = this.files;
+                let files = input.files;
                 if (files.length === 0) return;
 
                 let formData = new FormData();
@@ -440,110 +448,117 @@
 
                 let progressBar = showToast("Đang tải ảnh lên...", "primary");
 
-                fetch(`/api/san-pham/upload/${spctId}`, {
-                    method: "POST",
-                    body: formData
-                })
+                fetch(`/api/san-pham/upload/${spctId}`, { method: "POST", body: formData })
                     .then(response => {
-                        if (!response.ok) throw new Error("Upload thất bại!");
+                        if (!response.ok) throw new Error("Lỗi từ server!");
                         return response.json();
                     })
                     .then(imageUrls => {
                         animateProgressBar(progressBar, 2000, () => {
+                            let uploadButton = imgContainer.querySelector("label.btn-light");
                             imageUrls.forEach(url => {
-                                let imgElement = document.createElement("img");
-                                imgElement.src = url;
-                                imgElement.classList.add("img-thumbnail");
-                                imgElement.width = 60;
-                                imgElement.height = 60;
-                                imgContainer.appendChild(imgElement);
+                                let imgWrapper = document.createElement("div");
+                                imgWrapper.classList.add("image-wrapper", "position-relative");
+                                imgWrapper.innerHTML = `
+                                <img src="${url}" class="img-thumbnail" width="60" height="60">
+                                <div class="image-overlay">
+                                    <button type="button" class="btn btn-sm btn-outline-light view-image" data-url="${url}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-light delete-image" data-url="${url}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            `;
+
+                                if (uploadButton) {
+                                    imgContainer.insertBefore(imgWrapper, uploadButton);
+                                } else {
+                                    imgContainer.appendChild(imgWrapper);
+                                }
                             });
 
                             showToast("Upload thành công!", "success");
-                            setTimeout(() => window.location.reload(), 1500);
+                            setTimeout(() => location.reload(), 1000); // Reload sau 1 giây
                         });
                     })
-                    .catch(error => {
-                        console.error("Lỗi upload:", error);
-                        showToast("Upload thất bại!", "danger");
-                    });
-            });
+                    .catch(error => showToast("Upload thất bại!", "danger"));
+            }
         });
 
-        // Xem ảnh khi nhấn vào icon "mắt"
-        document.querySelectorAll(".view-image").forEach(button => {
-            button.addEventListener("click", function () {
-                let imageUrl = this.getAttribute("data-url");
-                let modalHtml = `
-                    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Xem ảnh</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body text-center">
-                                    <img src="${imageUrl}" class="img-fluid">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+        // Xử lý sự kiện xóa ảnh (sử dụng event delegation để áp dụng cho cả ảnh mới)
+        document.addEventListener("click", function (event) {
+            if (event.target.closest(".delete-image")) {
+                let button = event.target.closest(".delete-image");
+                let imageId = button.getAttribute("data-id");
+                if (!imageId) {
+                    showToast("Không tìm thấy ID ảnh!", "danger");
+                    return;
+                }
+                let wrapper = button.closest(".image-wrapper");
 
-                document.body.insertAdjacentHTML("beforeend", modalHtml);
-                let modal = new bootstrap.Modal(document.getElementById("imageModal"));
-                modal.show();
-
-                document.getElementById("imageModal").addEventListener("hidden.bs.modal", function () {
-                    this.remove();
-                });
-            });
-        });
-
-        // Xóa ảnh khi nhấn vào icon "thùng rác"
-        document.querySelectorAll(".delete-image").forEach(button => {
-            button.addEventListener("click", function () {
-                let imageId = this.getAttribute("data-id");
-                let wrapper = this.closest(".image-wrapper");
-                console.log("ID ảnh cần xóa:", imageId);
+                if (!imageId) {
+                    showToast("Lỗi: Không tìm thấy ID ảnh!", "danger");
+                    return;
+                }
 
                 if (!confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
 
                 let progressBar = showToast("Đang xóa ảnh...", "primary");
 
-                fetch(`/api/san-pham/xoa/${imageId}`, {method: "DELETE"})
+                fetch(`/api/san-pham/xoa/${imageId}`, { method: "DELETE" })
                     .then(response => {
                         if (!response.ok) throw new Error("Xóa ảnh thất bại!");
                         return response.text();
                     })
                     .then(() => {
-                        console.log("Xóa thành công:", imageId);
-                        animateProgressBar(progressBar, 2000, () => {
+                        animateProgressBar(progressBar, 1500, () => {
+                            wrapper.remove(); // Xóa ảnh khỏi giao diện
                             showToast("Xóa ảnh thành công!", "success");
-                            setTimeout(() => window.location.reload(), 1500);
                         });
                     })
                     .catch(error => {
                         console.error("Lỗi xóa ảnh:", error);
                         showToast("Xóa ảnh thất bại!", "danger");
-                    })
-                    .then(imageUrls => {
-                        animateProgressBar(progressBar, 2000, () => {
-                            imageUrls.forEach(url => {
-                                let imgElement = document.createElement("img");
-                                imgElement.src = url;
-                                imgElement.classList.add("img-thumbnail");
-                                imgElement.width = 60;
-                                imgElement.height = 60;
-                                imgContainer.appendChild(imgElement); // Thêm ảnh ngay vào giao diện
-                            });
+                    });
+            }
+        });
 
-                            showToast("Upload thành công!", "success");
-                            setTimeout(hideToast, 2000); // Ẩn toast sau khi thông báo thành công
-                        });
-                    })
+        // Xử lý sự kiện xem ảnh (sử dụng event delegation)
+        document.addEventListener("click", function (event) {
+            if (event.target.closest(".view-image")) {
+                let button = event.target.closest(".view-image");
+                let imageUrl = button.getAttribute("data-url");
 
-            });
+                if (!imageUrl) {
+                    showToast("Không tìm thấy ảnh!", "danger");
+                    return;
+                }
+
+                let modalHtml = `
+            <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Xem ảnh</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img src="${imageUrl}" class="img-fluid">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+                document.body.insertAdjacentHTML("beforeend", modalHtml);
+                let modal = new bootstrap.Modal(document.getElementById("imageModal"));
+
+                modal.show();
+                document.getElementById("imageModal").addEventListener("hidden.bs.modal", function () {
+                    this.remove();
+                });
+            }
         });
     });
 </script>
@@ -738,6 +753,75 @@
         }
     }
 
+</script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        let sanPhamChiTietList = /*[[${sanPhamChiTiet}]]*/ [];
+
+        // Tạo danh sách các kích thước theo từng màu
+        let kichThuocTheoMau = {};
+        sanPhamChiTietList.forEach(spct => {
+            let mauId = spct.mauSac.id;
+            let kichThuocId = spct.kichThuoc.id;
+
+            if (!kichThuocTheoMau[kichThuocId]) {
+                kichThuocTheoMau[kichThuocId] = new Set();
+            }
+            kichThuocTheoMau[kichThuocId].add(mauId);
+        });
+
+        // Lấy danh sách tất cả các màu sắc có trong hệ thống
+        let allMauSac = new Set();
+        document.querySelectorAll('.mau-sac').forEach(mau => {
+            allMauSac.add(parseInt(mau.value));
+        });
+
+        // Disable kích thước nếu nó đã tồn tại với tất cả màu
+        function updateDisabledSizes() {
+            document.querySelectorAll('.kich-thuoc').forEach(kichThuoc => {
+                let kichThuocId = parseInt(kichThuoc.value);
+                let colorsOfThisSize = kichThuocTheoMau[kichThuocId] || new Set();
+
+                kichThuoc.disabled = colorsOfThisSize.size === allMauSac.size;
+            });
+        }
+
+        updateDisabledSizes(); // Gọi lần đầu để cập nhật trạng thái
+
+        // Khi chọn kích thước, kiểm tra màu sắc nào đã tồn tại
+        function updateDisabledColors() {
+            let selectedSizes = new Set();
+            document.querySelectorAll('.kich-thuoc:checked').forEach(kichThuoc => {
+                let kichThuocId = parseInt(kichThuoc.value);
+                selectedSizes.add(kichThuocId);
+            });
+
+            // Reset trạng thái tất cả màu
+            document.querySelectorAll('.mau-sac').forEach(mau => {
+                mau.disabled = false;
+            });
+
+            // Nếu có kích thước được chọn, kiểm tra màu sắc cần disable
+            if (selectedSizes.size > 0) {
+                selectedSizes.forEach(kichThuocId => {
+                    let colorsOfThisSize = kichThuocTheoMau[kichThuocId] || new Set();
+                    document.querySelectorAll('.mau-sac').forEach(mau => {
+                        let mauId = parseInt(mau.value);
+                        if (colorsOfThisSize.has(mauId)) {
+                            mau.disabled = true;
+                        }
+                    });
+                });
+            }
+        }
+
+        document.querySelectorAll('.kich-thuoc').forEach(kichThuoc => {
+            kichThuoc.addEventListener("change", function () {
+                updateDisabledColors();
+            });
+        });
+    });
 </script>
 
 <!--Load table-->
