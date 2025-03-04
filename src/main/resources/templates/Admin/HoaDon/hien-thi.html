@@ -56,10 +56,12 @@
                                 <tr>
                                     <th class="text-center">#</th>
                                     <th class="text-center">Mã Hóa Đơn</th>
-                                    <th class="text-center">Khách Hàng</th>
-                                    <th class="text-center">Nhân Viên</th>
+                                    <th class="text-center">Tên Khách Hàng</th>
+                                    <th class="text-center">Tên Nhân Viên</th>
+                                    <th class="text-center">Loại Hóa Đơn</th>
+                                    <th class="text-center">Ngày Tạo</th>
+                                    <th class="text-center">Tiền Giảm</th>
                                     <th class="text-center">Tổng Tiền</th>
-                                    <th class="text-center">Ngày</th>
                                     <th class="text-center">Trạng Thái</th>
                                     <th class="text-center">Action</th>
                                 </tr>
@@ -68,16 +70,33 @@
                                 <tr th:each="hoaDon, status : ${hoaDon}">
                                     <td th:text="${status.index + 1}"></td>
                                     <td th:text="${hoaDon.maHoaDon}"></td>
-                                    <td th:text="${hoaDon.khachHang != null ? hoaDon.khachHang.hoTen : ''}"></td>
-                                    <td th:text="${hoaDon.nhanVien != null ? hoaDon.nhanVien.hoTen : ''}"></td>
-                                    <td th:text="${hoaDon.tongTien}"></td>
-                                    <td>Ngày Tạo : <span th:text="${hoaDon.ngayTao}"></span><br>Ngày Sửa : <span th:text="${hoaDon.ngaySua}"></span></td>
                                     <td>
-                                        <button class="btn"
+                                        <span th:text="${hoaDon.nguoiNhan == null and hoaDon.soDienThoai == null ? 'Khách lẻ' : hoaDon.nguoiNhan}"></span>
+                                        <br>
+                                        <span th:text="${hoaDon.nguoiNhan == null and hoaDon.soDienThoai == null ? '' : ' (' + hoaDon.soDienThoai + ' )'}"></span>
+                                    </td>
+
+                                    <td th:text="${hoaDon.nhanVien != null ? hoaDon.nhanVien.hoTen : ''}"></td>
+                                    <td>
+                                        <button class="btn border border-dark"
+                                                th:classappend="${
+                hoaDon.loaiHoaDon == 'Tại Quầy' ? 'btn-primary' :
+                (hoaDon.loaiHoaDon == 'Giao Hàng' ? 'btn-warning' :
+                (hoaDon.loaiHoaDon == 'Online' ? 'btn-success' : 'btn-secondary'))}"
+                                                th:text="${hoaDon.loaiHoaDon}">
+                                        </button>
+                                    </td>
+
+                                    <td th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                                    <td th:text="${hoaDon.phieuGiamGia != null ? #numbers.formatDecimal(hoaDon.phieuGiamGia.giaTri, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}"></td>
+                                    <td th:text="${hoaDon.tongTien != null ? #numbers.formatDecimal(hoaDon.tongTien, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}"></td>
+                                    <td>
+                                        <button class="btn border border-dark"
                                                 th:classappend="${statusClasses[hoaDon.trangThai] ?: 'btn-info'}"
                                                 th:text="${hoaDon.trangThai}">
                                         </button>
                                     </td>
+
                                     <td>
                                         <a th:href="@{'/admin/order-details?hoaDonId=' + ${hoaDon.id}}" class="btn btn-warning btn-sm">
                                             <i class="bi bi-pencil-square"></i> Chi Tiết
