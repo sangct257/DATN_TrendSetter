@@ -91,7 +91,7 @@ public class HoaDonController {
         model.addAttribute("listLichSuHoaDon", listLichSuHoaDon);
         model.addAttribute("iconMap", iconMap);
         model.addAttribute("hoaDonChiTiet", hoaDonChiTiet);
-        return "admin/order-details";
+        return "admin/HoaDonChiTiet/order-details";
     }
 
 
