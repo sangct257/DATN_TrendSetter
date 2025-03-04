@@ -19,6 +19,9 @@ public class ChatLieu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ma_chat_lieu", columnDefinition = "NVARCHAR(255)")
+    private String maChatLieu;
+
     @Column(name = "ten_chat_lieu", columnDefinition = "NVARCHAR(255)")
     private String tenChatLieu;
 

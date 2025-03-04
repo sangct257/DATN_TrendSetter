@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,8 +24,12 @@ public class HinhAnh {
     @Column(name = "url_hinh_anh",columnDefinition = "NVARCHAR(255)")
     private String urlHinhAnh;
 
+    @Column(name = "public_id", columnDefinition = "NVARCHAR(255)")
+    private String publicId;
+
     @ManyToOne
     @JoinColumn(name = "id_san_pham_chi_tiet", referencedColumnName = "id")
+    @JsonIgnore
     private SanPhamChiTiet sanPhamChiTiet;
 
     @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")

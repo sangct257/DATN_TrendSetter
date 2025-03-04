@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.Repository;
 
 import com.example.datn_trendsetter.DTO.ProductInfoDTO;
 import com.example.datn_trendsetter.Entity.HoaDonChiTiet;
+import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,8 +24,9 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
 
     @Query("SELECT COALESCE(SUM(hdct.soLuong), 0) FROM HoaDonChiTiet hdct " +
             "WHERE MONTH(hdct.hoaDon.ngayTao) = MONTH(CURRENT_DATE) " +
-            "AND YEAR(hdct.hoaDon.ngayTao) = YEAR(CURRENT_DATE)")
-    int getTongSanPhamBanTrongThang();
+            "AND YEAR(hdct.hoaDon.ngayTao) = YEAR(CURRENT_DATE) " +
+            "AND hdct.hoaDon.trangThai = :trangThai")
+    int getTongSanPhamBanTrongThang(@Param("trangThai") String trangThai);
 
     @Query("SELECT ha.urlHinhAnh, " +
             "CONCAT(sp.tenSanPham, ' - ', ms.tenMauSac, ' - ', kt.tenKichThuoc) AS productInfo, " +
@@ -38,18 +40,23 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             "JOIN HoaDon hd ON hdct.hoaDon.id = hd.id " +
             "WHERE MONTH(hd.ngayTao) = MONTH(CURRENT_DATE) " +
             "  AND YEAR(hd.ngayTao) = YEAR(CURRENT_DATE) " +
+            "AND hd.trangThai = :trangThai " +
             "GROUP BY ha.urlHinhAnh, sp.tenSanPham, ms.tenMauSac, kt.tenKichThuoc, spct.gia, spct.soLuong " +
             "ORDER BY totalQuantity DESC ")
-    Page<Object[]> getTotalSoldByProductInMonth(Pageable pageable);
+    List<Object[]> getTotalSoldByProductInMonth(@Param("trangThai")  String trangThai);
 
 
     @Query("SELECT YEAR(h.hoaDon.ngayTao), MONTH(h.hoaDon.ngayTao), DAY(h.hoaDon.ngayTao), SUM(h.soLuong) " +
             "FROM HoaDonChiTiet h " +
+            "WHERE h.hoaDon.trangThai = :trangThai " +
             "GROUP BY YEAR(h.hoaDon.ngayTao), MONTH(h.hoaDon.ngayTao), DAY(h.hoaDon.ngayTao) " +
             "ORDER BY YEAR(h.hoaDon.ngayTao), MONTH(h.hoaDon.ngayTao), DAY(h.hoaDon.ngayTao)")
-    List<Object[]> getTotalProductsByDateMonthYear();
+    List<Object[]> getTotalProductsByDateMonthYear(@Param("trangThai") String trangThai);
+
 
 
     @Query("SELECT COUNT(hdc.soLuong) FROM HoaDonChiTiet hdc WHERE hdc.hoaDon.ngayTao BETWEEN :startDate AND :endDate")
     Integer countSanPhamChiTietByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    boolean existsBySanPhamChiTiet(SanPhamChiTiet sanPhamChiTiet);
 }

@@ -30,8 +30,7 @@ public class ThongKeControlller {
     private ThongKeService thongKeService;
 
     @RequestMapping("admin/thong-ke")
-    public String ThongKe(@RequestParam(value = "page", defaultValue = "1") Integer page,
-                          Model model) {
+    public String ThongKe(Model model) {
 
         // Lấy tháng và năm hiện tại nếu không được truyền từ giao diện
         Float doanhThuNamNay = hoaDonService.getDoanhThuNamNay();
@@ -41,11 +40,9 @@ public class ThongKeControlller {
         Float doanhThuNgayNay = hoaDonService.getDoanhThuNgayNay();
         int soLuongSanPhamThangNay = hoaDonChiTietService.getTongSanPhamBanTrongThang();
 
-        int pageSize = 5;
+        List<Object[]> productList = hoaDonChiTietService.getTotalSoldByProductInMonthWithImages(); // Lấy danh sách sản phẩm từ Page
+        model.addAttribute("productsPage", productList);
 
-        // Lấy dữ liệu tổng hợp sản phẩm
-        Page<Object[]> productsPage = hoaDonChiTietService.getTotalSoldByProductInMonthWithImages(page, pageSize);
-        model.addAttribute("productsPage", productsPage);
 
         // Lấy dữ liệu thống kê
         Map<String, Integer> totalProductsByDateMonthYear = thongKeService.getTotalProductsByDateMonthYear();
@@ -79,7 +76,7 @@ public class ThongKeControlller {
         model.addAttribute("failedPercentage", orderStatusPercentages.get(9));
 
         // Lấy danh sách sản phẩm tồn kho thấp
-        Page<SanPhamChiTiet> lowStockProducts = sanPhamChiTietService.findLowStockProducts(page, pageSize);
+        List<SanPhamChiTiet> lowStockProducts = sanPhamChiTietService.findLowStockProducts();
         model.addAttribute("lowStockProducts", lowStockProducts);
 
         // Lấy dữ liệu thống kê doanh thu và tăng trưởng
