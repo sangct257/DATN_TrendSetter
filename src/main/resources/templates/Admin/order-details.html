@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="admin/fragments/head :: head"></head>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <style>
     body {
         background-color: #f8f9fa;
@@ -467,7 +469,7 @@
                                 <div class="modal fade" id="changeOrderModal" tabindex="-1"
                                      aria-labelledby="changeOrderLabel" aria-hidden="true">
                                     <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
+                                        <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="changeOrderLabel">Chỉnh sửa đơn hàng</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
@@ -502,7 +504,8 @@
 
                                                     <div class="row">
                                                         <div class="col-md-6 mb-3">
-                                                            <input type="text" id="soNha" name="soNha" class="form-control"
+                                                            <input type="text" id="soNha" name="soNha"
+                                                                   class="form-control"
                                                                    th:value="${hoaDon.soNha}" placeholder="Số nhà">
                                                             <span class="text-danger" id="soNhaError"></span>
                                                         </div>
@@ -518,26 +521,32 @@
                                                     <div class="row">
                                                         <div class="col-md-4 mb-3">
                                                             <select id="thanhPho" name="thanhPho" class="form-control">
-                                                                <option th:value="${hoaDon.thanhPho}" th:text="${hoaDon.thanhPho != null ? hoaDon.thanhPho : 'Chọn Tỉnh/Thành phố'}"></option>
+                                                                <option th:value="${hoaDon.thanhPho}"
+                                                                        th:text="${hoaDon.thanhPho != null ? hoaDon.thanhPho : 'Chọn Tỉnh/Thành phố'}"></option>
                                                             </select>
-                                                            <input type="hidden" id="thanhPhoHidden" name="thanhPhoHidden" th:value="${hoaDon.thanhPho}">
+                                                            <input type="hidden" id="thanhPhoHidden"
+                                                                   name="thanhPhoHidden" th:value="${hoaDon.thanhPho}">
 
                                                             <span class="text-danger" id="thanhPhoError"></span>
                                                         </div>
 
                                                         <div class="col-md-4 mb-3">
                                                             <select id="huyen" name="huyen" class="form-control">
-                                                                <option th:value="${hoaDon.huyen}" th:text="${hoaDon.huyen != null ? hoaDon.huyen : 'Chọn Quận/Huyện'}"></option>
+                                                                <option th:value="${hoaDon.huyen}"
+                                                                        th:text="${hoaDon.huyen != null ? hoaDon.huyen : 'Chọn Quận/Huyện'}"></option>
                                                             </select>
-                                                            <input type="hidden" id="huyenHidden" name="huyenHidden" th:value="${hoaDon.huyen}">
+                                                            <input type="hidden" id="huyenHidden" name="huyenHidden"
+                                                                   th:value="${hoaDon.huyen}">
                                                             <span class="text-danger" id="huyenError"></span>
                                                         </div>
 
                                                         <div class="col-md-4 mb-3">
                                                             <select id="phuong" name="phuong" class="form-control">
-                                                                <option th:value="${hoaDon.phuong}" th:text="${hoaDon.phuong != null ? hoaDon.phuong : 'Chọn Phường/Xã'}"></option>
+                                                                <option th:value="${hoaDon.phuong}"
+                                                                        th:text="${hoaDon.phuong != null ? hoaDon.phuong : 'Chọn Phường/Xã'}"></option>
                                                             </select>
-                                                            <input type="hidden" id="phuongHidden" name="phuongHidden" th:value="${hoaDon.phuong}">
+                                                            <input type="hidden" id="phuongHidden" name="phuongHidden"
+                                                                   th:value="${hoaDon.phuong}">
                                                             <span class="text-danger" id="phuongError"></span>
                                                         </div>
 
@@ -661,7 +670,7 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <th:block th:each="hoaDonChiTiet,status : ${danhSachHoaDonChiTiet}">
+                                    <th:block th:each="hoaDonChiTiet,status : ${hoaDonChiTiet}">
                                         <tr>
                                             <td th:text="${status.index+1}" class="text-center"></td>
                                             <td class="text-center">
@@ -747,25 +756,40 @@
                                     </div>
 
                                     <!-- Modal chọn phương thức thanh toán -->
-                                    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="paymentModal" tabindex="-1"
+                                         aria-labelledby="paymentModalLabel" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title" id="paymentModalLabel">Chọn phương thức thanh toán</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <h5 class="modal-title" id="paymentModalLabel">Chọn phương thức
+                                                        thanh toán</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <form id="paymentMethodForm">
-                                                        <input type="hidden" name="hoaDonId" th:value="${hoaDon != null ? hoaDon.id : ''}">
+                                                        <input type="hidden" name="hoaDonId"
+                                                               th:value="${hoaDon != null ? hoaDon.id : ''}">
 
                                                         <div class="mb-3">
-                                                            <label class="form-label"><i class="fas fa-credit-card"></i> Phương thức thanh toán:</label>
-                                                            <div class="btn-group w-100" role="group" aria-label="Chọn phương thức thanh toán">
-                                                                <th:block th:each="phuongThucThanhToan : ${listPhuongThucThanhToan}">
-                                                                    <input type="hidden" id="phiShip" th:value="${hoaDon.phiShip}">
-                                                                    <input type="hidden" id="listPhieuGiamGia" th:value="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0}">
-                                                                    <input type="radio" class="btn-check" name="phuongThucThanhToanId" th:id="'payment-' + ${phuongThucThanhToan.id}" th:value="${phuongThucThanhToan.id}" autocomplete="off">
-                                                                    <label class="btn btn-outline-primary" th:for="'payment-' + ${phuongThucThanhToan.id}" th:text="${phuongThucThanhToan.tenPhuongThuc}"></label>
+                                                            <label class="form-label"><i class="fas fa-credit-card"></i>
+                                                                Phương thức thanh toán:</label>
+                                                            <div class="btn-group w-100" role="group"
+                                                                 aria-label="Chọn phương thức thanh toán">
+                                                                <th:block
+                                                                        th:each="phuongThucThanhToan : ${listPhuongThucThanhToan}">
+                                                                    <input type="hidden" id="phiShip"
+                                                                           th:value="${hoaDon.phiShip}">
+                                                                    <input type="hidden" id="listPhieuGiamGia"
+                                                                           th:value="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0}">
+                                                                    <input type="radio" class="btn-check"
+                                                                           name="phuongThucThanhToanId"
+                                                                           th:id="'payment-' + ${phuongThucThanhToan.id}"
+                                                                           th:value="${phuongThucThanhToan.id}"
+                                                                           autocomplete="off">
+                                                                    <label class="btn btn-outline-primary"
+                                                                           th:for="'payment-' + ${phuongThucThanhToan.id}"
+                                                                           th:text="${phuongThucThanhToan.tenPhuongThuc}"></label>
                                                                 </th:block>
                                                             </div>
                                                         </div>
@@ -776,7 +800,8 @@
                                                             <!-- Nội dung động sẽ hiển thị ở đây -->
                                                         </div>
 
-                                                        <button type="button" id="addPaymentMethodButton" class="btn btn-primary">
+                                                        <button type="button" id="addPaymentMethodButton"
+                                                                class="btn btn-primary">
                                                             Cập nhật
                                                         </button>
                                                     </form>
@@ -822,16 +847,19 @@
                                                                 </label>
                                                                 <select id="tenChuongTrinh" name="tenChuongTrinh"
                                                                         class="form-select">
-                                                                    <option value="null" disabled selected>Chọn phiếu giảm
+                                                                    <option value="null" disabled selected>Chọn phiếu
+                                                                        giảm
                                                                         giá
                                                                     </option>
-                                                                    <th:block th:each="phieuGiamGia : ${listPhieuGiamGia}">
+                                                                    <th:block
+                                                                            th:each="phieuGiamGia : ${listPhieuGiamGia}">
                                                                         <option th:value="${phieuGiamGia.tenChuongTrinh}"
                                                                                 th:text="${phieuGiamGia.tenChuongTrinh + ' ( ' + #numbers.formatInteger(phieuGiamGia.giaTri, 3, 'COMMA') + ' ' + 'VND' + ' ) ' }"></option>
                                                                     </th:block>
                                                                 </select>
                                                             </div>
-                                                            <button type="submit" class="btn btn-primary">Áp dụng</button>
+                                                            <button type="submit" class="btn btn-primary">Áp dụng
+                                                            </button>
                                                         </form>
                                                     </div>
                                                 </div>
@@ -880,14 +908,16 @@
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="infoModalLabel">Cách tính Tổng tiền</h5>
+                                                        <h5 class="modal-title" id="infoModalLabel">Cách tính Tổng
+                                                            tiền</h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                                 aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <p>Công thức tính tổng tiền là:</p>
                                                         <ul>
-                                                            <li><strong>Tổng tiền hóa đơn</strong> - <strong>Giá trị phiếu
+                                                            <li><strong>Tổng tiền hóa đơn</strong> - <strong>Giá trị
+                                                                phiếu
                                                                 giảm giá</strong> + <strong>Phí vận chuyển</strong></li>
                                                             <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
                                                     #numbers.formatInteger(hoaDon.tongTien - (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0) + hoaDon.phiShip, 3, 'COMMA') + ' VNĐ'
@@ -1116,7 +1146,7 @@
 </script>
 
 
-<script >
+<script>
     function showConfirmModal(event, form) {
         event.preventDefault(); // Ngăn form gửi ngay lập tức
 
