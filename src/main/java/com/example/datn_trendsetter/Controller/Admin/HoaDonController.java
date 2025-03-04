@@ -39,6 +39,20 @@ public class HoaDonController {
     @Autowired
     private HoaDonChiTietRepository hoaDonChiTietRepository;
 
+    private static final Map<String, String> STATUS_CLASSES = Map.of(
+            "Đang Xử Lý", "btn-warning",
+            "Chờ Xác Nhận", "btn-primary",
+            "Đã Xác Nhận", "btn-info",
+            "Chờ Vận Chuyển", "btn-secondary",
+            "Đang Giao Hàng", "btn-primary",
+            "Đã Giao Hàng", "btn-success",
+            "Đã Thanh Toán", "btn-success",
+            "Đã Hoàn Thành", "btn-success",
+            "Hoàn Trả", "btn-danger",
+            "Đã Hủy", "btn-dark"
+    );
+
+
     @RequestMapping("admin/hoa-don")
     public String hienThiHoaDon(Model model) {
         model.addAttribute("hoaDon", hoaDonRepository.getAllHoaDon());
@@ -46,26 +60,11 @@ public class HoaDonController {
         model.addAttribute("nhanVien", nhanVienRepository.findAll());
         model.addAttribute("pgg", phieuGiamGiaRepository.findAll());
         model.addAttribute("pttt", phuongThucThanhToanRepository.findAll());
+        model.addAttribute("statusClasses", STATUS_CLASSES); // Thêm danh sách trạng thái vào model
         return "Admin/HoaDon/hien-thi";
     }
 
-    @PostMapping("/hoa-don/delete/{id}")
-    private String remove(@PathVariable("id") Integer idMS) {
-        hoaDonRepository.deleteById(idMS);
-        return "redirect:/admin/hoa-don";
-    }
 
-
-    //    @GetMapping("/hoa-don/detail/{id}")
-//    public String detail(@PathVariable("id") Integer id, Model model) {
-//        model.addAttribute("hoaDon", hoaDonRepository.findById(id).orElse(null));
-//        model.addAttribute("khachHang", khachHangRepository.findAll());
-//        model.addAttribute("nhanVien", nhanVienRepository.findAll());
-//        model.addAttribute("pgg", phieuGiamGiaRepository.findAll());
-//        model.addAttribute("pttt", phuongThucThanhToanRepository.findAll());
-//
-//        return "admin/order-details"; // Trả về trang JSP chứ không redirect
-//    }
     @GetMapping("/hoa-don/detail/{id}")
     public String detail(@PathVariable("id") Integer id, Model model) {
         HoaDon hoaDon = hoaDonRepository.findById(id).orElse(null);

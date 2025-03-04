@@ -15,5 +15,8 @@ public interface SanPhamRepository extends JpaRepository<SanPham,Integer> {
 
     Optional<SanPham> findByTenSanPhamAndDanhMucIdAndThuongHieuId(String tenSanPham, Integer danhMucId, Integer thuongHieuId);
 
+
     List<SanPham> findByTrangThai(String trangThai, Sort sort);
+    Integer countByTrangThai(String trangThai);
+
 }

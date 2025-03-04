@@ -42,4 +42,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     boolean existsBySanPhamAndMauSacIdAndKichThuocId(SanPham sanPham, Integer mauSacId, Integer kichThuocId);
 
     @Query("SELECT COALESCE(SUM(spct.soLuong), 0) FROM SanPhamChiTiet spct WHERE spct.sanPham.id = :sanPhamId")
-    int tinhTongSoLuongBySanPhamId(@Param("sanPhamId") Integer sanPhamId);}
+    int tinhTongSoLuongBySanPhamId(@Param("sanPhamId") Integer sanPhamId);
+
+    Integer Id(Integer id);
+}

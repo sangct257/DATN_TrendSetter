@@ -21,9 +21,9 @@
                 <h5>Thêm Sản Phẩm</h5>
             </h1>
             <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
+                <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
+                <li><a href="/admin/san-pham">Danh Sách Sản Phẩm</a></li>
+                <li class="active">Thêm Sản Phẩm</li>
             </ol>
             <!-- Toast Notification -->
             <!-- Toast Thông Báo -->
@@ -184,25 +184,23 @@
 
         fetch("/api/san-pham/add", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(sanPhamData)
         })
             .then(response => response.json().then(data => ({ status: response.status, body: data })))
             .then(({ status, body }) => {
-                if (status === 409) { // Trùng sản phẩm
+                if (status === 409) {
                     throw new Error(body.message || "Sản phẩm đã tồn tại!");
                 }
-                if (status !== 200) {
-                    throw new Error(body.message || "Lỗi không xác định!");
+                if (status !== 200 || !body.id) {
+                    throw new Error(body.message || "Lỗi không xác định hoặc không lấy được ID sản phẩm!");
                 }
 
                 toastText.innerText = "Thêm sản phẩm thành công!";
                 progressBar.classList.replace("bg-light", "bg-success");
 
                 setTimeout(() => {
-                    window.location = "http://localhost:8080/admin/detail-san-pham?sanPhamId=" + data.id;
+                    window.location.href = `http://localhost:8080/admin/detail-san-pham?sanPhamId=${body.id}`;
                 }, 1500);
             })
             .catch(error => {

@@ -60,20 +60,25 @@
                     </div>
 
                     <!-- Modal Thêm Màu Sắc -->
-                    <div class="modal fade" id="modalAddMauSac" tabindex="-1" aria-labelledby="addMauSacLabel"
-                         aria-hidden="true">
+                    <div class="modal fade" id="modalAddMauSac" tabindex="-1" aria-labelledby="addMauSacLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="addMauSacLabel">Thêm Màu Sắc</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <form id="addMauSacForm">
                                         <div class="mb-3">
                                             <label class="form-label">Tên Màu Sắc</label>
-                                            <input type="text" class="form-control" id="tenMauSac" required>
+                                            <input type="text" class="form-control" id="tenMauSac" required readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Mã Màu</label>
+                                            <div class="d-flex align-items-center">
+                                                <input type="color" class="form-control form-control-color me-2" id="maMauSac" value="#000000">
+                                                <input type="text" class="form-control w-25" id="hexColor" value="#000000" readonly>
+                                            </div>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Trạng Thái</label>
@@ -85,8 +90,7 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
-                                    </button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                                     <button type="button" class="btn btn-success" onclick="saveMauSac()">Lưu</button>
                                 </div>
                             </div>
@@ -156,6 +160,14 @@
                                             <input type="text" id="modalMauSacName" class="form-control" required>
                                         </div>
                                         <div class="mb-3">
+                                            <label class="form-label">Mã Màu</label>
+                                            <div class="d-flex align-items-center">
+                                                <input type="color" class="form-control form-control-color me-2" id="modalMauSacColor"
+                                                       onchange="document.getElementById('modalMauSacHex').value = this.value;">
+                                                <input type="text" class="form-control w-25" id="modalMauSacHex" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
                                             <label class="form-label">Trạng Thái</label>
                                             <select id="modalMauSacStatus" class="form-select">
                                                 <option value="Đang Hoạt Động">Đang Hoạt Động</option>
@@ -165,14 +177,13 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
-                                    </button>
-                                    <button type="button" class="btn btn-primary" onclick="updateMauSac()">Chỉnh Sửa
-                                    </button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-success" onclick="updateMauSac()">Chỉnh Sửa</button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
             <!-- /.box -->
@@ -240,32 +251,106 @@
 </script>
 
 <script>
-    // Hàm thêm màu sắc
-    function saveMauSac() {
-        let tenMauSac = document.getElementById("tenMauSac").value;
-        let trangThai = document.getElementById("trangThai").value;
+    document.getElementById("maMauSac").addEventListener("input", function () {
+        let hexValue = this.value;
+        document.getElementById("hexColor").value = hexValue;
+        getColorName(hexValue, "tenMauSac");
+    });
 
-        let data = {
-            tenMauSac: tenMauSac,
-            trangThai: trangThai
-        };
+    document.getElementById("modalMauSacColor").addEventListener("input", function () {
+        let hexValue = this.value;
+        document.getElementById("modalMauSacHex").value = hexValue;
+        getColorName(hexValue, "modalMauSacName");
+    });
 
-        let progressBar = showToast("Đang thêm màu sắc...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/mau-sac/add', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi khi thêm màu sắc!", "danger"));
-        });
+    async function getColorName(hex, outputId) {
+        try {
+            console.log("🎨 Mã màu HEX gửi đi:", hex);
+            const response = await fetch(`https://www.thecolorapi.com/id?hex=${hex.replace("#", "")}`);
+            if (!response.ok) throw new Error("❌ API TheColorAPI không phản hồi!");
+
+            const data = await response.json();
+            console.log("📦 JSON trả về:", data);
+
+            let englishName = data.name?.value || "Không xác định";
+            let translatedName = await translateColorFree(englishName);
+            document.getElementById(outputId).value = translatedName;
+        } catch (error) {
+            console.error("🚨 Lỗi trong getColorName():", error);
+            document.getElementById(outputId).value = "Không xác định";
+        }
     }
 
+    async function translateColorFree(text) {
+        try {
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Lỗi API Google Dịch");
+            const result = await response.json();
+            return result[0][0][0] || text;
+        } catch (error) {
+            console.error("Lỗi khi dịch màu sắc:", error);
+            return text;
+        }
+    }
+    function saveMauSac() {
+        let data = {
+            tenMauSac: document.getElementById("tenMauSac").value,
+            maMauSac: document.getElementById("maMauSac").value,
+            trangThai: document.getElementById("trangThai").value
+        };
+        if (!data.tenMauSac.trim()) {
+            showToast("Vui lòng nhập tên màu sắc!", "danger");
+            return;
+        }
+        fetchData("/api/mau-sac/add", data, "Thêm màu sắc thành công!");
+    }
+
+    function updateMauSac() {
+        let updatedMauSac = {
+            id: document.getElementById("modalMauSacId").value,
+            tenMauSac: document.getElementById("modalMauSacName").value,
+            maMauSac: document.getElementById("modalMauSacColor").value,
+            trangThai: document.getElementById("modalMauSacStatus").value
+        };
+        fetchData("/api/mau-sac/update", updatedMauSac, "Cập nhật màu sắc thành công!");
+    }
+
+    function fetchData(url, data, successMessage) {
+        showToast("Đang xử lý...", "primary", 5000);
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.error) {
+                    showToast("Lỗi: " + result.error, "danger");
+                } else {
+                    showToast(successMessage, "success");
+                    setTimeout(() => location.reload(), 2000);
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi hệ thống:", error);
+                showToast("Lỗi hệ thống, vui lòng thử lại!", "danger");
+            });
+    }
+
+    function openMauSacDetailModal(button) {
+        let row = button.closest("tr");
+        document.getElementById("modalMauSacId").value = row.querySelector("td input[type='hidden']").value;
+        document.getElementById("modalMauSacName").value = row.cells[2].innerText;
+        document.getElementById("modalMauSacColor").value = row.cells[1].innerText.trim();
+        document.getElementById("modalMauSacStatus").value = row.cells[3].innerText.trim();
+        new bootstrap.Modal(document.getElementById("modalMauSacDetail")).show();
+    }
+
+</script>
+
+
+<script>
     function deleteMauSac(button) {
         let row = button.closest("tr");
         let hiddenInput = row.querySelector("td input[type='hidden']");
@@ -295,50 +380,6 @@
             });
         }
     }
-
-    function updateMauSac() {
-        let mauSacId = document.getElementById("modalMauSacId").value;
-        let mauSacName = document.getElementById("modalMauSacName").value;
-        let mauSacStatus = document.getElementById("modalMauSacStatus").value;
-
-        let updatedMauSac = {
-            id: mauSacId,
-            tenMauSac: mauSacName,
-            trangThai: mauSacStatus
-        };
-
-        let progressBar = showToast("Đang cập nhật màu sắc...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/mau-sac/update', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(updatedMauSac)
-            })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi cập nhật!", "danger"));
-        });
-    }
-
-    function openMauSacDetailModal(button) {
-        let row = button.closest("tr");
-        let mauSacId = row.querySelector("td input[type='hidden']").value;
-        let mauSacName = row.cells[2].innerText;
-        let mauSacStatus = row.cells[3].innerText.trim();
-
-        // Gán giá trị vào modal
-        document.getElementById("modalMauSacId").value = mauSacId;
-        document.getElementById("modalMauSacName").value = mauSacName;
-        document.getElementById("modalMauSacStatus").value = mauSacStatus;
-
-        // Hiển thị modal
-        let modal = new bootstrap.Modal(document.getElementById("modalMauSacDetail"));
-        modal.show();
-    }
-
 </script>
 <!--Load table-->
 <script>

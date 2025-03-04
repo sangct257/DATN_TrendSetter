@@ -91,9 +91,13 @@ public class SanPhamController {
                 .distinct()
                 .toList();
 
-        // Nhóm sản phẩm theo màu sắc
-        Map<MauSac, List<SanPhamChiTiet>> sanPhamTheoMauSac = sanPhamChiTiet.stream()
-                .collect(Collectors.groupingBy(SanPhamChiTiet::getMauSac));
+        // Lọc danh sách cặp Kích Thước - Màu Sắc đã tồn tại
+        Set<String> kichThuocMauSacSet = sanPhamChiTiet.stream()
+                .map(spct -> spct.getKichThuoc().getId() + "-" + spct.getMauSac().getId())
+                .collect(Collectors.toSet());
+
+        model.addAttribute("kichThuocMauSacSet", kichThuocMauSacSet);
+
 
         // Lấy danh sách các thuộc tính liên quan
         List<ChatLieu> chatLieu = chatLieuRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
@@ -114,7 +118,6 @@ public class SanPhamController {
         model.addAttribute("danhMuc", danhMuc);
         model.addAttribute("mauSacSanPham", mauSacSanPham);
         model.addAttribute("kichThuocSanPham", kichThuocSanPham);
-        model.addAttribute("sanPhamTheoMauSac", sanPhamTheoMauSac);
         return "Admin/SanPham/detail-san-pham";
     }
 }

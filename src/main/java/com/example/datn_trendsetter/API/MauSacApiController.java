@@ -21,37 +21,19 @@ public class MauSacApiController {
     @Autowired
     private MauSacRepository mauSacRepository;
 
-    private static final Map<String, String> MAU_SAC_MAP = new HashMap<>();
-
-    static {
-        MAU_SAC_MAP.put("Đỏ", "#FF0000");
-        MAU_SAC_MAP.put("Xanh Dương", "#0000FF");
-        MAU_SAC_MAP.put("Xanh Lá", "#008000");
-        MAU_SAC_MAP.put("Vàng", "#FFFF00");
-        MAU_SAC_MAP.put("Đen", "#000000");
-        MAU_SAC_MAP.put("Trắng", "#FFFFFF");
-        MAU_SAC_MAP.put("Hồng", "#FFC0CB");
-        MAU_SAC_MAP.put("Tím", "#800080");
-        MAU_SAC_MAP.put("Cam", "#FFA500");
-        MAU_SAC_MAP.put("Xám", "#808080");
-    }
-
     @PostMapping("add")
-    public ResponseEntity<String> add(@RequestBody MauSac mauSacRequest) {
-        // Kiểm tra xem thương hiệu đã tồn tại chưa
-        boolean exists = mauSacRepository.existsByTenMauSac(mauSacRequest.getTenMauSac());
+    public ResponseEntity<Map<String, String>> add(@RequestBody MauSac mauSacRequest) {
+        Map<String, String> response = new HashMap<>();
 
+        boolean exists = mauSacRepository.existsByTenMauSac(mauSacRequest.getTenMauSac());
         if (exists) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên màu sắc đã tồn tại");
+            response.put("error", "Tên màu sắc đã tồn tại");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
-        String tenMauSac = mauSacRequest.getTenMauSac();
-        String maMau = MAU_SAC_MAP.getOrDefault(tenMauSac, "#000000"); // Mặc định đen nếu không tìm thấy
-
-        // Nếu chưa tồn tại, tạo mới
-        MauSac mauSac= new MauSac();
-        mauSac.setMaMauSac(maMau); // Sinh mã ngẫu nhiên
-        mauSac.setTenMauSac(tenMauSac);
+        MauSac mauSac = new MauSac();
+        mauSac.setMaMauSac(mauSacRequest.getMaMauSac());
+        mauSac.setTenMauSac(mauSacRequest.getTenMauSac());
         mauSac.setNgayTao(LocalDate.now());
         mauSac.setNgaySua(LocalDate.now());
         mauSac.setNguoiTao("admin");
@@ -60,29 +42,41 @@ public class MauSacApiController {
         mauSac.setTrangThai(mauSacRequest.getTrangThai());
 
         mauSacRepository.save(mauSac);
-        return ResponseEntity.ok("Thêm màu sắc thành công");
+
+        response.put("message", "Thêm màu sắc thành công");
+        return ResponseEntity.ok(response);
     }
+
 
 
     @PostMapping("update")
     public ResponseEntity<String> update(@RequestBody MauSac updatedMauSac) {
-        MauSac mauSac = mauSacRepository.findById(updatedMauSac.getId()).orElse(null);
-        if (mauSac != null) {
-            String tenMauSac = updatedMauSac.getTenMauSac();
-            String maMauSac = MAU_SAC_MAP.getOrDefault(tenMauSac, "#000000"); // Mặc định đen nếu không tìm thấy
-            mauSac.setMaMauSac(maMauSac);
-            mauSac.setTenMauSac(tenMauSac);
-            mauSac.setNgayTao(mauSac.getNgayTao());
-            mauSac.setNgaySua(LocalDate.now());
-            mauSac.setNguoiTao(mauSac.getNguoiTao());
-            mauSac.setNguoiSua(mauSac.getNguoiSua());
-            mauSac.setTrangThai(updatedMauSac.getTrangThai());
-            mauSac.setDeleted(mauSac.getDeleted());
-            mauSacRepository.save(mauSac);
-            return ResponseEntity.ok("Cập nhật thành công");
+        if (updatedMauSac.getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ID không hợp lệ");
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy danh mục");
+
+        MauSac mauSac = mauSacRepository.findById(updatedMauSac.getId()).orElse(null);
+        if (mauSac == null || mauSac.getDeleted()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy màu sắc hoặc đã bị xóa");
+        }
+
+        // Kiểm tra trùng lặp tên màu sắc
+        boolean exists = mauSacRepository.existsByTenMauSac(updatedMauSac.getTenMauSac());
+        if (exists && !mauSac.getTenMauSac().equalsIgnoreCase(updatedMauSac.getTenMauSac())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên màu sắc đã tồn tại");
+        }
+
+        // Cập nhật thông tin màu sắc
+        mauSac.setMaMauSac(updatedMauSac.getMaMauSac());
+        mauSac.setTenMauSac(updatedMauSac.getTenMauSac());
+        mauSac.setNgaySua(LocalDate.now());
+        mauSac.setNguoiSua(updatedMauSac.getNguoiSua() != null ? updatedMauSac.getNguoiSua() : "admin");
+        mauSac.setTrangThai(updatedMauSac.getTrangThai());
+
+        mauSacRepository.save(mauSac);
+        return ResponseEntity.ok("Cập nhật thành công");
     }
+
 
     @DeleteMapping("delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Integer id) {

@@ -66,16 +66,6 @@ public class LichSuHoaDonApiController {
         return thayDoiTrangThaiHoaDon(hoaDonId, "Chờ Vận Chuyển", "Hóa đơn đang vận chuyển");
     }
 
-    @PostMapping("/giao-hang")
-    public ResponseEntity<?> giaoHang(@RequestParam("hoaDonId") Integer hoaDonId) {
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Đang Giao Hàng", "Hóa đơn đang giao hàng");
-    }
-
-    @PostMapping("/xac-nhan-giao-hang")
-    public ResponseEntity<?> xacNhanGiaoHang(@RequestParam("hoaDonId") Integer hoaDonId) {
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Giao Hàng", "Hóa đơn đã giao hàng");
-    }
-
     @PostMapping("/xac-nhan-thanh-toan")
     public ResponseEntity<?> xacNhanThanhToan(@RequestParam("hoaDonId") Integer hoaDonId) {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);

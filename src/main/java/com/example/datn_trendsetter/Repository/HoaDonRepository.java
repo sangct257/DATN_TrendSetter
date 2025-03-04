@@ -14,9 +14,10 @@ import java.time.Month;
 import java.util.List;
 
 @Repository
-public interface HoaDonRepository extends JpaRepository<HoaDon,Integer> {
-    // Đếm số lượng hóa đơn có trạng thái cụ thể
-    long countByTrangThai(String trangThai);
+public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
+    // Đếm số hóa đơn theo trạng thái
+    @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.trangThai = :trangThai")
+    long countByTrangThai(@Param("trangThai") String trangThai);
 
     // Lấy danh sách hóa đơn theo trạng thái
     List<HoaDon> findByTrangThai(String trangThai);
@@ -27,20 +28,20 @@ public interface HoaDonRepository extends JpaRepository<HoaDon,Integer> {
     boolean existsByMaHoaDon(String maHoaDon);
 
     @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
-    Float getDoanhThuNamNay(@Param("now") LocalDateTime now,@Param("trangThai") String trangThai);
+    Float getDoanhThuNamNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
     @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
-    Float getDoanhThuThangNay(@Param("now") LocalDateTime now,@Param("trangThai") String trangThai);
+    Float getDoanhThuThangNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
     int countHoaDonThangNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
     @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE DAY(h.ngayTao) = DAY(:now) AND MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
-    Float getDoanhThuNgayNay(@Param("now") LocalDateTime now,@Param("trangThai") String trangThai);
+    Float getDoanhThuNgayNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
 
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE DAY(h.ngayTao) = DAY(:now) AND MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
-    int countHoaDonNgayNay(@Param("now") LocalDateTime now,@Param("trangThai") String trangThai);
+    int countHoaDonNgayNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
     // Tính tổng tiền trong một khoảng thời gian
     @Query("SELECT SUM(h.tongTien) FROM HoaDon h WHERE h.ngayTao BETWEEN :startDate AND :endDate")
