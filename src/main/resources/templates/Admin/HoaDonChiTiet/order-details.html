@@ -257,22 +257,9 @@
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Vận Chuyển
                                     </button>
-                                    <button type="button" class="btn btn-warning"
+
+                                    <button type="submit" class="btn btn-warning"
                                             th:if="${!listLichSuHoaDon.isEmpty() and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
-                                            th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/giao-hang'"
-                                            onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
-                                        Giao Hàng
-                                    </button>
-
-                                    <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đang Giao Hàng'}"
-                                            th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan-giao-hang'"
-                                            onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
-                                        Xác Nhận Giao Hàng
-                                    </button>
-
-                                    <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Giao Hàng'}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan-thanh-toan'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Xác Nhận Thanh Toán

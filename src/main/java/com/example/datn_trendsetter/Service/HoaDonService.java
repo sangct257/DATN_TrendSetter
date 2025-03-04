@@ -85,8 +85,6 @@ public class HoaDonService {
         long waitingConfirmationOrders = allOrders.stream().filter(order -> "Chờ Xác Nhận".equals(order.getTrangThai())).count();
         long confirmedOrders = allOrders.stream().filter(order -> "Đã Xác Nhận".equals(order.getTrangThai())).count();
         long waitingDeliveryOrders = allOrders.stream().filter(order -> "Chờ Vận Chuyển".equals(order.getTrangThai())).count();
-        long shippingOrders = allOrders.stream().filter(order -> "Đang Giao Hàng".equals(order.getTrangThai())).count();
-        long completedOrders = allOrders.stream().filter(order -> "Đã Giao Hàng".equals(order.getTrangThai())).count();
         long paidOrders = allOrders.stream().filter(order -> "Đã Thanh Toán".equals(order.getTrangThai())).count();
         long finishedOrders = allOrders.stream().filter(order -> "Đã Hoàn Thành".equals(order.getTrangThai())).count();
         long cancelledOrders = allOrders.stream().filter(order -> "Đã Hủy".equals(order.getTrangThai())).count();
@@ -97,8 +95,6 @@ public class HoaDonService {
         long waitingConfirmationPercentage = (waitingConfirmationOrders * 100) / totalOrders;
         long confirmedPercentage = (confirmedOrders * 100) / totalOrders;
         long waitingDeliveryPercentage = (waitingDeliveryOrders * 100) / totalOrders;
-        long shippingPercentage = (shippingOrders * 100) / totalOrders;
-        long completedPercentage = (completedOrders * 100) / totalOrders;
         long paidPercentage = (paidOrders * 100) / totalOrders;
         long finishedPercentage = (finishedOrders * 100) / totalOrders;
         long cancelledPercentage = (cancelledOrders * 100) / totalOrders;
@@ -106,8 +102,8 @@ public class HoaDonService {
 
 
         // Trả về các tỷ lệ phần trăm
-        return List.of(processingPercentage, waitingConfirmationPercentage, confirmedPercentage, waitingDeliveryPercentage,
-                shippingPercentage, completedPercentage,paidPercentage,finishedPercentage,cancelledPercentage,failedPercentage);
+        return List.of(processingPercentage, waitingConfirmationPercentage, confirmedPercentage, waitingDeliveryPercentage
+                ,paidPercentage,finishedPercentage,cancelledPercentage,failedPercentage);
     }
 
     public Integer getSoLuongHoaDon(LocalDateTime startDate, LocalDateTime endDate) {

@@ -1,6 +1,7 @@
 package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.HoaDon;
+import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Service.HoaDonService;
 import com.example.datn_trendsetter.Service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/hoa-don")
@@ -17,6 +20,9 @@ public class HoaDonApiController {
 
     @Autowired
     private HoaDonService hoaDonService;
+
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
 
     @Autowired
     private ShopService shopService;
@@ -56,5 +62,21 @@ public class HoaDonApiController {
         }
     }
 
+    // API lấy danh sách hóa đơn theo trạng thái
+    @GetMapping("/filter")
+    public List<HoaDon> getHoaDonByTrangThai(@RequestParam(required = false) String trangThai) {
+        if (trangThai == null || trangThai.isEmpty()) {
+            return hoaDonRepository.findAll(); // Trả về tất cả hóa đơn nếu không lọc theo trạng thái
+        }
+        return hoaDonRepository.findByTrangThai(trangThai);
+    }
+
+    // API đếm số lượng hóa đơn theo từng trạng thái
+    @GetMapping("/count")
+    public Map<String, Long> countHoaDonByTrangThai() {
+        List<HoaDon> hoaDons = hoaDonRepository.findAll();
+        return hoaDons.stream()
+                .collect(Collectors.groupingBy(HoaDon::getTrangThai, Collectors.counting()));
+    }
 
 }

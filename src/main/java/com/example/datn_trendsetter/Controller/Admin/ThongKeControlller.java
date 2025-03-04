@@ -68,12 +68,10 @@ public class ThongKeControlller {
         model.addAttribute("waitingConfirmationPercentage", orderStatusPercentages.get(1));
         model.addAttribute("confirmedPercentage", orderStatusPercentages.get(2));
         model.addAttribute("waitingDeliveryPercentage", orderStatusPercentages.get(3));
-        model.addAttribute("shippingPercentage", orderStatusPercentages.get(4));
-        model.addAttribute("completedPercentage", orderStatusPercentages.get(5));
-        model.addAttribute("paidPercentage", orderStatusPercentages.get(6));
-        model.addAttribute("finishedPercentage", orderStatusPercentages.get(7));
-        model.addAttribute("cancelledPercentage", orderStatusPercentages.get(8));
-        model.addAttribute("failedPercentage", orderStatusPercentages.get(9));
+        model.addAttribute("paidPercentage", orderStatusPercentages.get(4));
+        model.addAttribute("finishedPercentage", orderStatusPercentages.get(5));
+        model.addAttribute("cancelledPercentage", orderStatusPercentages.get(6));
+        model.addAttribute("failedPercentage", orderStatusPercentages.get(7));
 
         // Lấy danh sách sản phẩm tồn kho thấp
         List<SanPhamChiTiet> lowStockProducts = sanPhamChiTietService.findLowStockProducts();
