@@ -21,6 +21,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon,Integer> {
     // Lấy danh sách hóa đơn theo trạng thái
     List<HoaDon> findByTrangThai(String trangThai);
 
+    @Query("select hd from HoaDon hd order by hd.id desc")
+    List<HoaDon> getAllHoaDon();
 
     boolean existsByMaHoaDon(String maHoaDon);
 
