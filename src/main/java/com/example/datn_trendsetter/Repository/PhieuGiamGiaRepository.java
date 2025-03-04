@@ -12,6 +12,6 @@ import java.util.Optional;
 @Repository
 public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integer> {
     Optional<PhieuGiamGia> findByTenChuongTrinh(String tenChuongTrinh);
-
+    List<PhieuGiamGia> findByDieuKienLessThanEqual(Float tongTien);
     List<PhieuGiamGia> findAllByTrangThai(@Param("trangThai") String trangThai);
 }

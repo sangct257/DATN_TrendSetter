@@ -19,10 +19,10 @@ public class PhuongThucThanhToan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ten_phuong_thuc",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "ten_phuong_thuc", columnDefinition = "NVARCHAR(255)")
     private String tenPhuongThuc;
 
-    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "trang_thai", columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
     @Column(name = "ngay_tao")
@@ -31,12 +31,23 @@ public class PhuongThucThanhToan {
     @Column(name = "ngay_sua")
     private LocalDate ngaySua;
 
-    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "nguoi_tao", columnDefinition = "NVARCHAR(255)")
     private String nguoiTao;
 
-    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "nguoi_sua", columnDefinition = "NVARCHAR(255)")
     private String nguoiSua;
 
     @Column(name = "deleted")
     private Boolean deleted;
+
+    // Thêm constructor không có ID để tiện sử dụng
+    public PhuongThucThanhToan(String tenPhuongThuc, String trangThai, LocalDate ngayTao, LocalDate ngaySua, String nguoiTao, String nguoiSua, Boolean deleted) {
+        this.tenPhuongThuc = tenPhuongThuc;
+        this.trangThai = trangThai;
+        this.ngayTao = ngayTao;
+        this.ngaySua = ngaySua;
+        this.nguoiTao = nguoiTao;
+        this.nguoiSua = nguoiSua;
+        this.deleted = deleted;
+    }
 }

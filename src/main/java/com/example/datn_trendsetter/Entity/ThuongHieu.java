@@ -19,6 +19,9 @@ public class ThuongHieu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ma_thuong_hieu",columnDefinition = "NVARCHAR(255)")
+    private String maThuongHieu;
+
     @Column(name = "ten_thuong_hieu",columnDefinition = "NVARCHAR(255)")
     private String tenThuongHieu;
 

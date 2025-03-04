@@ -30,6 +30,13 @@ public class HoaDonService {
             hoaDon.setPhuong(null);
             hoaDon.setThanhPho(null);
         }
+        if (hoaDon.getLoaiHoaDon().equals("Giao Hàng")) {
+            hoaDon.setLoaiGiaoDich("Trả Sau");
+        }
+
+        if (hoaDon.getLoaiHoaDon().equals("Tại Quầy")) {
+            hoaDon.setLoaiGiaoDich("Đã Thanh Toán");
+        }
 
         hoaDonRepository.save(hoaDon);
         System.out.println("Đã cập nhật hóa đơn thành công");
@@ -41,24 +48,24 @@ public class HoaDonService {
     }
 
     public Float getDoanhThuNamNay() {
-        return hoaDonRepository.getDoanhThuNamNay(LocalDateTime.now());
+        return hoaDonRepository.getDoanhThuNamNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
     public Float getDoanhThuThangNay() {
-        return hoaDonRepository.getDoanhThuThangNay(LocalDateTime.now());
+        return hoaDonRepository.getDoanhThuThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
     public int countHoaDonThangNay() {
-        return hoaDonRepository.countHoaDonThangNay(LocalDateTime.now());
+        return hoaDonRepository.countHoaDonThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
 
     public Float getDoanhThuNgayNay() {
-        return hoaDonRepository.getDoanhThuNgayNay(LocalDateTime.now());
+        return hoaDonRepository.getDoanhThuNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
     public int countHoaDonNgayNay() {
-        return hoaDonRepository.countHoaDonNgayNay(LocalDateTime.now());
+        return hoaDonRepository.countHoaDonNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
     public List<Long> getOrderStatusStatistics() {

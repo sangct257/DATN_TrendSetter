@@ -1,5 +1,7 @@
 package com.example.datn_trendsetter.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,16 +24,18 @@ public class SanPhamChiTiet {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_san_pham",referencedColumnName = "id")
+    @JoinColumn(name = "id_san_pham", referencedColumnName = "id")
+    @JsonBackReference
     private SanPham sanPham;
 
     @ManyToOne
-    @JoinColumn(name = "id_mau_sac",referencedColumnName = "id")
+    @JoinColumn(name = "id_mau_sac", referencedColumnName = "id")
     private MauSac mauSac;
 
     @ManyToOne
-    @JoinColumn(name = "id_kich_thuoc",referencedColumnName = "id")
+    @JoinColumn(name = "id_kich_thuoc", referencedColumnName = "id")
     private KichThuoc kichThuoc;
+
 
     @Column(name = "so_luong")
     private Integer soLuong;
