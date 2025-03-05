@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="admin/fragments/head :: head">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+  <div th:replace="admin/fragments/header :: header"></div>
+  <div th:replace="admin/fragments/sidebar :: sidebar"></div>
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>Đợt giảm giá</h1>
+    </section>
+    <section class="content">
+      <div class="box" style="padding: 20px">
+        <div style="display: flex; justify-content: space-between; padding: 20px 0;">
+          <h4>Danh sách đợt giảm giá</h4>
+          <button class="btn btn-primary">Xác nhận</button>
+        </div>
+        <div style="max-width: 500px">
+          <label for="nameID" class="form-label">Tên đợt giảm giá</label>
+          <input type="text" class="form-control" id="nameID">
+          <label for="startDateTime" class="form-label">Ngày bắt đầu:</label>
+          <input type="datetime-local" class="form-control" id="startDateTime">
+          <label for="endDateTime" class="form-label">Ngày kết thúc:</label>
+          <input type="datetime-local" class="form-control" id="endDateTime">
+        </div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+          Chọn sản phẩm
+        </button>
+        <div>
+          <table class="table" id="selectedProductsTable">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Tên sản phẩm</th>
+              <th>Giá</th>
+              <th>Giá Sale</th>
+              <th>Chi tiết</th>
+            </tr>
+            </thead>
+            <tbody id="selectedProducts"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Chọn sản phẩm</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <input type="text" id="searchProduct" class="form-control" placeholder="Tìm kiếm sản phẩm">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Tên sản phẩm</th>
+                  <th>Giá</th>
+                  <th>Chọn</th>
+                </tr>
+                </thead>
+                <tbody id="productList"></tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="confirmSelection()">Xác nhận</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div th:replace="admin/fragments/footer :: footer"></div>
+</div>
+<script>
+  const products = [
+    { id: 1, name: "Sản phẩm A", price: 100000, details: [{ id: 101, name: "Sản phẩm A1", price: 50000 }, { id: 102, name: "Sản phẩm A2", price: 60000 }] },
+    { id: 2, name: "Sản phẩm B", price: 200000, details: [{ id: 201, name: "Sản phẩm B1", price: 120000 }] },
+    { id: 3, name: "Sản phẩm C", price: 300000, details: [] }
+  ];
+
+  function renderProductList() {
+    const productList = document.getElementById("productList");
+    productList.innerHTML = products.map(product => `
+            <tr>
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.price}</td>
+                <td><input type="checkbox" value="${product.id}" class="product-checkbox"></td>
+            </tr>
+        `).join('');
+  }
+
+  function confirmSelection() {
+    const checkboxes = document.querySelectorAll(".product-checkbox:checked");
+    const selectedProducts = document.getElementById("selectedProducts");
+    selectedProducts.innerHTML = "";
+
+    checkboxes.forEach(checkbox => {
+      const product = products.find(p => p.id == checkbox.value);
+      const hasDetails = product.details.length > 0;
+
+      let detailsHtml = "";
+      if (hasDetails) {
+        detailsHtml = product.details.map(detail => `
+                    <tr class="detail-row">
+                        <td></td>
+                        <td>${detail.name}</td>
+                        <td>${detail.price}</td>
+                        <td><input type="number" class="form-control sale-price" data-id="${detail.id}" placeholder="Nhập giá sale"></td>
+                        <td></td>
+                    </tr>
+                `).join('');
+      }
+
+      selectedProducts.innerHTML += `
+                <tr>
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.price}</td>
+                    <td>${!hasDetails ? `<input type="number" class="form-control sale-price" data-id="${product.id}" placeholder="Nhập giá sale">` : ""}</td>
+                    <td>${hasDetails ? `<button class="btn btn-link toggle-details" data-id="${product.id}">Xem chi tiết</button>` : ""}</td>
+                </tr>
+                ${hasDetails ? `<tr class="details-container" data-id="${product.id}" style="display: none;"><td colspan="5"><table class="table">${detailsHtml}</table></td></tr>` : ""}
+            `;
+    });
+
+    document.querySelectorAll(".toggle-details").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const detailRow = document.querySelector(`.details-container[data-id='${this.dataset.id}']`);
+        detailRow.style.display = detailRow.style.display === "none" ? "table-row" : "none";
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", renderProductList);
+</script>
+<div th:replace="admin/fragments/script :: script"></div>
+</body>
+</html>
