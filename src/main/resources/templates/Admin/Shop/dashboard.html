@@ -661,7 +661,7 @@
 
                                 <!--Trả Sau-->
                                 <div class="info mb-4 d-flex align-items-center"
-                                     th:if="${hoaDon.loaiHoaDon == 'Giao Hàng'}">
+                                     th:if="${hoaDon != null and hoaDon.loaiHoaDon == 'Giao Hàng'}">
                                     <i class="fas fa-money-bill-wave me-2"></i>
                                     <span class="me-auto fw-bold">Trả Sau:</span>
                                     <div class="form-check form-switch">

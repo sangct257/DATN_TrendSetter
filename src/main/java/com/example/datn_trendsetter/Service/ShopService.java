@@ -213,8 +213,7 @@ public class ShopService {
         sanPhamRepository.save(sanPham);
     }
 
-
-    // Các phương thức khác không thay đổi
+    // getAll
     public void getHoaDonAndProducts(Integer hoaDonId, Model model) {
         // Lấy danh sách hóa đơn có trạng thái "Đang Xử Lý"
         List<HoaDon> hoaDons = hoaDonRepository.findByTrangThai("Đang Xử Lý");
@@ -330,7 +329,6 @@ public class ShopService {
                 ? hoaDon.getPhieuGiamGia().getGiaTriGiam() : 0F;
 
         hoaDon.setTongTien(Math.max(tongTienSanPham + phiShip - giaTriGiamGia, 0));
-
         // Lưu hóa đơn vào cơ sở dữ liệu
         hoaDonRepository.save(hoaDon);
         return "Thông tin khách hàng đã được thêm vào hóa đơn!";

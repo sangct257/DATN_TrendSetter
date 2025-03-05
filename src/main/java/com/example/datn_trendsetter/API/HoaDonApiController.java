@@ -11,10 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -42,7 +39,33 @@ public class HoaDonApiController {
         }
     }
 
+    @PutMapping("/toggle-delivery/{id}")
+    public ResponseEntity<Map<String, String>> toggleDelivery(@PathVariable Integer id) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(id);
+            if (!optionalHoaDon.isPresent()) {
+                response.put("errorMessage", "Không tìm thấy hóa đơn!");
+                return ResponseEntity.badRequest().body(response);
+            }
 
+            HoaDon hoaDon = optionalHoaDon.get();
+
+            // Kiểm tra trạng thái và cập nhật
+            if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
+                hoaDon.setLoaiHoaDon("Giao Hàng");
+            } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
+                hoaDon.setLoaiHoaDon("Tại Quầy");
+            }
+
+            hoaDonRepository.save(hoaDon);
+            response.put("successMessage", "Cập nhật trạng thái hóa đơn thành công!");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("errorMessage", "Lỗi cập nhật hóa đơn!");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
     @GetMapping("/list")
     public ResponseEntity<List<Map<String, Object>>> getHoaDonByTrangThai(@RequestParam(required = false) String trangThai) {
