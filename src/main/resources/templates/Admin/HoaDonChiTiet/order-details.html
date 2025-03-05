@@ -410,9 +410,10 @@
 
                                             </td>
                                             <td>
-                                                <button class="btn btn-success"><span
-                                                        th:text="${hoaDon.phuongThucThanhToan.tenPhuongThuc}"></span>
+                                                <button class="btn btn-success" th:if="${hoaDon.phuongThucThanhToan != null}">
+                                                    <span th:text="${hoaDon.phuongThucThanhToan.tenPhuongThuc}"></span>
                                                 </button>
+
                                             </td>
                                             <td th:text="${hoaDon.ghiChu}"></td>
                                             <td th:text="${hoaDon.nhanVien != null ? hoaDon.nhanVien.hoTen : ''}"></td>
@@ -829,7 +830,7 @@
                                                                     <input type="hidden" id="phiShip"
                                                                            th:value="${hoaDon.phiShip}">
                                                                     <input type="hidden" id="listPhieuGiamGia"
-                                                                           th:value="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0}">
+                                                                           th:value="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0}">
                                                                     <input type="radio" class="btn-check"
                                                                            name="phuongThucThanhToanId"
                                                                            th:id="'payment-' + ${phuongThucThanhToan.id}"
@@ -863,7 +864,7 @@
                                     <span>
                                         <i class="fas fa-tag"></i>
                                         <strong>Mã giảm giá: </strong>
-                                        <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenChuongTrinh : 'Chưa có phiếu giảm giá'}"></span>
+                                        <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenPhieuGiamGia : 'Chưa có phiếu giảm giá'}"></span>
                                     </span>
 
                                         <!-- Mở modal chọn mã giảm giá -->
@@ -889,18 +890,18 @@
                                                             <input type="hidden" name="hoaDonId" id="hoaDonId"
                                                                    th:value="${hoaDon != null ? hoaDon.id : ''}">
                                                             <div class="mb-3">
-                                                                <label for="tenChuongTrinh" class="form-label">
-                                                                    <i class="fas fa-tag"></i> Mã giảm giá:
+                                                                <label for="tenPhieuGiamGia" class="form-label">
+                                                                    <i class="fas fa-tag"></i> Phiếu Giảm Giá:
                                                                 </label>
-                                                                <select id="tenChuongTrinh" name="tenChuongTrinh"
+                                                                <select id="tenPhieuGiamGia" name="tenPhieuGiamGia"
                                                                         class="form-select">
                                                                     <option value="" disabled selected>Chọn phiếu giảm
                                                                         giá
                                                                     </option>
                                                                     <th:block
                                                                             th:each="phieuGiamGia : ${listPhieuGiamGia}">
-                                                                        <option th:value="${phieuGiamGia.tenChuongTrinh}"
-                                                                                th:text="${phieuGiamGia.tenChuongTrinh + ' ( ' + #numbers.formatInteger(phieuGiamGia.giaTri, 3, 'COMMA') + ' ' + 'VND' + ' ) ' }">
+                                                                        <option th:value="${phieuGiamGia.tenPhieuGiamGia}"
+                                                                                th:text="${phieuGiamGia.tenPhieuGiamGia + ' ( ' + #numbers.formatInteger(phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' ' + 'VND' + ' ) ' }">
                                                                         </option>
                                                                     </th:block>
                                                                 </select>
@@ -925,14 +926,14 @@
                                     <div class="info mb-4">
                                         <span><i class="fas fa-box"></i> Tiền hàng:</span>
                                         <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-                                    #numbers.formatInteger(hoaDon.tongTien + (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0) - hoaDon.phiShip, 3, 'COMMA') + ' VNĐ'
+                                    #numbers.formatInteger(hoaDon.tongTien + (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0) - hoaDon.phiShip, 3, 'COMMA') + ' VNĐ'
                                     : '0 VND'}"></span>
                                     </div>
 
                                     <!-- Giảm Giá -->
                                     <div class="info mb-4">
                                         <span><i class="fas fa-percent"></i> Giảm giá:</span>
-                                        <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri + ' VNĐ' : '0 VNĐ'}"></span>
+                                        <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam + ' VNĐ' : '0 VNĐ'}"></span>
                                     </div>
 
                                     <!-- Tổng Tiền -->
@@ -969,11 +970,11 @@
                                                                 chuyển</strong></li>
                                                             <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
                                                             #numbers.formatInteger(hoaDon.tongTien + (hoaDon.phieuGiamGia != null ?
-                                                            hoaDon.phieuGiamGia.giaTri : 0) - hoaDon.phiShip, 3, 'COMMA') + ' VNĐ'
+                                                            hoaDon.phieuGiamGia.giaTriGiam : 0) - hoaDon.phiShip, 3, 'COMMA') + ' VNĐ'
                                                             : '0 VND'}"></span> -
-                                                            <span th:text="${(hoaDon.phieuGiamGia != null && hoaDon.phieuGiamGia.giaTri != 0) ?
+                                                            <span th:text="${(hoaDon.phieuGiamGia != null && hoaDon.phieuGiamGia.giaTriGiam != 0) ?
                                                             #numbers.formatInteger((hoaDon.phieuGiamGia != null ?
-                                                            hoaDon.phieuGiamGia.giaTri : 0), 3, 'COMMA') + ' VNĐ'
+                                                            hoaDon.phieuGiamGia.giaTriGiam : 0), 3, 'COMMA') + ' VNĐ'
                                                             : '0 VND'}"></span> +
                                                             <span th:text="${(hoaDon.phiShip != null && hoaDon.phiShip != 0) ?
                                                             #numbers.formatInteger((hoaDon.phiShip != null ?

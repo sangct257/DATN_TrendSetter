@@ -459,18 +459,18 @@
             });
         });
     </script>
-    <!--API Mã Giảm Giá-->
+    <!--API Phiếu Giảm Giá-->
     <script>
         function applyPhieuGiamGia(button) {
             const hoaDonId = document.getElementById("hoaDonId").value;
-            const tenChuongTrinh = document.getElementById("tenChuongTrinh").value;
+            const tenPhieuGiamGia = document.getElementById("tenPhieuGiamGia").value;
 
             if (!hoaDonId || isNaN(hoaDonId)) {
                 showToast("Lỗi: ID hóa đơn không hợp lệ!", "danger");
                 return;
             }
 
-            if (!tenChuongTrinh) {
+            if (!tenPhieuGiamGia) {
                 showToast("Vui lòng chọn phiếu giảm giá.", "warning");
                 return;
             }
@@ -484,7 +484,7 @@
             fetch('/apply-phieu-giam-gia', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: new URLSearchParams({hoaDonId, tenChuongTrinh})
+                body: new URLSearchParams({hoaDonId, tenPhieuGiamGia})
             })
                 .then(response => response.json())
                 .then(data => {

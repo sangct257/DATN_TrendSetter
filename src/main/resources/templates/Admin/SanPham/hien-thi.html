@@ -76,15 +76,33 @@
                             <table id="productTable" class="table table-striped table-bordered">
                                 <thead class="table-dark">
                                 <tr class="text-center">
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">Mã Sản Phẩm</th>
-                                    <th class="text-center">Tên Sản Phẩm</th>
-                                    <th class="text-center">Số Lượng Tồn Kho</th>
-                                    <th class="text-center">Trạng Thái</th>
-                                    <th class="text-center">Action</th>
+                                    <th>#</th>
+                                    <th>Mã Sản Phẩm</th>
+                                    <th>Tên Sản Phẩm</th>
+                                    <th>Số Lượng</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Action</th>
                                 </tr>
                                 </thead>
-                                <tbody id="product-list"></tbody>
+                                <tbody class="text-center">
+                                <tr th:each="sanPham, i : ${sanPham}" class="text-center">
+                                    <td th:text="${i.index + 1}"></td>
+                                    <td th:text="${sanPham.maSanPham}"></td>
+                                    <td th:text="${sanPham.tenSanPham}"></td>
+                                    <td class="fw-bold text-danger" th:text="${sanPham.soLuong}"></td>
+                                    <td>
+                                        <button class="badge" th:classappend="${sanPham.trangThai == 'Đang Hoạt Động'} ? 'bg-success' : 'bg-danger'"
+                                                th:attr="data-id=${sanPham.id}">
+                                            <span th:text="${sanPham.trangThai}"></span>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/admin/detail-san-pham(sanPhamId=${sanPham.id})}" class="btn btn-primary btn-sm fw-bold me-2">
+                                            <i class="bi bi-eye"></i> Chi Tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                                </tbody>
                             </table>
 
                         </div>
@@ -156,97 +174,13 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        loadSanPham("");
-        loadCount();
-
-        document.querySelectorAll(".filter-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                let trangThai = this.getAttribute("data-status");
-                loadSanPham(trangThai);
-            });
-        });
-    });
-
-    function loadSanPham(trangThai) {
-        fetch(`/api/san-pham/list?trangThai=${encodeURIComponent(trangThai)}`)
-            .then(response => response.json())
-            .then(data => {
-                let tbody = document.getElementById("product-list");
-                tbody.innerHTML = "";
-                data.forEach((sanPham, index) => {
-                    let row = `<tr class="text-center">
-                    <td>${index + 1}</td>
-                    <td>${sanPham.maSanPham}</td>
-                    <td>${sanPham.tenSanPham}</td>
-                    <td class="fw-bold text-danger">${sanPham.soLuong}</td>
-                    <td>
-                        <button class="badge ${sanPham.trangThai === 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'} btn-status"
-                                data-id="${sanPham.id}">
-                            ${sanPham.trangThai}
-                        </button>
-                    </td>
-                    <td>
-                        <a href="/admin/detail-san-pham?sanPhamId=${sanPham.id}" class="btn btn-primary btn-sm fw-bold me-2">
-                            <i class="bi bi-eye"></i> Chi Tiết
-                        </a>
-                    </td>
-                </tr>`;
-                    tbody.innerHTML += row;
-                });
-
-                // Thêm sự kiện cập nhật trạng thái
-                document.querySelectorAll(".btn-status").forEach(button => {
-                    button.addEventListener("click", function () {
-                        const sanPhamId = this.getAttribute("data-id");
-
-                        fetch(`/api/san-pham/toggle-status/${sanPhamId}`, {
-                            method: "PUT"
-                        })
-                            .then(response => response.json()
-                                .then(data => ({
-                                    status: response.status,
-                                    message: data.error || data.message || "Có lỗi xảy ra!"
-                                })))
-                            .then(({ status, message }) => {
-                                if (status === 200) {
-                                    showToast("Cập nhật trạng thái thành công!", "success");
-                                    loadSanPham(trangThai);
-                                    loadCount();
-                                } else {
-                                    showToast("Lỗi: " + message, "danger");
-                                }
-                            })
-                            .catch(error => {
-                                showToast("Lỗi hệ thống: " + error.message, "danger");
-                            });
-                    });
-                });
-            })
-            .catch(error => console.error("Lỗi:", error));
-    }
-
-    function loadCount() {
-        fetch("/api/san-pham/count")
-            .then(response => response.json())
-            .then(counts => {
-                document.getElementById("count-all").innerText = counts["Tất Cả"];
-                document.getElementById("count-active").innerText = counts["Đang Hoạt Động"];
-                document.getElementById("count-inactive").innerText = counts["Ngừng Hoạt Động"];
-            })
-            .catch(error => console.error("Lỗi:", error));
-    }
-
-</script>
-
-<!--Load table-->
-<script>
-    $(document).ready(function () {
-        $('#productTable').DataTable({
+        let table = $("#productTable").DataTable({
             "paging": true,
             "lengthMenu": [5, 10, 20],
             "pageLength": 5,
             "autoWidth": false,
             "responsive": true,
+            "destroy": true,  // Cho phép reset DataTables khi load lại dữ liệu
             "language": {
                 "sProcessing": "Đang xử lý...",
                 "sLengthMenu": "Hiển thị _MENU_ dòng",
@@ -263,7 +197,81 @@
                 }
             }
         });
+
+        loadSanPham(""); // Load tất cả sản phẩm ban đầu
+        loadCount();
+
+        document.querySelectorAll(".filter-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let trangThai = this.getAttribute("data-status");
+                loadSanPham(trangThai);
+            });
+        });
+
+        function loadSanPham(trangThai) {
+            fetch(`/api/san-pham/list?trangThai=${encodeURIComponent(trangThai)}`)
+                .then(response => response.json())
+                .then(data => {
+                    table.clear().draw(); // Xóa dữ liệu cũ và vẽ lại bảng
+
+                    data.forEach((sanPham, index) => {
+                        table.row.add([
+                            index + 1,
+                            sanPham.maSanPham,
+                            sanPham.tenSanPham,
+                            `<span class="fw-bold text-danger">${sanPham.soLuong}</span>`,
+                            `<button class="badge ${sanPham.trangThai === 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'} btn-status"
+                                 data-id="${sanPham.id}">
+                            ${sanPham.trangThai}
+                        </button>`,
+                            `<a href="/admin/detail-san-pham?sanPhamId=${sanPham.id}" class="btn btn-primary btn-sm fw-bold me-2">
+                            <i class="bi bi-eye"></i> Chi Tiết
+                        </a>`
+                        ]).draw(false); // Thêm dữ liệu mới và vẽ lại bảng
+                    });
+
+                    // Gán sự kiện click cho nút cập nhật trạng thái
+                    document.querySelectorAll(".btn-status").forEach(button => {
+                        button.addEventListener("click", function () {
+                            const sanPhamId = this.getAttribute("data-id");
+
+                            fetch(`/api/san-pham/toggle-status/${sanPhamId}`, { method: "PUT" })
+                                .then(response => response.json()
+                                    .then(data => ({
+                                        status: response.status,
+                                        message: data.error || data.message || "Có lỗi xảy ra!"
+                                    })))
+                                .then(({ status, message }) => {
+                                    if (status === 200) {
+                                        showToast("Cập nhật trạng thái thành công!", "success");
+                                        loadSanPham(trangThai);
+                                        loadCount();
+                                    } else {
+                                        showToast("Lỗi: " + message, "danger");
+                                    }
+                                })
+                                .catch(error => {
+                                    showToast("Lỗi hệ thống: " + error.message, "danger");
+                                });
+                        });
+                    });
+                })
+                .catch(error => console.error("Lỗi:", error));
+        }
+
+        function loadCount() {
+            fetch("/api/san-pham/count")
+                .then(response => response.json())
+                .then(counts => {
+                    document.getElementById("count-all").innerText = counts["Tất Cả"];
+                    document.getElementById("count-active").innerText = counts["Đang Hoạt Động"];
+                    document.getElementById("count-inactive").innerText = counts["Ngừng Hoạt Động"];
+                })
+                .catch(error => console.error("Lỗi:", error));
+        }
     });
+
 </script>
+
 </body>
 </html>

@@ -326,8 +326,8 @@ public class ShopService {
                 .filter(Objects::nonNull)
                 .reduce(0F, Float::sum);
 
-        float giaTriGiamGia = (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTri() != null)
-                ? hoaDon.getPhieuGiamGia().getGiaTri() : 0F;
+        float giaTriGiamGia = (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTriGiam() != null)
+                ? hoaDon.getPhieuGiamGia().getGiaTriGiam() : 0F;
 
         hoaDon.setTongTien(Math.max(tongTienSanPham + phiShip - giaTriGiamGia, 0));
 
@@ -392,8 +392,8 @@ public class ShopService {
                 .filter(Objects::nonNull)
                 .reduce(0F, Float::sum);
 
-        float giaTriGiamGia = (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTri() != null)
-                ? hoaDon.getPhieuGiamGia().getGiaTri() : 0F;
+        float giaTriGiamGia = (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTriGiam() != null)
+                ? hoaDon.getPhieuGiamGia().getGiaTriGiam() : 0F;
 
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0F;
 
@@ -465,8 +465,8 @@ public class ShopService {
                 .filter(Objects::nonNull)
                 .reduce(0F, Float::sum);
 
-        float giaTriGiamGia = (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTri() != null)
-                ? hoaDon.getPhieuGiamGia().getGiaTri() : 0F;
+        float giaTriGiamGia = (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTriGiam() != null)
+                ? hoaDon.getPhieuGiamGia().getGiaTriGiam() : 0F;
 
         hoaDon.setTongTien(Math.max(tongTienSanPham + phiShipMoi - giaTriGiamGia, 0));
 
@@ -540,7 +540,7 @@ public class ShopService {
 
 
     @Transactional
-    public String applyPhieuGiamGia(Integer hoaDonId, String tenChuongTrinh) {
+    public String applyPhieuGiamGia(Integer hoaDonId, String tenPhieuGiamGia) {
         // Lấy hóa đơn từ cơ sở dữ liệu
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
@@ -551,11 +551,11 @@ public class ShopService {
         }
 
         // Lấy phiếu giảm giá dựa trên tên chương trình
-        PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findByTenChuongTrinh(tenChuongTrinh)
+        PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findByTenPhieuGiamGia(tenPhieuGiamGia)
                 .orElseThrow(() -> new RuntimeException("Phiếu giảm giá không hợp lệ"));
 
         // Kiểm tra hạn sử dụng
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate now = LocalDate.now();
         if (phieuGiamGia.getNgayBatDau().isAfter(now)) {
             throw new RuntimeException("Phiếu giảm giá chưa đến thời gian áp dụng.");
         }
@@ -583,7 +583,7 @@ public class ShopService {
                 .reduce(0F, Float::sum);
 
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0F;
-        float tongTienMoi = Math.max(tongTienSanPham + phiShip - phieuGiamGia.getGiaTri(), 0);
+        float tongTienMoi = Math.max(tongTienSanPham + phiShip - phieuGiamGia.getGiaTriGiam(), 0);
         hoaDon.setTongTien(tongTienMoi);
 
         // Lưu hóa đơn
@@ -667,7 +667,7 @@ public class ShopService {
             tongTien += (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0;
 
             // Trừ giá trị phiếu giảm giá nếu không null
-            tongTien -= (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTri() != null) ? hoaDon.getPhieuGiamGia().getGiaTri() : 0;
+            tongTien -= (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTriGiam() != null) ? hoaDon.getPhieuGiamGia().getGiaTriGiam() : 0;
 
             hoaDon.setTongTien(tongTien);
 

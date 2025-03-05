@@ -71,12 +71,22 @@ public class SanPhamAPIController {
         return ResponseEntity.ok(countMap);
     }
 
+    // API để xóa mềm sản phẩm (khi nhấn vào trạng thái)
+    @PutMapping("/toggle-status/{id}")
+    public ResponseEntity<?> toggleSanPhamStatus(@PathVariable Integer id) {
+        boolean updated = sanPhamService.toggleSanPhamStatus(id);
+        if (updated) {
+            return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công!"));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "Sản phẩm không tồn tại!"));
+        }
+    }
+
     @PostMapping("/add")
     @ResponseBody
     public ResponseEntity<?> addSanPham(@RequestBody SanPhamDTO sanPhamDTO) {
         return sanPhamService.addSanPham(sanPhamDTO);
     }
-
 
     @PutMapping("/update-san-pham/{id}")
     public ResponseEntity<?> updateSanPham(@PathVariable Integer id, @RequestBody SanPhamDTO sanPhamDTO) {
@@ -92,18 +102,6 @@ public class SanPhamAPIController {
                     "error", "Lỗi hệ thống! Vui lòng thử lại sau.",
                     "status", HttpStatus.INTERNAL_SERVER_ERROR.value()
             ));
-        }
-    }
-
-
-    // API để xóa mềm sản phẩm (khi nhấn vào trạng thái)
-    @PutMapping("/toggle-status/{id}")
-    public ResponseEntity<?> toggleSanPhamStatus(@PathVariable Integer id) {
-        boolean updated = sanPhamService.toggleSanPhamStatus(id);
-        if (updated) {
-            return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công!"));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "Sản phẩm không tồn tại!"));
         }
     }
 
