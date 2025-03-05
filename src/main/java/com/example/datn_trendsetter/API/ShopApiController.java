@@ -191,18 +191,24 @@ public class ShopApiController {
         System.out.println("Loại hóa đơn: " + hoaDon.getLoaiHoaDon() + ", Loại giao dịch: " + hoaDon.getLoaiGiaoDich());
 
         if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
-            if ("Trả Sau".equals(hoaDon.getLoaiGiaoDich())) {
+            // Nếu loaiGiaoDich là null, đặt mặc định thành "Trả Sau"
+            String loaiGiaoDichHienTai = hoaDon.getLoaiGiaoDich() != null ? hoaDon.getLoaiGiaoDich() : "Trả Sau";
+
+            if ("Trả Sau".equals(loaiGiaoDichHienTai)) {
                 hoaDon.setLoaiGiaoDich("Đã Hoàn Thành");
-            } else if ("Đã Hoàn Thành".equals(hoaDon.getLoaiGiaoDich())) {
+            } else {
                 hoaDon.setLoaiGiaoDich("Trả Sau");
             }
+
             hoaDonRepository.save(hoaDon);
-            System.out.println("Cập nhật thành công!");
+            System.out.println("Cập nhật thành công! Loại giao dịch mới: " + hoaDon.getLoaiGiaoDich());
             return ResponseEntity.ok("Cập nhật loại giao dịch thành công");
         }
 
         System.out.println("Hóa đơn không hợp lệ.");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Hóa đơn không thuộc loại Giao Hàng");
     }
+
+
 
 }
