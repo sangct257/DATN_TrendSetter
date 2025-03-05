@@ -1,14 +1,17 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.Entity.DotGiamGia;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Service.HoaDonService;
 import com.example.datn_trendsetter.Service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,43 +43,58 @@ public class HoaDonApiController {
     }
 
 
-    @PutMapping("/toggle-delivery/{hoaDonId}")
-    public ResponseEntity<Map<String, String>> toggleDelivery(@PathVariable Integer hoaDonId, @RequestParam boolean delivery) {
-        System.out.println("Nhận request: HoaDonId = " + hoaDonId + ", Delivery = " + delivery);
 
-        Map<String, String> response = new HashMap<>();
-
-        if (hoaDonId == null || hoaDonId <= 0) {
-            response.put("errorMessage", "ID không hợp lệ");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        boolean updated = hoaDonService.updateLoaiHoaDon(hoaDonId, delivery);
-
-        if (updated) {
-            response.put("successMessage", delivery ? "Đã chuyển thành Giao Hàng" : "Đã chuyển thành Tại Quầy");
-            return ResponseEntity.ok(response);
+    @GetMapping("/list")
+    public ResponseEntity<List<Map<String, Object>>> getHoaDonByTrangThai(@RequestParam(required = false) String trangThai) {
+        List<HoaDon> hoaDonList;
+        if (trangThai != null && !trangThai.isEmpty()) {
+            hoaDonList = hoaDonRepository.findByTrangThai(trangThai, Sort.by(Sort.Direction.DESC, "id"));
         } else {
-            response.put("errorMessage", "Hóa đơn không tồn tại");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            hoaDonList = hoaDonRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         }
+
+        // Chuyển đổi danh sách hóa đơn sang JSON hợp lệ
+        List<Map<String, Object>> jsonResponse = hoaDonList.stream().map(hoaDon -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", hoaDon.getId());
+            map.put("maHoaDon", hoaDon.getMaHoaDon());
+            map.put("nguoiNhan", hoaDon.getNguoiNhan() != null ? hoaDon.getNguoiNhan() : "Khách lẻ");
+            map.put("nguoiTao", hoaDon.getNguoiTao() != null ? hoaDon.getNguoiTao() : "Không có dữ liệu");
+            map.put("loaiHoaDon", hoaDon.getLoaiHoaDon() != null ? hoaDon.getLoaiHoaDon() : "Không có dữ liệu");
+            map.put("ngayTao", hoaDon.getNgayTao() != null ? hoaDon.getNgayTao().toString() : "Không rõ ngày");
+            map.put("phieuGiamGia", hoaDon.getPhieuGiamGia() != null ? Map.of("giaTriGiam", hoaDon.getPhieuGiamGia().getGiaTriGiam()) : null);
+            map.put("tongTien", hoaDon.getTongTien() != null ? hoaDon.getTongTien() : 0);
+            return map;
+        }).toList();
+
+        return ResponseEntity.ok(jsonResponse);
     }
 
-    // API lấy danh sách hóa đơn theo trạng thái
-    @GetMapping("/filter")
-    public List<HoaDon> getHoaDonByTrangThai(@RequestParam(required = false) String trangThai) {
-        if (trangThai == null || trangThai.isEmpty()) {
-            return hoaDonRepository.findAll(); // Trả về tất cả hóa đơn nếu không lọc theo trạng thái
-        }
-        return hoaDonRepository.findByTrangThai(trangThai);
-    }
-
-    // API đếm số lượng hóa đơn theo từng trạng thái
     @GetMapping("/count")
-    public Map<String, Long> countHoaDonByTrangThai() {
-        List<HoaDon> hoaDons = hoaDonRepository.findAll();
-        return hoaDons.stream()
-                .collect(Collectors.groupingBy(HoaDon::getTrangThai, Collectors.counting()));
+    public ResponseEntity<Map<String, Long>> countDotGiamGiaByTrangThai() {
+        long dangXuLy = hoaDonRepository.countByTrangThai("Đang Xử Lý");
+        long choXacNhan = hoaDonRepository.countByTrangThai("Chờ Xác Nhận");
+        long daXacNhan = hoaDonRepository.countByTrangThai("Đã Xác Nhận");
+        long choVanChuyen = hoaDonRepository.countByTrangThai("Chờ Vận Chuyển");
+        long daThanhToan = hoaDonRepository.countByTrangThai("Đã Thanh Toán");
+        long daHoanThanh = hoaDonRepository.countByTrangThai("Đã Hoàn Thành");
+        long hoanTra = hoaDonRepository.countByTrangThai("Hoàn Trả");
+        long daHuy = hoaDonRepository.countByTrangThai("Đã Hủy");
+        long tong = hoaDonRepository.count();
+
+        Map<String, Long> coutMap = Map.of(
+                "Đang Xử Lý",dangXuLy,
+                "Chờ Xác Nhận",choXacNhan,
+                "Đã Xác Nhận",daXacNhan,
+                "Chờ Vận Chuyển",choVanChuyen,
+                "Đã Thanh Toán",daThanhToan,
+                "Đã Hoàn Thành",daHoanThanh,
+                "Hoàn Trả",hoanTra,
+                "Đã Hủy",daHuy,
+                "Tất Cả",tong
+        );
+
+        return ResponseEntity.ok().body(coutMap);
     }
 
 }

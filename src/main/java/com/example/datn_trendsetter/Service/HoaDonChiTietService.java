@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
@@ -170,7 +171,7 @@ public class HoaDonChiTietService {
         hoaDon.setPhieuGiamGia(bestVoucher);
 
         // Tính giá trị giảm giá từ phiếu (nếu có)
-        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTri() != null) ? bestVoucher.getGiaTri() : 0;
+        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTriGiam() != null) ? bestVoucher.getGiaTriGiam() : 0;
 
         // Đảm bảo tổng tiền không bị âm
         float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
@@ -227,7 +228,7 @@ public class HoaDonChiTietService {
         PhieuGiamGia bestVoucher = findBestVoucherForInvoice(tongTienSanPham);
         hoaDon.setPhieuGiamGia(bestVoucher);
 
-        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTri() != null) ? bestVoucher.getGiaTri() : 0;
+        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTriGiam() != null) ? bestVoucher.getGiaTriGiam() : 0;
 
         // Đảm bảo tổng tiền không bị âm
         float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
@@ -276,7 +277,7 @@ public class HoaDonChiTietService {
         hoaDon.setPhieuGiamGia(bestVoucher);
 
         // Giá trị giảm giá từ phiếu (nếu có)
-        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTri() != null) ? bestVoucher.getGiaTri() : 0;
+        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTriGiam() != null) ? bestVoucher.getGiaTriGiam() : 0;
 
         // Đảm bảo tổng tiền không âm
         float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
@@ -294,9 +295,9 @@ public class HoaDonChiTietService {
         // Lọc các phiếu giảm giá có điều kiện phù hợp với tổng tiền hóa đơn
         List<PhieuGiamGia> validVouchers = availableVouchers.stream()
                 .filter(voucher -> tongTien >= voucher.getDieuKien())  // Điều kiện tổng tiền >= điều kiện phiếu giảm giá
-                .filter(voucher -> voucher.getNgayBatDau().isBefore(LocalDateTime.now()) &&  // Phiếu giảm giá còn hiệu lực
-                        voucher.getNgayKetThuc().isAfter(LocalDateTime.now()))
-                .sorted(Comparator.comparing(PhieuGiamGia::getGiaTri).reversed())  // Sắp xếp giảm dần theo giá trị phiếu
+                .filter(voucher -> voucher.getNgayBatDau().isBefore(LocalDate.now()) &&  // Phiếu giảm giá còn hiệu lực
+                        voucher.getNgayKetThuc().isAfter(LocalDate.now()))
+                .sorted(Comparator.comparing(PhieuGiamGia::getGiaTriGiam).reversed())  // Sắp xếp giảm dần theo giá trị phiếu
                 .toList();
 
         // Trả về phiếu giảm giá có giá trị cao nhất nếu có, nếu không trả về null

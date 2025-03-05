@@ -1,58 +1,139 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="admin/fragments/head :: head"></head>
-<body class="hold-transition skin-blue sidebar-mini">
-<!-- Site wrapper -->
-<div class="wrapper">
-
-    <div th:replace="admin/fragments/header :: header"></div>
-    <!-- =============================================== -->
-
-    <!-- Left side column. contains the sidebar -->
-    <div th:replace="admin/fragments/sidebar :: sidebar"></div>
-
-    <!-- =============================================== -->
-
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <section class="content-header">
-            <h1>
-                Blank page
-                <small>it all starts here</small>
-            </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
-            </ol>
-        </section>
-
-        <!-- Main content -->
-        <section class="content">
-
-            <!-- Default box -->
-            <div class="box">
-                <div class="box-body">
-                    <h1>Danh sach san pham chi tiet</h1>
+<div id="productDetail">
+    <div class="container">
+        <h5 class="text-center" th:text="'Chi Tiết Sản Phẩm : ' + ${sanPhamChiTiet.sanPham.maSanPham}"></h5>
+        <!-- Hàng 1: Thông tin cơ bản (Full width, input dài) -->
+        <div class="row">
+            <!-- Tên sản phẩm -->
+            <div class="col-md-12">
+                <div class="d-flex align-items-center">
+                    <label class="fw-bold me-2" style="width: 120px;">Tên sản phẩm:</label>
+                    <label type="text" class="form-control" th:text="${sanPhamChiTiet.sanPham.tenSanPham}"></label>
                 </div>
             </div>
-            <!-- /.box -->
 
-        </section>
-        <!-- /.content -->
+            <!-- Mô tả -->
+            <div class="col-md-12">
+                <div class="d-flex align-items-start">
+                    <label class="fw-bold me-2" style="width: 120px;">Mô tả:</label>
+                    <textarea class="form-control flex-grow-1" rows="2" readonly th:text="${sanPhamChiTiet.sanPham.moTa}"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hàng 2: Thông tin cơ bản -->
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table">
+                    <tr>
+                        <th>Thương Hiệu:</th>
+                        <td th:text="${sanPhamChiTiet.sanPham.thuongHieu.tenThuongHieu}"></td>
+                    </tr>
+                    <tr>
+                        <th>Xuất Xứ:</th>
+                        <td th:text="${sanPhamChiTiet.sanPham.xuatXu.quocGia}"></td>
+                    </tr>
+                    <tr>
+                        <th>Chất Liệu:</th>
+                        <td th:text="${sanPhamChiTiet.sanPham.chatLieu.tenChatLieu}"></td>
+                    </tr>
+                    <tr>
+                        <th>Danh Mục:</th>
+                        <td th:text="${sanPhamChiTiet.sanPham.danhMuc.tenDanhMuc}"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="col-md-6">
+                <table class="table">
+                    <tr>
+                        <th>Màu sắc:</th>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">
+                                <label class="border rounded px-3 py-1">
+                                      <span th:text="${sanPhamChiTiet.mauSac.maMauSac}"
+                                            th:style="'background-color:' + ${sanPhamChiTiet.mauSac.maMauSac}"
+                                            style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
+                                            class="rounded border border-secondary shadow">
+                                      </span>
+                                </label>
+                            </div>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Kích thước:</th>
+                        <td th:text="${sanPhamChiTiet.kichThuoc.tenKichThuoc}"></td>
+                    </tr>
+                    <tr>
+                        <th>Số lượng:</th>
+                        <td th:text="${sanPhamChiTiet.soLuong}"></td>
+                    </tr>
+                    <tr>
+                        <th>Giá:</th>
+                        <td><span
+                                th:text="${sanPhamChiTiet.gia != null ? #numbers.formatInteger(sanPhamChiTiet.gia, 3, 'COMMA') + ' VND' : '0 VND'}"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Trạng thái:</th>
+                        <td>
+                            <span th:if="${sanPhamChiTiet.trangThai == 'Còn Hàng'}"
+                                  class="badge bg-success">Còn Hàng</span>
+                            <span th:if="${sanPhamChiTiet.trangThai == 'Hết Hàng'}"
+                                  class="badge bg-danger">Hết Hàng</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Hàng 3: Lịch sử -->
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table">
+                    <tr>
+                        <th>Ngày tạo:</th>
+                        <td th:text="${sanPhamChiTiet.ngayTao}"></td>
+                    </tr>
+                    <tr>
+                        <th>Người tạo:</th>
+                        <td th:text="${sanPhamChiTiet.nguoiTao}"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="col-md-6">
+                <table class="table">
+                    <tr>
+                        <th>Ngày sửa:</th>
+                        <td th:text="${sanPhamChiTiet.ngaySua}"></td>
+                    </tr>
+                    <tr>
+                        <th>Người sửa:</th>
+                        <td th:text="${sanPhamChiTiet.nguoiSua}"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Hàng 4: Hình ảnh sản phẩm -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-2">
+                    <div th:each="image, status : ${sanPhamChiTiet.hinhAnh}"
+                         class="card" style="width: 120px;"
+                         th:classappend="${status.index == 0} ? 'border-primary' : ''">
+                        <img th:src="${image.urlHinhAnh}" class="card-img-top" alt="Hình ảnh sản phẩm">
+                        <div class="card-body">
+                            <p class="card-text fw-bold text-center small"
+                               th:text="${status.index == 0 ? 'Ảnh Đại Diện' : 'Ảnh ' + (status.index)}">
+                                Ảnh Đại Diện
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- /.content-wrapper -->
-
-    <div th:replace="admin/fragments/footer :: footer"></div>
-
-
 </div>
-<!-- ./wrapper -->
-
-<!-- jQuery 3 -->
-
-<div th:replace="admin/fragments/script :: script"></div>
-
-</body>
-</html>

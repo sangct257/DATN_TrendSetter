@@ -11,12 +11,11 @@ import java.util.Optional;
 @Repository
 public interface SanPhamRepository extends JpaRepository<SanPham,Integer> {
 
-    Optional<SanPham> findByTenSanPham(String tenSanPham);
-
     Optional<SanPham> findByTenSanPhamAndDanhMucIdAndThuongHieuId(String tenSanPham, Integer danhMucId, Integer thuongHieuId);
 
 
     List<SanPham> findByTrangThai(String trangThai, Sort sort);
+
     Integer countByTrangThai(String trangThai);
 
 }

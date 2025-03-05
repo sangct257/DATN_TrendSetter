@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.Repository;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,10 +16,6 @@ import java.util.List;
 
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
-    // Đếm số hóa đơn theo trạng thái
-    @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.trangThai = :trangThai")
-    long countByTrangThai(@Param("trangThai") String trangThai);
-
     // Lấy danh sách hóa đơn theo trạng thái
     List<HoaDon> findByTrangThai(String trangThai);
 
@@ -66,5 +63,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     Integer countHoaDonByNgayTaoBetween(LocalDateTime startDate, LocalDateTime endDate);
 
+    List<HoaDon> findByTrangThai(String trangThai, Sort sort);
+
+    Integer countByTrangThai(String trangThai);
 
 }

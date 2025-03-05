@@ -13,11 +13,29 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "ma_giam_gia")
+@Table(name = "dot_giam_gia")
 public class DotGiamGia {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(name = "ma_dot_giam_gia",columnDefinition = "NVARCHAR(255)")
+    private String maDotGiamGia;
+
+    @Column(name = "ten_dot_giam_gia",columnDefinition = "NVARCHAR(255)")
+    private String tenDotGiamGia;
+
+    @Column(name = "gia_tri_giam")
+    private Float giaTriGiam;
+
+    @Column(name = "don_vi_tinh",columnDefinition = "NVARCHAR(255)")
+    private String donViTinh;
+
+    @Column(name = "ngay_bat_dau")
+    private LocalDate ngayBatDau;
+
+    @Column(name = "ngay_ket_thuc")
+    private LocalDate ngayKetThuc;
 
     @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;

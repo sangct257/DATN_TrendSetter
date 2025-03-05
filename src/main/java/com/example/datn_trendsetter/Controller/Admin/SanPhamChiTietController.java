@@ -14,8 +14,6 @@ public class SanPhamChiTietController {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
-    @Autowired
-    private HinhAnhRepository hinhAnhRepository;
 
     @RequestMapping("admin/san-pham-chi-tiet")
     public String SanPhamChiTiet(@RequestParam(value = "sanPhamChiTietId", required = false, defaultValue = "0") Integer sanPhamChiTietId,
