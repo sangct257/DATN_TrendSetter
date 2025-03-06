@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -54,4 +55,7 @@ public class DotGiamGia {
 
     @Column(name = "deleted")
     private Boolean deleted;
+
+    @OneToMany(mappedBy = "dotGiamGia",fetch = FetchType.LAZY)
+    private List<SanPhamChiTiet> sanPhamChiTiet;
 }

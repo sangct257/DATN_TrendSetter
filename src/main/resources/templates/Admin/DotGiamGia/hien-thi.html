@@ -57,7 +57,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end mb-3">
-                        <form th:action="@{/admin/add-san-pham}" method="get">
+                        <form th:action="@{/admin/add-dot-giam-gia}" method="get">
                             <button type="submit" class="btn btn-success fw-bold">
                                 <i class="bi bi-plus-lg"></i> Thêm
                             </button>
@@ -95,7 +95,7 @@
                                 </button>
                             </td>
                             <td>
-                                <a href="/admin/dot-giam-gia/dot-giam-gia-chi-tiet">
+                                <a href="/admin/dot-giam-gia-chi-tiet">
                                     <button type="button" class="btn btn-secondary">
                                         <i class="fa-solid fa-eye"></i> Xem chi tiết
                                     </button>
@@ -219,7 +219,7 @@
                                  data-id="${dotGiamGia.id}">
                             ${dotGiamGia.trangThai}
                         </button>`,
-                            `<a href="/admin/dot-giam-gia/dot-giam-gia-chi-tiet" class="btn btn-primary btn-sm fw-bold me-2">
+                            `<a href="/admin/dot-giam-gia-chi-tiet" class="btn btn-primary btn-sm fw-bold me-2">
                             <i class="bi bi-eye"></i> Chi Tiết
                         </a>`
                         ]).draw(false); // Thêm dữ liệu mới và vẽ lại bảng
