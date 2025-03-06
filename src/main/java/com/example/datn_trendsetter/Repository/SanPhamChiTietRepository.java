@@ -4,6 +4,7 @@ import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.Entity.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,4 +46,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     int tinhTongSoLuongBySanPhamId(@Param("sanPhamId") Integer sanPhamId);
 
     Integer Id(Integer id);
+
+    List<SanPhamChiTiet> findByTrangThai(String trangThai, Sort sort);
 }

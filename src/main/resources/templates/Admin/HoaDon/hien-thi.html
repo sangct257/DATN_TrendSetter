@@ -74,6 +74,13 @@
 
 
                             <table id="productTable" class="table table-striped table-bordered">
+                                <button>
+                                    <a th:href="@{/admin/sell-counter}">
+                                        Tạo Hóa Đơn
+                                    </a>
+
+                                </button>
+
                                 <thead class="table-dark">
                                 <tr class="text-center">
                                     <th class="text-center">#</th>
@@ -136,7 +143,6 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
-<!--Hiển thị Toast Notification-->
 <script>
     function showToast(message, type) {
         const toast = document.getElementById("toast-message");
