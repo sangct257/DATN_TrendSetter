@@ -15,6 +15,10 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "nhan_vien")
 public class NhanVien {
+    public enum Role {
+        ADMIN, NHANVIEN
+    }
+
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,8 +48,9 @@ public class NhanVien {
     @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
-    @Column(name = "vai_tro",columnDefinition = "NVARCHAR(255)")
-    private String vaiTro;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vai_tro", columnDefinition = "NVARCHAR(255)")
+    private Role vaiTro;
 
     @Column(name = "hinh_anh",columnDefinition = "NVARCHAR(255)")
     private String hinhAnh;
