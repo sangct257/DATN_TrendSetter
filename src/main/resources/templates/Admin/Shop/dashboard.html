@@ -2,30 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{admin/fragments/head :: head}"></head>
 <style>
-    /* Tùy chỉnh toast */
-    .toast {
-        min-width: 320px;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        overflow: hidden;
+    #toast-container {
+        display: block !important;
+        opacity: 1 !important;
+        z-index: 1050 !important;
     }
 
-    .toast-body {
-        font-size: 14px;
-        font-weight: 500;
-        padding: 12px 16px;
-    }
-
-    /* Thanh tải */
-    .progress {
-        height: 4px;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    .progress-bar {
-        transition: width 0.3s ease-in-out;
-    }
 </style>
 <body class="hold-transition skin-blue sidebar-mini">
 <!-- Site wrapper -->
@@ -52,20 +34,18 @@
                 <li><a href="#">Bán Hàng Tại Quầy</a></li>
             </ol>
             <!-- Toast Notification -->
-            <!-- Toast Notification -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center border-0 fade hide" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Đang tạo hóa đơn, vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="hideToast()" aria-label="Close"></button>
-                    </div>
+            <div id="toast-message" class="toast position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">Thông báo</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div id="toast-text" class="toast-body">
+                    Nội dung thông báo
                 </div>
             </div>
+
+
+
         </section>
 
 
@@ -158,10 +138,12 @@
                                             <div class="modal-body">
                                                 <form id="orderForm">
                                                     <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
-                                                    <div class="product-list" style="border-top: 2px solid; padding-top: 20px;">
+                                                    <div class="product-list"
+                                                         style="border-top: 2px solid; padding-top: 20px;">
                                                         <!-- Bảng sản phẩm căn chỉnh đẹp hơn -->
                                                         <div class="table-responsive">
-                                                            <table id="productTable" class="table table-striped table-bordered">
+                                                            <table id="productTable"
+                                                                   class="table table-striped table-bordered">
                                                                 <thead class="table-dark">
                                                                 <tr class="text-center">
                                                                     <th class="text-center">#</th>
@@ -176,8 +158,10 @@
                                                                 <tbody>
                                                                 <tr th:each="sanPhamChiTiet, status : ${sanPhamChiTiet}"
                                                                     th:if="${sanPhamChiTiet.soLuong != null and sanPhamChiTiet.gia != null and sanPhamChiTiet.hinhAnh != null and #lists.size(sanPhamChiTiet.hinhAnh) > 0}">
-                                                                    <td th:text="${sanPhamChiTiet.id}" class="text-center">
-                                                                        <input type="hidden" th:value="${sanPhamChiTiet.id}">
+                                                                    <td th:text="${sanPhamChiTiet.id}"
+                                                                        class="text-center">
+                                                                        <input type="hidden"
+                                                                               th:value="${sanPhamChiTiet.id}">
                                                                     </td>
                                                                     <td class="text-center">
                                                                         <img th:src="@{${sanPhamChiTiet.hinhAnh[0].urlHinhAnh}}"
@@ -185,12 +169,16 @@
                                                                              style="width: 70px; height: 70px; object-fit: cover;">
                                                                     </td>
                                                                     <td class="text-center">
-                                                                        <strong class="text-primary d-inline-block" th:text="${sanPhamChiTiet.sanPham.tenSanPham}"></strong>
-                                                                        (<span th:text="${sanPhamChiTiet.mauSac.tenMauSac}"></span> -
+                                                                        <strong class="text-primary d-inline-block"
+                                                                                th:text="${sanPhamChiTiet.sanPham.tenSanPham}"></strong>
+                                                                        (<span
+                                                                            th:text="${sanPhamChiTiet.mauSac.tenMauSac}"></span>
+                                                                        -
                                                                         <span th:text="${sanPhamChiTiet.kichThuoc.tenKichThuoc}"></span>)
                                                                     </td>
                                                                     <td class="text-center">
-                                                                        <input type="number" name="soLuong" value="1" min="1"
+                                                                        <input type="number" name="soLuong" value="1"
+                                                                               min="1"
                                                                                th:max="${sanPhamChiTiet.soLuong}"
                                                                                class="form-control form-control-sm text-center">
                                                                     </td>
@@ -203,7 +191,8 @@
                                                                         </button>
                                                                     </td>
                                                                     <td class="text-center">
-                                                                        <button type="button" class="btn btn-outline-primary btn-sm fw-bold"
+                                                                        <button type="button"
+                                                                                class="btn btn-outline-primary btn-sm fw-bold"
                                                                                 onclick="addProductOrder(this)">
                                                                             <i class="bi bi-cart-plus"></i> Chọn
                                                                         </button>
@@ -255,7 +244,8 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <input type="number" name="soLuong" th:value="${hoaDonChiTiet.soLuong}" min="1" class="form-control" required onchange="updateQuantityOrder(this)">
+                                        <input type="number" name="soLuong" th:value="${hoaDonChiTiet.soLuong}" min="1"
+                                               class="form-control" required onchange="updateQuantityOrder(this)">
                                         <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                         <input type="hidden" name="hoaDonChiTietId" th:value="${hoaDonChiTiet.id}">
                                     </td>
@@ -347,46 +337,48 @@
                                                 </tr>
                                                 </tbody>
                                             </table>
+
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Modal thêm khách hàng mới -->
-                            <div class="modal fade" id="addCustomerModal" tabindex="-1"
-                                 aria-labelledby="addCustomerModalLabel" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="addCustomerModalLabel">Thêm Khách Hàng Mới</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form id="addCustomerForm">
-                                                <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
-                                                <div class="mb-3">
-                                                    <label for="nguoiNhan" class="form-label">Họ Tên</label>
-                                                    <input type="text" class="form-control" id="nguoiNhan"
-                                                           name="nguoiNhan" placeholder="Nhập họ tên" required>
-                                                    <span class="text-danger" id="nguoiNhanError"></span>
-                                                </div>
+                        <!-- Modal thêm khách hàng mới -->
+                        <div class="modal fade" id="addCustomerModal" tabindex="-1"
+                             aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="addCustomerModalLabel">Thêm Khách Hàng Mới</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="addCustomerForm">
+                                            <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
+                                            <div class="mb-3">
+                                                <label for="nguoiNhan" class="form-label">Họ Tên</label>
+                                                <input type="text" class="form-control" id="nguoiNhan"
+                                                       name="nguoiNhan" placeholder="Nhập họ tên" required>
+                                                <span class="text-danger" id="nguoiNhanError"></span>
+                                            </div>
 
-                                                <div class="mb-3">
-                                                    <label for="soDienThoai" class="form-label">Số Điện Thoại</label>
-                                                    <input type="text" class="form-control" id="soDienThoai"
-                                                           name="soDienThoai" placeholder="Nhập số điện thoại" required>
-                                                    <span class="text-danger" id="soDienThoaiError"></span>
-                                                </div>
+                                            <div class="mb-3">
+                                                <label for="soDienThoai" class="form-label">Số Điện Thoại</label>
+                                                <input type="text" class="form-control" id="soDienThoai"
+                                                       name="soDienThoai" placeholder="Nhập số điện thoại" required>
+                                                <span class="text-danger" id="soDienThoaiError"></span>
+                                            </div>
 
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Hủy
-                                                    </button>
-                                                    <button type="submit" class="btn btn-primary">Lưu</button>
-                                                </div>
-                                            </form>
-                                        </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Hủy
+                                                </button>
+                                                <button type="submit" class="btn btn-primary">Lưu</button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -453,6 +445,19 @@
                                     <div class="card card-body">
                                         <form id="updateShippingForm">
                                             <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
+                                            <!-- Trả Sau (Ẩn mặc định) -->
+                                            <div class="info mb-4 d-flex align-items-center payLaterSection"
+                                                 id="payLaterSection"
+                                                 th:style="${hoaDon.loaiHoaDon != 'Giao Hàng' ? 'display: none;' : 'display: flex;'}">
+                                                <i class="fas fa-money-bill-wave me-2"></i>
+                                                <span class="me-auto fw-bold">Trả Sau:</span>
+                                                <div class="form-check form-switch">
+                                                    <input id="payLaterSwitch" class="form-check-input" type="checkbox"
+                                                           th:data-hoa-don-id="${hoaDon.id}"
+                                                           th:checked="${hoaDon.loaiGiaoDich == 'Trả Sau'}">
+                                                </div>
+                                            </div>
+
                                             <div class="row">
                                                 <div class="col-md-12 mb-3">
                                                     <input type="text" name="nguoiNhan" class="form-control w-100"
@@ -493,7 +498,8 @@
                                                             <option th:value="${hoaDon.thanhPho != null ? hoaDon.thanhPho : ''}"
                                                                     th:text="${hoaDon.thanhPho != null ? hoaDon.thanhPho : 'Chọn Tỉnh/Thành phố'}"></option>
                                                         </select>
-                                                        <input type="hidden" id="thanhPhoHidden" th:value="${hoaDon.thanhPho}">
+                                                        <input type="hidden" id="thanhPhoHidden"
+                                                               th:value="${hoaDon.thanhPho}">
                                                         <span class="text-danger" id="thanhPhoError"></span>
                                                     </div>
 
@@ -502,7 +508,8 @@
                                                             <option th:value="${hoaDon.huyen != null ? hoaDon.huyen : ''}"
                                                                     th:text="${hoaDon.huyen != null ? hoaDon.huyen : 'Chọn Quận/Huyện'}"></option>
                                                         </select>
-                                                        <input type="hidden" id="huyenHidden" th:value="${hoaDon.huyen}">
+                                                        <input type="hidden" id="huyenHidden"
+                                                               th:value="${hoaDon.huyen}">
                                                         <span class="text-danger" id="huyenError"></span>
                                                     </div>
 
@@ -511,7 +518,8 @@
                                                             <option th:value="${hoaDon.phuong != null ? hoaDon.phuong : ''}"
                                                                     th:text="${hoaDon.phuong != null ? hoaDon.phuong : 'Chọn Phường/Xã'}"></option>
                                                         </select>
-                                                        <input type="hidden" id="phuongHidden" th:value="${hoaDon.phuong}">
+                                                        <input type="hidden" id="phuongHidden"
+                                                               th:value="${hoaDon.phuong}">
                                                         <span class="text-danger" id="phuongError"></span>
                                                     </div>
                                                 </div>
@@ -659,18 +667,6 @@
                                     </div>
                                 </div>
 
-                                <!--Trả Sau-->
-                                <div class="info mb-4 d-flex align-items-center"
-                                     th:if="${hoaDon != null and hoaDon.loaiHoaDon == 'Giao Hàng'}">
-                                    <i class="fas fa-money-bill-wave me-2"></i>
-                                    <span class="me-auto fw-bold">Trả Sau:</span>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox"
-                                               th:data-hoa-don-id="${hoaDon.id}"
-                                               th:checked="${hoaDon.loaiGiaoDich == 'Trả Sau'}">
-                                    </div>
-                                </div>
-
                                 <!-- Giao Hàng -->
                                 <div class="info mb-4 d-flex align-items-center">
                                     <i class="fas fa-truck me-2"></i>
@@ -678,9 +674,7 @@
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="deliverySwitch"
                                                th:data-hoa-don-id="${hoaDon.id}"
-                                               th:checked="${hoaDon.loaiHoaDon == 'Giao Hàng'}"
-                                               onchange="preventUncheck(this)">
-
+                                               th:checked="${hoaDon.loaiHoaDon == 'Giao Hàng'}">
                                     </div>
                                 </div>
 
@@ -795,7 +789,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>

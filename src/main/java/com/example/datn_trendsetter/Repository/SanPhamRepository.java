@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface SanPhamRepository extends JpaRepository<SanPham,Integer> {
 
-    Optional<SanPham> findByTenSanPhamAndDanhMucIdAndThuongHieuId(String tenSanPham, Integer danhMucId, Integer thuongHieuId);
+    Optional<SanPham> findByTenSanPham(String tenSanPham);
 
 
     List<SanPham> findByTrangThai(String trangThai, Sort sort);

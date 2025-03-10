@@ -42,6 +42,10 @@
                                         Tất Cả (<span id="count-all">0</span>)
                                     </button>
                                     <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Đang Xử Lý">
+                                        Đang Xử Lý (<span id="count-processing">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
                                             data-status="Chờ Xác Nhận">
                                         Chờ Xác Nhận (<span id="count-waiting">0</span>)
                                     </button>
@@ -274,6 +278,7 @@
                 .then(response => response.json())
                 .then(counts => {
                     document.getElementById("count-all").innerText = counts["Tất Cả"] || 0;
+                    document.getElementById("count-processing").innerText = counts["Đang Xử Lý"] || 0;
                     document.getElementById("count-waiting").innerText = counts["Chờ Xác Nhận"] || 0;
                     document.getElementById("count-confirmed").innerText = counts["Đã Xác Nhận"] || 0;
                     document.getElementById("count-shipping").innerText = counts["Chờ Vận Chuyển"] || 0;

@@ -227,12 +227,10 @@
                    (lichSu.hanhDong == 'Chờ Xác Nhận' ? '⏳' :
                    (lichSu.hanhDong == 'Đã Xác Nhận' ? '✅' :
                    (lichSu.hanhDong == 'Chờ Vận Chuyển' ? '📦' :
-                   (lichSu.hanhDong == 'Đang Giao Hàng' ? '🚚' :
-                   (lichSu.hanhDong == 'Đã Giao Hàng' ? '📬' :
                    (lichSu.hanhDong == 'Đã Thanh Toán' ? '💳' :
                    (lichSu.hanhDong == 'Đã Hoàn Thành' ? '🎉' :
                    (lichSu.hanhDong == 'Đã Hủy' ? '❌' :
-                   (lichSu.hanhDong == 'Hoàn Trả/Hoàn Tiền' ? '🔄' : '❓')))))))))}">
+                   (lichSu.hanhDong == 'Hoàn Trả/Hoàn Tiền' ? '🔄' : '❓')))))))}">
                                         </div>
                                         <p th:text="${lichSu.hanhDong}"></p>
                                         <small th:text="${#temporals.format(lichSu.ngayTao, 'HH:mm:ss dd-MM-yyyy')}"></small>
@@ -273,19 +271,25 @@
                                     </button>
 
                                     <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đang Giao Hàng'}"
+                                            th:if="${!listLichSuHoaDon.isEmpty() and
+           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
+           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
+           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/huy'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Hủy
                                     </button>
 
+
                                     <button type="submit" class="btn btn-warning"
                                             th:if="${listLichSuHoaDon[listLichSuHoaDon.size() - 1].hanhDong != 'Đang Xử Lý'
-                                                and listLichSuHoaDon[listLichSuHoaDon.size() - 1].hanhDong != 'Chờ Xác Nhận'}"
+                                                and listLichSuHoaDon[listLichSuHoaDon.size() - 1].hanhDong != 'Chờ Xác Nhận'
+                                            and listLichSuHoaDon[listLichSuHoaDon.size() - 1].hanhDong != 'Đã Hoàn Thành'}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/quay-lai'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Quay Lại
                                     </button>
+
                                     <!-- Modal Dùng Chung -->
                                     <div class="modal fade" id="xacNhanChungModal" tabindex="-1"
                                          aria-labelledby="xacNhanChungModalLabel" aria-hidden="true">

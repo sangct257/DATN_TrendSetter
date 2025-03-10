@@ -89,7 +89,7 @@
                                     <td th:text="${i.index + 1}"></td>
                                     <td th:text="${sanPham.maSanPham}"></td>
                                     <td th:text="${sanPham.tenSanPham}"></td>
-                                    <td class="fw-bold text-danger" th:text="${sanPham.soLuong}"></td>
+                                    <td class="fw-bold text-danger" th:text="${#numbers.formatInteger(sanPham.soLuong, 0, 'DEFAULT') ?: 0}"></td>
                                     <td>
                                         <button class="badge" th:classappend="${sanPham.trangThai == 'Đang Hoạt Động'} ? 'bg-success' : 'bg-danger'"
                                                 th:attr="data-id=${sanPham.id}">
@@ -219,14 +219,14 @@
                             index + 1,
                             sanPham.maSanPham,
                             sanPham.tenSanPham,
-                            `<span class="fw-bold text-danger">${sanPham.soLuong}</span>`,
+                            `<span class="fw-bold text-danger">${sanPham.soLuong != null ? sanPham.soLuong : 0}</span>`,
                             `<button class="badge ${sanPham.trangThai === 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'} btn-status"
-                                 data-id="${sanPham.id}">
-                            ${sanPham.trangThai}
-                        </button>`,
+                         data-id="${sanPham.id}">
+                        ${sanPham.trangThai}
+                    </button>`,
                             `<a href="/admin/detail-san-pham?sanPhamId=${sanPham.id}" class="btn btn-primary btn-sm fw-bold me-2">
-                            <i class="bi bi-eye"></i> Chi Tiết
-                        </a>`
+                        <i class="bi bi-eye"></i> Chi Tiết
+                    </a>`
                         ]).draw(false); // Thêm dữ liệu mới và vẽ lại bảng
                     });
 

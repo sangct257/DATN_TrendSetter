@@ -40,8 +40,8 @@ public class HoaDonApiController {
     }
 
     @PutMapping("/toggle-delivery/{id}")
-    public ResponseEntity<Map<String, String>> toggleDelivery(@PathVariable Integer id) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> toggleDelivery(@PathVariable Integer id) {
+        Map<String, Object> response = new HashMap<>();
         try {
             Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(id);
             if (!optionalHoaDon.isPresent()) {
@@ -53,13 +53,17 @@ public class HoaDonApiController {
 
             // Kiểm tra trạng thái và cập nhật
             if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
+                hoaDon.setLoaiGiaoDich("Trả Sau");
                 hoaDon.setLoaiHoaDon("Giao Hàng");
             } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
+                hoaDon.setLoaiGiaoDich("Đã Thanh Toán");
                 hoaDon.setLoaiHoaDon("Tại Quầy");
             }
 
             hoaDonRepository.save(hoaDon);
             response.put("successMessage", "Cập nhật trạng thái hóa đơn thành công!");
+            response.put("loaiHoaDon", hoaDon.getLoaiHoaDon()); // Gửi trạng thái mới về frontend
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("errorMessage", "Lỗi cập nhật hóa đơn!");

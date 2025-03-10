@@ -1,80 +1,110 @@
 <div th:fragment="script">
-    <!--Hiển thị Toast Notification-->
+    <!-- Hiển thị Toast Notification -->
     <script>
         function showToast(message, type) {
             const toast = document.getElementById("toast-message");
             const toastText = document.getElementById("toast-text");
-            const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
 
-            // Reset trạng thái
-            toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-            toast.classList.add(`text-bg-${type}`);
-            toast.style.opacity = "1";
-            toast.classList.add("show");
-            toastText.textContent = message;
-            toastLoadingBar.style.width = "0%";
-
-            return toastLoadingBar;
-        }
-
-        function hideToast() {
-            const toast = document.getElementById("toast-message");
-            toast.style.opacity = "0";
-            setTimeout(() => {
-                toast.classList.remove("show");
-                toast.classList.add("hide");
-            }, 300);
-        }
-
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
+            if (!toast || !toastText) {
+                console.error("❌ Không tìm thấy phần tử Toast!");
+                return;
             }
 
-            requestAnimationFrame(updateProgress);
+            // Cập nhật nội dung
+            toastText.textContent = message;
+
+            // Đặt màu nền dựa trên loại thông báo
+            toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger");
+            toast.classList.add(`text-bg-${type}`);
+
+            // Hiển thị Toast bằng Bootstrap API
+            const toastBootstrap = new bootstrap.Toast(toast, { delay: 3000 });
+            toastBootstrap.show();
+        }
+
+        function hideToast(button) {
+            const toast = button.closest(".toast"); // Lấy phần tử cha gần nhất có class 'toast'
+            if (toast) {
+                const bsToast = bootstrap.Toast.getInstance(toast);
+                if (bsToast) {
+                    bsToast.hide();
+                }
+                setTimeout(() => toast.remove(), 300); // Xóa toast sau animation
+            }
         }
 
     </script>
-    <!--API Tạo Hóa Đơn-->
+    <!-- API Tạo Hóa Đơn -->
     <script>
         function createHoaDon() {
-            const toastLoadingBar = showToast("Đang tạo hóa đơn, vui lòng chờ...", "primary");
-
-            animateProgressBar(toastLoadingBar, 5000);
-
-            fetch('/create', {method: 'POST', headers: {'Content-Type': 'application/json'}})
-                .then(response => response.json())
+            fetch('/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
+                    return response.json();
+                })
                 .then(data => {
-                    console.log('Hóa đơn được tạo:', data);
+                    console.log('✅ Hóa đơn được tạo:', data);
+                    if (data && data.id) {
+                        console.log("📢 Gọi showToast()");
+                        showToast("🎉 Hóa đơn được tạo thành công!", "success"); // Hiển thị Toast trước
 
-                    setTimeout(() => {
-                        showToast("Hóa đơn được tạo thành công!", "success");
+                        // ⏳ Đợi Toast hiển thị rồi mới thêm hóa đơn
                         setTimeout(() => {
-                            hideToast();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 500);
-                        }, 2000);
-                    }, 500);
+                            addHoaDonToUI(data);
+                        }, 1500); // Delay 1.5 giây để Toast hiển thị trước
+                    } else {
+                        console.warn("⚠️ API không trả về ID hóa đơn hợp lệ:", data);
+                        showToast("⚠️ Không thể tạo hóa đơn!", "warning");
+                    }
                 })
                 .catch(error => {
-                    console.error('Lỗi:', error);
-
-                    setTimeout(() => {
-                        showToast("Có lỗi xảy ra khi tạo hóa đơn!", "danger");
-                        setTimeout(hideToast, 4000);
-                    }, 500);
+                    console.error('❌ Lỗi khi tạo hóa đơn:', error);
+                    showToast("🚨 Có lỗi xảy ra khi tạo hóa đơn!", "danger");
                 });
+        }
+
+        // Thêm hóa đơn mới vào danh sách hiển thị
+        function addHoaDonToUI(hoaDon) {
+            const container = document.querySelector(".row.g-4");
+
+            const newCard = document.createElement("div");
+            newCard.className = "col-12 col-sm-6 col-lg-4";
+            newCard.innerHTML = `
+        <div class="card border-primary shadow-sm position-relative rounded-3 overflow-hidden">
+            <div class="position-absolute top-0 end-0 m-2">
+                <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                <button type="button"
+                        class="btn btn-sm btn-danger d-flex align-items-center justify-content-center p-0"
+                        style="width: 30px; height: 30px; border-radius: 50%;"
+                        title="Xóa hóa đơn"
+                        onclick="confirmDeleteHoaDon(this, '${hoaDon.id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form action="/admin/sell-counter" method="GET" class="w-100">
+                <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
+                <button type="submit" class="btn p-0 w-100 text-start">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h6 class="mb-0 text-uppercase"># ${hoaDon.maHoaDon}</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="card-text text-muted">
+                            <i class="fas fa-shopping-cart"></i> Số lượng sản phẩm:
+                            <strong>${hoaDon.tongSanPham}</strong>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-light text-center">
+                        <small class="text-muted">Chi tiết hóa đơn</small>
+                    </div>
+                </button>
+            </form>
+        </div>
+    `;
+
+            container.prepend(newCard); // Thêm hóa đơn mới lên đầu danh sách
         }
     </script>
     <!--API Delete Hóa Đơn-->
@@ -86,33 +116,27 @@
         }
 
         function deleteHoaDon(button, hoaDonId) {
-            const toastLoadingBar = showToast("Đang xóa hóa đơn, vui lòng chờ...", "primary");
-
-            animateProgressBar(toastLoadingBar, 4000);
-
             fetch(`/delete/${hoaDonId}`, {method: 'POST', headers: {'Content-Type': 'application/json'}})
                 .then(response => response.json())
                 .then(data => {
-                    setTimeout(() => {
-                        if (data.message) {
-                            showToast(data.message, "success");
+                    if (data.message) {
+                        showToast(data.message, "success");
+
+                        // Xóa phần tử hóa đơn khỏi giao diện
+                        const card = button.closest(".col-12.col-sm-6.col-lg-4");
+                        if (card) {
                             setTimeout(() => {
-                                hideToast();
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 500);
-                            }, 2000);
-                        } else {
-                            showToast(data.error, "danger");
+                                card.remove(); // Xóa hóa đơn khỏi giao diện mà không reload
+                                window.location.href = "/admin/sell-counter";
+                            }, 1000);
                         }
-                    }, 500);
+                    } else {
+                        showToast(data.error, "danger");
+                    }
                 })
                 .catch(error => {
                     console.error('Lỗi:', error);
-                    setTimeout(() => {
-                        showToast("Có lỗi xảy ra khi xóa hóa đơn!", "danger");
-                        setTimeout(hideToast, 4000);
-                    }, 500);
+                    showToast("Có lỗi xảy ra khi xóa hóa đơn!", "danger");
                 });
         }
 
@@ -122,10 +146,6 @@
         function addCustomerToInvoice(form) {
             const hoaDonId = form.querySelector('input[name="hoaDonId"]').value;
             const khachHangId = form.querySelector('input[name="khachHangId"]').value;
-
-            const toastLoadingBar = showToast("Đang thêm khách hàng vào hóa đơn...", "primary");
-
-            animateProgressBar(toastLoadingBar, 4000);
 
             fetch('/add-customer', {
                 method: 'POST',
@@ -162,10 +182,6 @@
             }
 
             if (!confirm("Bạn có chắc chắn muốn xóa khách hàng khỏi hóa đơn?")) return;
-
-            const toastLoadingBar = showToast("Đang xóa khách hàng...", "primary");
-
-            animateProgressBar(toastLoadingBar, 4000);
 
             fetch('/delete-customer', {
                 method: 'POST',
@@ -251,8 +267,6 @@
                     return;
                 }
 
-                const toastLoadingBar = showToast("Đang cập nhật phương thức thanh toán...", "primary");
-                animateProgressBar(toastLoadingBar, 4000);
 
                 $.ajax({
                     url: '/add-payment-method',
@@ -288,176 +302,116 @@
             });
         });
 
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
-        }
     </script>
-    <!--API Thay Đổi Loại Giao Dịch-->
+    <!--API Thay Đổi Loại Giao Hàng và Trả Sau-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const deliverySwitch = document.querySelector("#deliverySwitch");
+            const payLaterSwitch = document.querySelector("#payLaterSwitch");
+
+            function toggleSections(isChecked) {
+                document.getElementById("shippingForm").style.display = isChecked ? "block" : "none";
+                document.getElementById("payLaterSection").style.display = isChecked ? "block" : "none";
+            }
+
+            if (deliverySwitch) {
+                toggleSections(deliverySwitch.checked);
+                deliverySwitch.addEventListener("change", function () {
+                    toggleSections(this.checked);
+                });
+            }
+
+            if (payLaterSwitch) {
+                payLaterSwitch.addEventListener("change", function () {
+                    document.getElementById("payLaterSection").style.display = this.checked ? "block" : "none";
+                });
+            }
+
+            // Gửi yêu cầu cập nhật API khi có thay đổi
             document.querySelectorAll(".form-check-input").forEach((checkbox) => {
                 checkbox.addEventListener("change", function () {
                     const hoaDonId = this.getAttribute("data-hoa-don-id");
-                    const progressBar = showToast("Đang cập nhật...", "primary");
+                    const isChecked = this.checked;
 
-                    console.log(`Gửi yêu cầu cập nhật hóa đơn ID: ${hoaDonId}`);
+                    const apiUrl = this.id === "deliverySwitch"
+                        ? `/api/hoa-don/toggle-delivery/${hoaDonId}`
+                        : `/cap-nhat-loai-giao-dich/${hoaDonId}`;
 
-                    fetch(`/cap-nhat-loai-giao-dich/${hoaDonId}`, {
+                    fetch(apiUrl, {
                         method: "PUT",
-                        headers: { "Content-Type": "application/json" }
+                        headers: {"Content-Type": "application/json"}
                     })
-                        .then(response => {
-                            console.log("Trạng thái phản hồi:", response.status);
-                            return response.text().then(text => ({ status: response.status, message: text }));
-                        })
-                        .then(({ status, message }) => {
-                            console.log("Phản hồi từ server:", message);
-
-                            if (status === 200) {
-                                showToast(message, "success");
-
-                                // Tắt thông báo sau 2 giây rồi reload
-                                setTimeout(() => {
-                                    hideToast();
-                                    location.reload();
-                                }, 2000);
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.successMessage) {
+                                this.checked = isChecked;
+                                if (this.id === "deliverySwitch") {
+                                    updateDeliveryUI(this.checked, data.loaiHoaDon);
+                                } else {
+                                    updateTransactionUI(this.checked, data.loaiGiaoDich);
+                                }
+                                location.reload(); // Thêm reload sau khi cập nhật thành công
                             } else {
-                                showToast("Lỗi: " + message, "danger");
-
-                                // Tắt thông báo sau 2 giây nếu có lỗi
-                                setTimeout(hideToast, 2000);
-                                checkbox.checked = !checkbox.checked; // Hoàn tác nếu có lỗi
+                                showToast(data.errorMessage || "Cập nhật thất bại!", "danger");
+                                this.checked = !isChecked;
                             }
                         })
                         .catch(error => {
-                            console.error("Lỗi fetch:", error);
-                            showToast("Lỗi: " + error.message, "danger");
-
-                            // Tắt thông báo sau 2 giây nếu có lỗi
-                            setTimeout(hideToast, 2000);
-                            checkbox.checked = !checkbox.checked; // Hoàn tác nếu có lỗi
+                            console.error("Lỗi API:", error);
+                            showToast("Lỗi kết nối đến server!", "danger");
+                            this.checked = !isChecked;
                         });
                 });
             });
         });
-    </script>
-    <!--API Thay Đổi Trạng Thái Hóa Đơn-->
-    <script>
-        function preventUncheck(checkbox) {
-            const hoaDonId = checkbox.getAttribute("data-hoa-don-id");
 
-            if (!hoaDonId || isNaN(hoaDonId)) {
-                console.error("Lỗi: hoaDonId không hợp lệ hoặc null:", hoaDonId);
-                showToast("Lỗi: ID hóa đơn không hợp lệ!", "danger");
-                return;
+        // ✅ Cập nhật UI khi thay đổi trạng thái giao hàng
+        function updateDeliveryUI(isChecked, loaiHoaDon) {
+            document.getElementById("shippingForm").style.display = isChecked ? "block" : "none";
+            document.getElementById("payLaterSection").style.display = isChecked ? "block" : "none";
+            const orderStatusElement = document.getElementById("orderStatus");
+            if (orderStatusElement) orderStatusElement.textContent = loaiHoaDon;
+
+            const confirmModalText = document.querySelector("#confirmModal .modal-body span");
+            if (confirmModalText) {
+                confirmModalText.textContent = isChecked
+                    ? "Bạn có muốn xác nhận thanh toán hóa đơn giao hàng không?"
+                    : "Bạn có muốn xác nhận thanh toán hóa đơn tại quầy không?";
             }
-
-            const toastLoading = showToast("Đang cập nhật trạng thái giao hàng...", "primary");
-            const progressBar = document.getElementById("toast-loading-bar")?.querySelector(".progress-bar");
-
-            // Hàm chạy thanh tiến trình
-            animateProgressBar(progressBar, 4000);
-
-            fetch(`/api/hoa-don/toggle-delivery/${hoaDonId}?delivery=${checkbox.checked}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'}
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (progressBar) progressBar.style.width = "100%";
-
-                    setTimeout(() => {
-                        if (data.successMessage) {
-                            showToast(data.successMessage, "success");
-
-                            // Cập nhật giao diện ship mà không cần reload
-                            document.getElementById("shippingForm").style.display = checkbox.checked ? "block" : "none";
-
-                            // Reload trang sau khi cập nhật xong
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1500); // Đợi 1.5 giây trước khi reload
-                        } else {
-                            showToast(data.errorMessage || "Cập nhật thất bại!", "danger");
-                            checkbox.checked = !checkbox.checked; // Hoàn tác nếu lỗi
-                        }
-                    }, 500);
-                })
-                .catch(error => {
-                    console.error('Lỗi API:', error.message);
-                    if (progressBar) progressBar.style.width = "100%";
-
-                    setTimeout(() => {
-                        showToast("Lỗi kết nối đến server!", "danger");
-                        checkbox.checked = !checkbox.checked; // Hoàn tác nếu lỗi API
-                    }, 500);
-                });
         }
 
-        // Hàm chạy thanh tiến trình
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
+        // ✅ Cập nhật UI khi thay đổi loại giao dịch
+        function updateTransactionUI(isChecked, loaiGiaoDich) {
+            const transactionStatus = document.getElementById("transactionStatus");
+            if (transactionStatus) transactionStatus.textContent = loaiGiaoDich;
         }
 
-        // Ẩn toast khi trang reload xong
-        document.addEventListener("DOMContentLoaded", function () {
+        // ✅ Hiển thị thông báo nhanh
+        function showToast(message, type = "success") {
+            const toastContainer = document.getElementById("toastContainer");
+            if (!toastContainer) return;
+
+            const toast = document.createElement("div");
+            toast.className = `toast align-items-center text-white bg-${type} border-0 show`;
+            toast.style.position = "absolute";
+            toast.style.top = "20px";
+            toast.style.right = "20px";
+            toast.style.zIndex = "1050";
+
+            toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+            toastContainer.appendChild(toast);
+
             setTimeout(() => {
-                const toastContainer = document.getElementById("toast-container");
-                if (toastContainer) {
-                    toastContainer.innerHTML = ""; // Xóa toàn bộ nội dung toast
-                }
-            }, 2000); // Ẩn toast sau 2 giây khi trang load xong
-        });
-    </script>
-    <!--Hiển Thị Giao Diện Ship-->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const deliverySwitch = document.getElementById("deliverySwitch");
-            const shippingForm = document.getElementById("shippingForm");
-
-            if (!deliverySwitch || !shippingForm) return;
-
-            function toggleShippingForm() {
-                shippingForm.style.display = deliverySwitch.checked ? "block" : "none";
-            }
-
-            // ✅ Hiển thị form ngay khi trang tải
-            toggleShippingForm();
-
-            // ✅ Khi checkbox thay đổi, chỉ cập nhật giao diện, không reload
-            deliverySwitch.addEventListener("change", function () {
-                // Không gọi toggleShippingForm() trực tiếp, để API xử lý trước khi thay đổi giao diện
-                preventUncheck(this);
-            });
-        });
+                toast.classList.remove("show");
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
     </script>
     <!--API Phiếu Giảm Giá-->
     <script>
@@ -475,59 +429,40 @@
                 return;
             }
 
-            const toastLoading = showToast("Đang áp dụng phiếu giảm giá...", "primary");
-            const progressBar = document.getElementById("toast-loading-bar")?.querySelector(".progress-bar");
-
-            // Hàm chạy thanh tiến trình
-            animateProgressBar(progressBar, 4000);
+            button.disabled = true;
+            button.innerText = "Đang áp dụng...";
 
             fetch('/apply-phieu-giam-gia', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: new URLSearchParams({hoaDonId, tenPhieuGiamGia})
             })
-                .then(response => response.json())
+                .then(response => response.json().catch(() => ({
+                    success: false,
+                    error: "Phản hồi không hợp lệ từ server"
+                })))
                 .then(data => {
-                    if (progressBar) progressBar.style.width = "100%";
+                    if (data.success) {
+                        showToast("Phiếu giảm giá đã được áp dụng!", "success");
 
-                    setTimeout(() => {
-                        if (data.success) {
-                            showToast("Phiếu giảm giá đã được áp dụng!", "success");
-                            setTimeout(() => {
-                                location.reload(); // Reload ngay sau khi áp dụng thành công
-                            }, 500);
-                        } else {
-                            showToast(data.error || "Lỗi khi áp dụng phiếu giảm giá!", "danger");
-                        }
-                    }, 500);
+                        let modal = bootstrap.Modal.getInstance(document.getElementById("discountModal"));
+                        modal.hide();
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    } else {
+                        showToast(data.error || "Lỗi khi áp dụng phiếu giảm giá!", "danger");
+                    }
                 })
                 .catch(error => {
                     console.error('Lỗi:', error);
-                    if (progressBar) progressBar.style.width = "100%";
-
-                    setTimeout(() => {
-                        showToast("Lỗi hệ thống, vui lòng thử lại sau!", "danger");
-                    }, 500);
+                    showToast("Lỗi hệ thống, vui lòng thử lại sau!", "danger");
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    button.innerText = "Áp dụng";
                 });
-        }
-
-        // Hàm chạy thanh tiến trình
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
         }
     </script>
     <!--API Update Địa Chỉ Giao Hàng-->
@@ -546,12 +481,6 @@
                     return;
                 }
 
-                const toastLoading = showToast("Đang cập nhật địa chỉ giao hàng...", "primary");
-                const progressBar = document.getElementById("toast-loading-bar")?.querySelector(".progress-bar");
-
-                // Hàm chạy thanh tiến trình
-                animateProgressBar(progressBar, 4000);
-
                 fetch("/update-shipping", {
                     method: "PUT",
                     headers: {"Content-Type": "application/x-www-form-urlencoded"},
@@ -564,8 +493,6 @@
                         return response.json();
                     })
                     .then(data => {
-                        if (progressBar) progressBar.style.width = "100%";
-
                         setTimeout(() => {
                             showToast(data.message || data.error, data.message ? "success" : "danger");
                             if (data.message) {
@@ -575,33 +502,12 @@
                     })
                     .catch(error => {
                         console.error("Lỗi:", error);
-                        if (progressBar) progressBar.style.width = "100%";
-
                         setTimeout(() => {
                             showToast("Lỗi khi cập nhật địa chỉ giao hàng!", "danger");
                         }, 500);
                     });
             });
         });
-
-        // Hàm chạy thanh tiến trình
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
-        }
     </script>
     <!--API Update New Khách Hàng-->
     <script>
@@ -630,12 +536,6 @@
                     return;
                 }
 
-                const toastLoading = showToast("Đang cập nhật thông tin khách hàng...", "primary");
-                const progressBar = document.getElementById("toast-loading-bar")?.querySelector(".progress-bar");
-
-                // Hàm chạy thanh tiến trình
-                animateProgressBar(progressBar, 4000);
-
                 // Gửi yêu cầu đến API
                 fetch("/add-new-customer", {
                     method: "POST",
@@ -650,8 +550,6 @@
                         });
                     })
                     .then(data => {
-                        if (progressBar) progressBar.style.width = "100%";
-
                         setTimeout(() => {
                             showToast(data.success || data.error, data.success ? "success" : "danger");
                             if (data.success) {
@@ -661,33 +559,12 @@
                     })
                     .catch(error => {
                         console.error("Lỗi:", error);
-                        if (progressBar) progressBar.style.width = "100%";
-
                         setTimeout(() => {
                             showToast("Lỗi khi cập nhật thông tin khách hàng!", "danger");
                         }, 500);
                     });
             });
         });
-
-        // Hàm chạy thanh tiến trình
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
-        }
     </script>
     <!--API Add Sản Phẩm-->
     <script>
@@ -702,12 +579,6 @@
                 soLuong: soLuong
             };
 
-            const toastLoading = showToast("Đang thêm sản phẩm vào đơn hàng...", "primary");
-            const progressBar = document.getElementById("toast-loading-bar")?.querySelector(".progress-bar");
-
-            // Hàm chạy thanh tiến trình
-            animateProgressBar(progressBar, 4000);
-
             fetch('/add-product-order', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -715,10 +586,7 @@
             })
                 .then(response => response.json())
                 .then(handleResponse)
-                .catch(handleError)
-                .finally(() => {
-                    if (progressBar) progressBar.style.width = "100%";
-                });
+                .catch(handleError);
 
             function handleResponse(response) {
                 if (response.successMessage) {
@@ -747,8 +615,6 @@
                 }
 
                 setTimeout(() => {
-                    hideToast(toastLoading);
-
                     let redirectUrl;
                     if (trangThai === "Đang Xử Lý") {
                         redirectUrl = `http://localhost:8080/admin/sell-counter?hoaDonId=${hoaDonId}`;
@@ -760,36 +626,6 @@
 
                     window.location.href = redirectUrl;
                 }, 1000);
-            }
-        }
-
-        // Hàm chạy thanh tiến trình
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
-        }
-
-        function hideToast(toastElement) {
-            if (toastElement) {
-                try {
-                    const toast = new bootstrap.Toast(toastElement);
-                    toast.hide();
-                } catch (error) {
-                    console.warn("Không thể ẩn toast:", error);
-                }
             }
         }
 
@@ -820,11 +656,6 @@
                 soLuong: soLuong
             };
 
-            const toastLoading = showToast("Đang cập nhật số lượng...", "primary");
-            const progressBar = document.getElementById("toast-loading-bar")?.querySelector(".progress-bar");
-
-            // Hàm chạy thanh tiến trình
-            animateProgressBar(progressBar, 4000);
 
             fetch('/update-product-order', {
                 method: 'POST',
@@ -835,7 +666,6 @@
                 .then(handleResponse)
                 .catch(handleError)
                 .finally(() => {
-                    if (progressBar) progressBar.style.width = "100%";
                 });
 
             function handleResponse(response) {
@@ -855,7 +685,10 @@
 
             function closeModalAndReload(trangThai) {
                 setTimeout(() => {
-                    hideToast(toastLoading);
+                    let toastLoading = document.getElementById("toast-loading");
+                    if (toastLoading) {
+                        hideToast(toastLoading);
+                    }
                     let redirectUrl;
                     if (trangThai === "Đang Xử Lý") {
                         redirectUrl = `http://localhost:8080/admin/sell-counter?hoaDonId=${hoaDonId}`;
@@ -869,24 +702,6 @@
             }
         }
 
-        // Hàm chạy thanh tiến trình
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
-        }
 
         function hideToast(toastElement) {
             if (toastElement) {
@@ -923,11 +738,6 @@
                 hoaDonId: hoaDonId
             };
 
-            const toastLoading = showToast("Đang xóa sản phẩm khỏi đơn hàng...", "primary");
-            const progressBar = document.getElementById("toast-loading-bar")?.querySelector(".progress-bar");
-
-            // Hàm chạy thanh tiến trình
-            animateProgressBar(progressBar, 4000);
 
             fetch('/delete-product-order', {
                 method: 'POST',
@@ -938,7 +748,6 @@
                 .then(handleResponse)
                 .catch(handleError)
                 .finally(() => {
-                    if (progressBar) progressBar.style.width = "100%";
                 });
 
             function handleResponse(response) {
@@ -957,8 +766,18 @@
             }
 
             function closeModalAndReload(trangThai) {
+                const modalElement = document.getElementById('addProductModal');
+                if (modalElement) {
+                    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                    modal.hide();
+                }
+
                 setTimeout(() => {
-                    hideToast(toastLoading);
+                    let toastLoading = document.getElementById("toast-loading");
+                    if (toastLoading) {
+                        hideToast(toastLoading);
+                    }
+
                     let redirectUrl;
                     if (trangThai === "Đang Xử Lý") {
                         redirectUrl = `http://localhost:8080/admin/sell-counter?hoaDonId=${hoaDonId}`;
@@ -967,29 +786,12 @@
                     } else {
                         redirectUrl = `http://localhost:8080/admin/sell-counter?hoaDonId=${hoaDonId}`;
                     }
+
                     window.location.href = redirectUrl;
                 }, 1000);
             }
         }
 
-        // Hàm chạy thanh tiến trình
-        function animateProgressBar(progressBar, duration = 4000) {
-            let startTime = null;
-
-            function updateProgress(timestamp) {
-                if (!startTime) startTime = timestamp;
-                let progress = ((timestamp - startTime) / duration) * 100;
-
-                if (progress < 100) {
-                    progressBar.style.width = `${Math.min(progress, 100)}%`;
-                    requestAnimationFrame(updateProgress);
-                } else {
-                    progressBar.style.width = "100%";
-                }
-            }
-
-            requestAnimationFrame(updateProgress);
-        }
 
         function hideToast(toastElement) {
             if (toastElement) {
@@ -1120,6 +922,22 @@
                 fetchProvinces();
             }
         });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.addEventListener('hidden.bs.modal', function () {
+                    let backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = 'auto';
+                });
+            });
+        });
+
     </script>
     <!--Validate-->
     <script>
