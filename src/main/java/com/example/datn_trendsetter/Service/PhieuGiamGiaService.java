@@ -15,6 +15,7 @@ import java.util.Optional;
 public class PhieuGiamGiaService {
     private final PhieuGiamGiaRepository phieuGiamGiaRepository;
 
+    //admin 1
     @PostConstruct
     public void initPhieuGiamGia() {
         if (phieuGiamGiaRepository.count() == 0) {

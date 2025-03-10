@@ -104,10 +104,10 @@ public class ShopApiController {
     @PostMapping("/apply-phieu-giam-gia")
     public ResponseEntity<Map<String, Object>> applyPhieuGiamGia(
             @RequestParam("hoaDonId") Integer hoaDonId,
-            @RequestParam("tenChuongTrinh") String tenChuongTrinh) {
+            @RequestParam("tenPhieuGiamGia") String tenPhieuGiamGia) {
         Map<String, Object> response = new HashMap<>();
         try {
-            String message = shopService.applyPhieuGiamGia(hoaDonId, tenChuongTrinh);
+            String message = shopService.applyPhieuGiamGia(hoaDonId, tenPhieuGiamGia);
 
             response.put("success", true);
             response.put("message", message);
@@ -177,36 +177,32 @@ public class ShopApiController {
 
 
     @PutMapping("/cap-nhat-loai-giao-dich/{id}")
-    public ResponseEntity<String> capNhatLoaiGiaoDich(@PathVariable Integer id) {
-        System.out.println("Nhận yêu cầu cập nhật hóa đơn ID: " + id);
-
-        Optional<HoaDon> hoaDonOpt = hoaDonRepository.findById(id);
-
-        if (hoaDonOpt.isEmpty()) {
-            System.out.println("Hóa đơn không tồn tại.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Hóa đơn không tồn tại");
-        }
-
-        HoaDon hoaDon = hoaDonOpt.get();
-        System.out.println("Loại hóa đơn: " + hoaDon.getLoaiHoaDon() + ", Loại giao dịch: " + hoaDon.getLoaiGiaoDich());
-
-        if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
-            // Nếu loaiGiaoDich là null, đặt mặc định thành "Trả Sau"
-            String loaiGiaoDichHienTai = hoaDon.getLoaiGiaoDich() != null ? hoaDon.getLoaiGiaoDich() : "Trả Sau";
-
-            if ("Trả Sau".equals(loaiGiaoDichHienTai)) {
-                hoaDon.setLoaiGiaoDich("Đã Hoàn Thành");
-            } else {
-                hoaDon.setLoaiGiaoDich("Trả Sau");
+    public ResponseEntity<Map<String, Object>> capNhatLoaiGiaoDich(@PathVariable Integer id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Optional<HoaDon> hoaDonOpt = hoaDonRepository.findById(id);
+            if (hoaDonOpt.isEmpty()) {
+                response.put("errorMessage", "Hóa đơn không tồn tại!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
 
-            hoaDonRepository.save(hoaDon);
-            System.out.println("Cập nhật thành công! Loại giao dịch mới: " + hoaDon.getLoaiGiaoDich());
-            return ResponseEntity.ok("Cập nhật loại giao dịch thành công");
-        }
+            HoaDon hoaDon = hoaDonOpt.get();
+            if (!"Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
+                response.put("errorMessage", "Hóa đơn không thuộc loại Giao Hàng!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
 
-        System.out.println("Hóa đơn không hợp lệ.");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Hóa đơn không thuộc loại Giao Hàng");
+            hoaDon.setLoaiGiaoDich("Trả Sau".equals(hoaDon.getLoaiGiaoDich()) ? "Đã Thanh Toán" : "Trả Sau");
+
+            hoaDonRepository.save(hoaDon);
+            response.put("successMessage", "Cập nhật loại giao dịch thành công!");
+            response.put("loaiGiaoDich", hoaDon.getLoaiGiaoDich());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("errorMessage", "Lỗi cập nhật loại giao dịch!");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
 

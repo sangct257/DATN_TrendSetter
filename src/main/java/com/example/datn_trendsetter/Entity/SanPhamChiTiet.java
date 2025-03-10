@@ -67,4 +67,6 @@ public class SanPhamChiTiet {
     @Column(name = "deleted")
     private Boolean deleted;
 
+    @Transient // Không lưu vào cơ sở dữ liệu
+    private Float giaGiam;
 }
