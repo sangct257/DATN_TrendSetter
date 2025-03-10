@@ -1,6 +1,61 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" rel="stylesheet">
 <head th:replace="admin/fragments/head :: head"></head>
+<style>
+    /* Tạo hiệu ứng hover cho bảng */
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    /* Định dạng badge trạng thái */
+    .modal-lg {
+        max-width: 80%;
+    }
+
+    /* Chỉnh modal */
+    .modal-content {
+        border-radius: 12px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        background: linear-gradient(to right, #007bff, #0056b3);
+        color: white;
+        border-radius: 12px 12px 0 0;
+    }
+    .border-end {
+        border-right: 2px solid #dee2e6;
+    }
+    /* Chỉnh input và select */
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #ced4da;
+    }
+    .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 5px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa !important;
+    }
+    /* Chỉnh badge filter */
+    .filter-btn {
+        transition: all 0.3s ease-in-out;
+    }
+    .btn-primary {
+        border-radius: 8px;
+        font-weight: bold;
+    }
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.15);
+    }
+
+</style>
 <body class="hold-transition skin-blue sidebar-mini">
 <!-- Site wrapper -->
 <div class="wrapper">
@@ -63,58 +118,143 @@
                     </div>
 
                     <div class="d-flex justify-content-end mb-3">
-                        <form th:action="@{/admin/add-san-pham}" method="get">
-                            <button type="submit" class="btn btn-success fw-bold">
-                                <i class="bi bi-plus-lg"></i> Thêm
-                            </button>
-                        </form>
-
+                        <button type="button" class="btn btn-success d-flex align-items-center gap-2"
+                                data-bs-toggle="modal" data-bs-target="#addModal"
+                                id="btnAdd" title="Thêm">
+                            <i class="fas fa-plus"></i> Tạo phiếu giảm giá
+                        </button>
                     </div>
 
-                    <table id="productTable" class="table table-striped table-bordered">
+
+                    <table id="productTable" class="table table-hover table-bordered">
                         <thead class="table-dark">
                         <tr class="text-center">
-                            <th class="text-center">#</th>
-                            <th class="text-center">Mã</th>
-                            <th class="text-center">Tên Đợt Giảm Giá</th>
-                            <th class="text-center">Giá Trị Giảm</th>
-                            <th class="text-center">Ngày Bắt Đầu</th>
-                            <th class="text-center">Ngày Kết Thúc</th>
-                            <th class="text-center">Ngày Tạo</th>
-                            <th class="text-center">Trạng Thái</th>
-                            <th class="text-center">Action</th>
+                            <th>#</th>
+                            <th>Mã</th>
+                            <th>Tên</th>
+                            <th>Giá Trị Giảm</th>
+                            <th>Số lượt sử dụng</th>
+                            <th>Thời gian</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành động</th>
                         </tr>
                         </thead>
-                        <tbody class="text-center">
-                        <tr th:each="phieuGiamGia, i : ${phieuGiamGia}" class="text-center">
-                            <td th:text="${i.index + 1}"></td>
-                            <td th:text="${phieuGiamGia.maPhieuGiamGia}" ></td>
-                            <td th:text="${phieuGiamGia.tenPhieuGiamGia}"></td>
-                            <td th:text="${phieuGiamGia.giaTriGiam + phieuGiamGia.donViTinh}"></td>
-                            <td th:text="${phieuGiamGia.ngayBatDau}"></td>
-                            <td th:text="${phieuGiamGia.ngayKetThuc}"></td>
-                            <td th:text="${phieuGiamGia.ngayTao}"></td>
-                            <td>
-                                <button class="badge" th:classappend="${phieuGiamGia.trangThai == 'Đang Hoạt Động'} ? 'bg-success' : 'bg-danger'"
-                                        th:attr="data-id=${phieuGiamGia.id}">
-                                    <span th:text="${phieuGiamGia.trangThai}"></span>
-                                </button>
-                            </td>
-                            <td>
-                                <a th:href="@{/admin/detail-phieu-giam-gia(phieuGiamGiaId=${phieuGiamGia.id})}" class="btn btn-primary btn-sm fw-bold me-2">
-                                    <i class="bi bi-eye"></i> Chi Tiết
-                                </a>
-                            </td>
-                        </tr>
-
-                        </tbody>
+                        <tbody class="text-center"></tbody>
                     </table>
+
+                    <!-- Pagination -->
+                    <div id="pagination" class="d-flex justify-content-center mt-3"></div>
                 </div>
             </div>
-            <!-- /.box -->
-
         </section>
-        <!-- /.content -->
+        <div class="modal fade" id="addModal" tabindex="-1">
+            <div class="modal-dialog modal-lg"> <!-- Giữ nguyên kích thước hợp lý -->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold text-white" id="modalTitle">Thêm Phiếu Giảm Giá</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Cột bên trái: Thông tin phiếu giảm giá -->
+                            <div class="col-md-6 border-end">
+                                <h5 class="fw-bold mb-3">Thông Tin Phiếu Giảm Giá</h5>
+                                <input type="hidden" id="phieuGiamGiaId">
+                                <form id="addPGGForm">
+                                    <div class="d-flex gap-3">
+                                        <div class="form-group w-50">
+                                            <label class="fw-bold">Mã Phiếu Giảm Giá</label>
+                                            <input type="text" id="maPGG" class="form-control" readonly/>
+                                        </div>
+                                        <div class="form-group w-50">
+                                            <label class="fw-bold">Tên Phiếu Giảm Giá</label>
+                                            <input type="text" id="tenPGG" class="form-control" required />
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="fw-bold">Mô Tả</label>
+                                        <textarea id="moTa" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="fw-bold">Mức Giảm</label>
+                                        <div class="input-group">
+                                            <input type="number" id="giaTriGiam" class="form-control" required />
+                                            <div class="btn-group" role="group">
+                                                <input type="radio" class="btn-check" name="donViTinh" id="option-percent" value="%" checked>
+                                                <label class="btn btn-outline-dark" for="option-percent">%</label>
+
+                                                <input type="radio" class="btn-check" name="donViTinh" id="option-vnd" value="VND">
+                                                <label class="btn btn-outline-dark" for="option-vnd">VND</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-group w-50">
+                                            <label class="fw-bold">Số Lượng</label>
+                                            <input type="number" id="soLuong" class="form-control" required />
+                                        </div>
+                                        <div class="form-group w-50">
+                                            <label class="fw-bold">Điều Kiện Tối Thiểu</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="dieuKien" placeholder="Điều Kiện Tối Thiểu">
+                                                <span class="input-group-text">VND</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-group w-50">
+                                            <label class="fw-bold">Ngày Bắt Đầu</label>
+                                            <input type="date" id="ngayBatDau" class="form-control" required />
+                                        </div>
+                                        <div class="form-group w-50">
+                                            <label class="fw-bold">Ngày Kết Thúc</label>
+                                            <input type="date" id="ngayKetThuc" class="form-control" required />
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="fw-bold">Trạng Thái</label>
+                                        <select id="trangThai" class="form-select">
+                                            <option value="Sắp diễn ra">Sắp Diễn Ra</option>
+                                            <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                            <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Cột bên phải: Chọn khách hàng -->
+                            <div class="col-md-6">
+                                <h5 class="fw-bold mb-3">Chọn Khách Hàng</h5>
+                                <input type="text" id="searchKhachHang" class="form-control mb-2" placeholder="Tìm kiếm khách hàng..." />
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-dark">
+                                        <tr>
+                                            <th>Chọn</th>
+                                            <th>Tên</th>
+                                            <th>Email</th>
+                                            <th>SĐT</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="khachHangTable">
+                                        <!-- Dữ liệu khách hàng sẽ được load ở đây -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mb-3">
+                            <button type="submit" id="btnSubmit" class="btn btn-primary px-4 py-2">Lưu Phiếu Giảm Giá</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
     </div>
     <!-- /.content-wrapper -->
 
@@ -122,160 +262,11 @@
 
 
 </div>
-<!-- ./wrapper -->
 
-<!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
-
-<!--Hiển thị Toast Notification-->
-<script>
-    function showToast(message, type) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
-
-        // Hiệu ứng thanh loading bar
-        setTimeout(() => {
-            toastLoadingBar.style.transition = "width 3s linear";
-            toastLoadingBar.style.width = "100%";
-        }, 100); // Chờ 100ms để tránh lỗi animation
-
-        // Ẩn toast sau 3 giây
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toastLoadingBar.style.transition = "none";
-                toastLoadingBar.style.width = "0%";
-            }, 500); // Chờ 0.5 giây rồi reset trạng thái toast
-        }, 3000);
-
-        return toastLoadingBar;
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-
-</script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let table = $("#productTable").DataTable({
-            "paging": true,
-            "lengthMenu": [5, 10, 20],
-            "pageLength": 5,
-            "autoWidth": false,
-            "responsive": true,
-            "destroy": true,  // Cho phép reset DataTables khi load lại dữ liệu
-            "language": {
-                "sProcessing": "Đang xử lý...",
-                "sLengthMenu": "Hiển thị _MENU_ dòng",
-                "sZeroRecords": "Không tìm thấy dữ liệu",
-                "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
-                "sInfoEmpty": "Không có dữ liệu để hiển thị",
-                "sInfoFiltered": "(lọc từ _MAX_ dòng)",
-                "sSearch": "Tìm kiếm:",
-                "oPaginate": {
-                    "sFirst": "Đầu",
-                    "sPrevious": "Trước",
-                    "sNext": "Tiếp",
-                    "sLast": "Cuối"
-                }
-            }
-        });
-
-        loadTable(""); // Load tất cả sản phẩm ban đầu
-        loadCount();
-
-        document.querySelectorAll(".filter-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                let trangThai = this.getAttribute("data-status");
-                loadTable(trangThai);
-            });
-        });
-
-        function loadTable(trangThai) {
-            fetch(`/api/phieu-giam-gia/list?trangThai=${encodeURIComponent(trangThai)}`)
-                .then(response => response.json())
-                .then(data => {
-                    table.clear().draw(); // Xóa dữ liệu cũ và vẽ lại bảng
-
-                    data.forEach((phieuGiamGia, index) => {
-                        table.row.add([
-                            index + 1,
-                            phieuGiamGia.maPhieuGiamGia,
-                            phieuGiamGia.tenPhieuGiamGia,
-                            phieuGiamGia.giaTriGiam + phieuGiamGia.donViTinh,
-                            phieuGiamGia.ngayBatDau,
-                            phieuGiamGia.ngayKetThuc,
-                            phieuGiamGia.ngayTao,
-                            `<button class="badge ${phieuGiamGia.trangThai === 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'} btn-status"
-                                 data-id="${phieuGiamGia.id}">
-                            ${phieuGiamGia.trangThai}
-                        </button>`,
-                            `<a href="/admin/detail-phieu-giam-gia?phieuGiamGiaId=${phieuGiamGia.id}" class="btn btn-primary btn-sm fw-bold me-2">
-                            <i class="bi bi-eye"></i> Chi Tiết
-                        </a>`
-                        ]).draw(false); // Thêm dữ liệu mới và vẽ lại bảng
-                    });
-
-                    // Gán sự kiện click cho nút cập nhật trạng thái
-                    document.querySelectorAll(".btn-status").forEach(button => {
-                        button.addEventListener("click", function () {
-                            const phieuGiamGiaId = this.getAttribute("data-id");
-
-                            fetch(`/api/phieu-giam-gia/toggle-status/${phieuGiamGiaId}`, { method: "PUT" })
-                                .then(response => response.json()
-                                    .then(data => ({
-                                        status: response.status,
-                                        message: data.error || data.message || "Có lỗi xảy ra!"
-                                    })))
-                                .then(({ status, message }) => {
-                                    if (status === 200) {
-                                        showToast("Cập nhật trạng thái thành công!", "success");
-                                        loadTable(trangThai);
-                                        loadCount();
-                                    } else {
-                                        showToast("Lỗi: " + message, "danger");
-                                    }
-                                })
-                                .catch(error => {
-                                    showToast("Lỗi hệ thống: " + error.message, "danger");
-                                });
-                        });
-                    });
-                })
-                .catch(error => console.error("Lỗi:", error));
-        }
-
-        function loadCount() {
-            fetch("/api/phieu-giam-gia/count")
-                .then(response => response.json())
-                .then(counts => {
-                    document.getElementById("count-all").innerText = counts["Tất Cả"];
-                    document.getElementById("count-active").innerText = counts["Đang Hoạt Động"];
-                    document.getElementById("count-inactive").innerText = counts["Ngừng Hoạt Động"];
-                })
-                .catch(error => console.error("Lỗi:", error));
-        }
-    });
-
-</script>
+<script src="/js/phieugiamgia.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

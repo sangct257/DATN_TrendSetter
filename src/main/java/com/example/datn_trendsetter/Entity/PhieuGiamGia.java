@@ -66,9 +66,6 @@ public class PhieuGiamGia {
     @Column(name = "so_luot_su_dung")
     private Integer soLuotSuDung; // Số lượt có thể sử dụng
 
-    @Column(name = "so_luot_da_dung")
-    private Integer soLuotDaDung; // Số lượt đã sử dụng
-
     @Column(name = "is_active")
     private Boolean isActive; // Trạng thái hoạt động
 }
