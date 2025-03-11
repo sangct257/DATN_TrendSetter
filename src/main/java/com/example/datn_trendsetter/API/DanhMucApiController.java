@@ -45,23 +45,26 @@ public class DanhMucApiController {
     }
 
 
-    @PostMapping("update")
+    @PutMapping("update")
     public ResponseEntity<String> update(@RequestBody DanhMuc updatedDanhMuc) {
+        if (updatedDanhMuc == null || updatedDanhMuc.getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Dữ liệu không hợp lệ");
+        }
+
         DanhMuc danhMuc = danhMucRepository.findById(updatedDanhMuc.getId()).orElse(null);
+
         if (danhMuc != null) {
-            danhMuc.setMaDanhMuc(danhMuc.getMaDanhMuc());
-            danhMuc.setTenDanhMuc(danhMuc.getTenDanhMuc());
-            danhMuc.setNgayTao(danhMuc.getNgayTao());
-            danhMuc.setNgaySua(LocalDate.now());
-            danhMuc.setNguoiTao(danhMuc.getNguoiTao());
-            danhMuc.setNguoiSua(danhMuc.getNguoiSua());
+            danhMuc.setTenDanhMuc(updatedDanhMuc.getTenDanhMuc()); // ✅ Cập nhật tên danh mục
             danhMuc.setTrangThai(updatedDanhMuc.getTrangThai());
-            danhMuc.setDeleted(danhMuc.getDeleted());
+            danhMuc.setNgaySua(LocalDate.now());
+
             danhMucRepository.save(danhMuc);
             return ResponseEntity.ok("Cập nhật thành công");
         }
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy danh mục");
     }
+
 
     @DeleteMapping("delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Integer id) {

@@ -38,6 +38,7 @@ public class LichSuHoaDonApiController {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
             HoaDon hoaDon = optionalHoaDon.get();
+            hoaDon.setNguoiNhan(hoaDon.getNguoiNhan());
             hoaDon.setTrangThai(trangThai);
             hoaDonRepository.save(hoaDon);
             luuLichSuHoaDon(hoaDon, trangThai, ghiChu);

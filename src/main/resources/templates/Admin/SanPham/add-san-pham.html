@@ -33,10 +33,6 @@
                     <div class="d-flex">
                         <div class="toast-body">
                             <span id="toast-text">Đang tạo hóa đơn, vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
                                 aria-label="Close"></button>
@@ -155,7 +151,7 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 <script>
-    document.getElementById("btnAddSanPham").addEventListener("click", function() {
+    document.getElementById("btnAddSanPham").addEventListener("click", function () {
         let sanPhamData = {
             tenSanPham: document.getElementById("tenSanPham").value,
             moTa: document.getElementById("moTa").value,
@@ -167,20 +163,9 @@
 
         let toast = new bootstrap.Toast(document.getElementById("toast-message"));
         let toastText = document.getElementById("toast-text");
-        let progressBar = document.querySelector("#toast-loading-bar .progress-bar");
 
         toastText.innerText = "Đang thêm sản phẩm, vui lòng chờ...";
         toast.show();
-
-        let progress = 0;
-        let progressInterval = setInterval(() => {
-            progress += 10;
-            progressBar.style.width = progress + "%";
-
-            if (progress >= 100) {
-                clearInterval(progressInterval);
-            }
-        }, 200);
 
         fetch("/api/san-pham/add", {
             method: "POST",
@@ -197,15 +182,12 @@
                 }
 
                 toastText.innerText = "Thêm sản phẩm thành công!";
-                progressBar.classList.replace("bg-light", "bg-success");
-
                 setTimeout(() => {
                     window.location.href = `http://localhost:8080/admin/detail-san-pham?sanPhamId=${body.id}`;
                 }, 1500);
             })
             .catch(error => {
                 toastText.innerText = error.message;
-                progressBar.classList.replace("bg-light", "bg-danger");
                 console.error("Lỗi:", error);
             });
     });

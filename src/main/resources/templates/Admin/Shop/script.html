@@ -1,41 +1,30 @@
 <div th:fragment="script">
-    <!-- Hiển thị Toast Notification -->
     <script>
         function showToast(message, type) {
             const toast = document.getElementById("toast-message");
             const toastText = document.getElementById("toast-text");
+            const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
 
-            if (!toast || !toastText) {
-                console.error("❌ Không tìm thấy phần tử Toast!");
-                return;
-            }
-
-            // Cập nhật nội dung
-            toastText.textContent = message;
-
-            // Đặt màu nền dựa trên loại thông báo
+            // Xóa tất cả các class màu trước đó
             toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger");
+            toastLoadingBar.classList.remove("bg-light", "bg-success", "bg-danger");
+
+            // Gán màu mới dựa trên loại thông báo
             toast.classList.add(`text-bg-${type}`);
+            toastLoadingBar.classList.add(type === "primary" ? "bg-light" : type === "success" ? "bg-success" : "bg-danger");
 
-            // Hiển thị Toast bằng Bootstrap API
-            const toastBootstrap = new bootstrap.Toast(toast, { delay: 3000 });
-            toastBootstrap.show();
+            // Hiển thị toast
+            toast.classList.remove("hide");
+            toast.classList.add("show");
+            toastText.textContent = message;
+            toastLoadingBar.style.width = "0%";
+
+            return toastLoadingBar;
         }
-
-        function hideToast(button) {
-            const toast = button.closest(".toast"); // Lấy phần tử cha gần nhất có class 'toast'
-            if (toast) {
-                const bsToast = bootstrap.Toast.getInstance(toast);
-                if (bsToast) {
-                    bsToast.hide();
-                }
-                setTimeout(() => toast.remove(), 300); // Xóa toast sau animation
-            }
-        }
-
     </script>
+
     <!-- API Tạo Hóa Đơn -->
-    <script>
+    <script th:inline="javascript">
         function createHoaDon() {
             fetch('/create', {
                 method: 'POST',
@@ -46,24 +35,10 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log('✅ Hóa đơn được tạo:', data);
                     if (data && data.id) {
-                        console.log("📢 Gọi showToast()");
-                        showToast("🎉 Hóa đơn được tạo thành công!", "success"); // Hiển thị Toast trước
-
-                        // ⏳ Đợi Toast hiển thị rồi mới thêm hóa đơn
-                        setTimeout(() => {
-                            addHoaDonToUI(data);
-                        }, 1500); // Delay 1.5 giây để Toast hiển thị trước
-                    } else {
-                        console.warn("⚠️ API không trả về ID hóa đơn hợp lệ:", data);
-                        showToast("⚠️ Không thể tạo hóa đơn!", "warning");
+                        setTimeout(() => addHoaDonToUI(data), 1500);
                     }
                 })
-                .catch(error => {
-                    console.error('❌ Lỗi khi tạo hóa đơn:', error);
-                    showToast("🚨 Có lỗi xảy ra khi tạo hóa đơn!", "danger");
-                });
         }
 
         // Thêm hóa đơn mới vào danh sách hiển thị
@@ -75,24 +50,20 @@
             newCard.innerHTML = `
         <div class="card border-primary shadow-sm position-relative rounded-3 overflow-hidden">
             <div class="position-absolute top-0 end-0 m-2">
-                <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
-                <button type="button"
-                        class="btn btn-sm btn-danger d-flex align-items-center justify-content-center p-0"
-                        style="width: 30px; height: 30px; border-radius: 50%;"
-                        title="Xóa hóa đơn"
+                <button type="button" class="btn btn-sm btn-danger"
                         onclick="confirmDeleteHoaDon(this, '${hoaDon.id}')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form action="/admin/sell-counter" method="GET" class="w-100">
+            <form action="/admin/sell-counter" method="GET">
                 <input type="hidden" name="hoaDonId" value="${hoaDon.id}">
-                <button type="submit" class="btn p-0 w-100 text-start">
+                <button type="submit" class="btn p-0 w-100">
                     <div class="card-header bg-primary text-white text-center py-3">
-                        <h6 class="mb-0 text-uppercase"># ${hoaDon.maHoaDon}</h6>
+                        <h6># ${hoaDon.maHoaDon}</h6>
                     </div>
                     <div class="card-body text-center">
                         <p class="card-text text-muted">
-                            <i class="fas fa-shopping-cart"></i> Số lượng sản phẩm:
+                            <i class="fas fa-shopping-cart"></i> Số lượng Sản Phẩm:
                             <strong>${hoaDon.tongSanPham}</strong>
                         </p>
                     </div>
@@ -104,7 +75,7 @@
         </div>
     `;
 
-            container.prepend(newCard); // Thêm hóa đơn mới lên đầu danh sách
+            container.prepend(newCard);
         }
     </script>
     <!--API Delete Hóa Đơn-->
@@ -116,28 +87,23 @@
         }
 
         function deleteHoaDon(button, hoaDonId) {
-            fetch(`/delete/${hoaDonId}`, {method: 'POST', headers: {'Content-Type': 'application/json'}})
+            fetch(`/delete/${hoaDonId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.message) {
                         showToast(data.message, "success");
 
-                        // Xóa phần tử hóa đơn khỏi giao diện
-                        const card = button.closest(".col-12.col-sm-6.col-lg-4");
-                        if (card) {
-                            setTimeout(() => {
-                                card.remove(); // Xóa hóa đơn khỏi giao diện mà không reload
-                                window.location.href = "/admin/sell-counter";
-                            }, 1000);
-                        }
-                    } else {
-                        showToast(data.error, "danger");
+                        // Đợi 1.5 giây để hiển thị Toast rồi mới chuyển trang
+                        setTimeout(() => {
+                            const card = button.closest(".col-12.col-sm-6.col-lg-4");
+                            if (card) card.remove();
+                            window.location.href = "/admin/sell-counter";
+                        }, 1500);
                     }
                 })
-                .catch(error => {
-                    console.error('Lỗi:', error);
-                    showToast("Có lỗi xảy ra khi xóa hóa đơn!", "danger");
-                });
         }
 
     </script>
@@ -509,10 +475,15 @@
             });
         });
     </script>
-    <!--API Update New Khách Hàng-->
+    <!-- API Update New Khách Hàng -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.querySelector("#addCustomerForm");
+
+            if (!form) {
+                console.warn("Không tìm thấy form #addCustomerForm");
+                return;
+            }
 
             form.addEventListener("submit", function (event) {
                 event.preventDefault(); // Ngăn chặn gửi form mặc định
@@ -541,14 +512,12 @@
                     method: "POST",
                     body: formData,
                 })
-                    .then(response => {
-                        return response.json().then(data => {
-                            if (!response.ok) {
-                                throw new Error(data.error || "Lỗi từ server");
-                            }
-                            return data;
-                        });
-                    })
+                    .then(response => response.json().then(data => {
+                        if (!response.ok) {
+                            throw new Error(data.error || "Lỗi từ server");
+                        }
+                        return data;
+                    }))
                     .then(data => {
                         setTimeout(() => {
                             showToast(data.success || data.error, data.success ? "success" : "danger");
@@ -813,10 +782,19 @@
             }
         };
     </script>
-    <!--Xác Nhận Thanh Toán-->
+    <!-- Script xử lý thanh toán -->
     <script>
-        document.getElementById("confirmPayment").addEventListener("click", function () {
-            document.getElementById("paymentForm").submit();
+        document.addEventListener("DOMContentLoaded", function () {
+            const confirmButton = document.getElementById("confirmPayment");
+            const paymentForm = document.getElementById("paymentForm");
+
+            if (confirmButton && paymentForm) {
+                confirmButton.addEventListener("click", function () {
+                    paymentForm.submit();
+                });
+            } else {
+                console.warn("Không tìm thấy phần tử 'confirmPayment' hoặc 'paymentForm'");
+            }
         });
     </script>
     <!--API Giao Hàng Nhanh-->
@@ -923,6 +901,7 @@
             }
         });
     </script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             let modals = document.querySelectorAll('.modal');

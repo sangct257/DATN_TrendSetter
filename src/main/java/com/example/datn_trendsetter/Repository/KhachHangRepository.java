@@ -16,6 +16,7 @@ public interface KhachHangRepository extends JpaRepository<KhachHang,Integer> {
     Page<KhachHang> findAllByTrangThai(String trangThai,Pageable pageable);
     Optional<KhachHang> findByEmail(String email);
     Optional<KhachHang> findByUsername(String username);
+
     @Query("SELECT k FROM KhachHang k WHERE " +
             "LOWER(k.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(k.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

@@ -33,10 +33,6 @@
                     <div class="d-flex">
                         <div class="toast-body">
                             <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
                                 aria-label="Close"></button>
@@ -185,10 +181,9 @@
 
 <!--Hiển thị Toast Notification-->
 <script>
-    function showToast(message, type) {
+    function showToast(message, type, duration = 3000) {
         const toast = document.getElementById("toast-message");
         const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
 
         // Reset trạng thái
         toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
@@ -196,9 +191,9 @@
         toast.style.opacity = "1";
         toast.classList.add("show");
         toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
 
-        return toastLoadingBar;
+        // Tự động ẩn sau khoảng thời gian đã định
+        setTimeout(hideToast, duration);
     }
 
     function hideToast() {
@@ -208,25 +203,6 @@
             toast.classList.remove("show");
             toast.classList.add("hide");
         }, 300);
-    }
-
-    function animateProgressBar(progressBar, duration = 4000, callback) {
-        let startTime = null;
-
-        function updateProgress(timestamp) {
-            if (!startTime) startTime = timestamp;
-            let progress = ((timestamp - startTime) / duration) * 100;
-
-            if (progress < 100) {
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
-                requestAnimationFrame(updateProgress);
-            } else {
-                progressBar.style.width = "100%";
-                if (callback) callback();
-            }
-        }
-
-        requestAnimationFrame(updateProgress);
     }
 </script>
 
@@ -241,20 +217,19 @@
             trangThai: trangThai
         };
 
-        let progressBar = showToast("Đang thêm xuất xứ...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/xuat-xu/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+        showToast("Đang thêm xuất xứ...", "primary");
+
+        fetch('/api/xuat-xu/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.text())
+            .then(message => {
+                showToast(message, "success");
+                setTimeout(() => location.reload(), 1500);
             })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi khi thêm xuất xứ!", "danger"));
-        });
+            .catch(error => showToast("Lỗi khi thêm xuất xứ!", "danger"));
     }
 
     function deleteXuatXu(button) {
@@ -268,22 +243,21 @@
 
         let xuatXuId = hiddenInput.value;
         if (confirm("Bạn có chắc chắn muốn xóa xuất xứ này không?")) {
-            let progressBar = showToast("Đang xóa xuất xứ...", "primary");
-            animateProgressBar(progressBar, 3000, () => {
-                fetch(`/api/xuat-xu/delete/${xuatXuId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
+            showToast("Đang xóa xuất xứ...", "primary");
+
+            fetch(`/api/xuat-xu/delete/${xuatXuId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error("Xóa thất bại!");
+                    return response.text();
                 })
-                    .then(response => {
-                        if (!response.ok) throw new Error("Xóa thất bại!");
-                        return response.text();
-                    })
-                    .then(message => {
-                        showToast(message, "success");
-                        setTimeout(() => row.remove(), 1500);
-                    })
-                    .catch(error => showToast(error.message, "danger"));
-            });
+                .then(message => {
+                    showToast(message, "success");
+                    setTimeout(() => row.remove(), 1500);
+                })
+                .catch(error => showToast(error.message, "danger"));
         }
     }
 
@@ -298,20 +272,19 @@
             trangThai: xuatXuStatus
         };
 
-        let progressBar = showToast("Đang cập nhật màu sắc...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/xuat-xu/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedXuatXu)
+        showToast("Đang cập nhật xuất xứ...", "primary");
+
+        fetch('/api/xuat-xu/update', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedXuatXu)
+        })
+            .then(response => response.text())
+            .then(message => {
+                showToast(message, "success");
+                setTimeout(() => location.reload(), 1500);
             })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi cập nhật!", "danger"));
-        });
+            .catch(error => showToast("Lỗi cập nhật!", "danger"));
     }
 
     function openXuatXuDetailModal(button) {
@@ -329,7 +302,6 @@
         let modal = new bootstrap.Modal(document.getElementById("modalXuatXuDetail"));
         modal.show();
     }
-
 </script>
 <!--Load table-->
 <script>
