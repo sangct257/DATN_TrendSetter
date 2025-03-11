@@ -2,10 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{admin/fragments/head :: head}"></head>
 <style>
-    #toast-container {
-        display: block !important;
-        opacity: 1 !important;
-        z-index: 1050 !important;
+    #custom-toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    #custom-toast.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    #custom-toast.show {
+        opacity: 1;
+        visibility: visible;
     }
 
 </style>
@@ -33,19 +49,8 @@
                 <li><a href="#"><i class="fa fa-dashboard"></i><a href="/admin">Home</a></a></li>
                 <li><a href="#">Bán Hàng Tại Quầy</a></li>
             </ol>
-            <!-- Toast Notification -->
-            <div id="toast-message" class="toast position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <strong class="me-auto">Thông báo</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div id="toast-text" class="toast-body">
-                    Nội dung thông báo
-                </div>
-            </div>
-
-
-
+            <!-- Vùng hiển thị Toast -->
+            <div id="custom-toast" class="hidden"></div>
         </section>
 
 
@@ -650,11 +655,17 @@
                                                                     class="form-select">
                                                                 <option value="" disabled selected>Chọn phiếu giảm giá
                                                                 </option>
-                                                                <th:block th:each="phieuGiamGia : ${listPhieuGiamGia}">
-                                                                    <option th:value="${phieuGiamGia.tenPhieuGiamGia}"
-                                                                            th:text="${phieuGiamGia.tenPhieuGiamGia + ' ( ' + #numbers.formatInteger(phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' ' + 'VND' + ' ) ' }">
-                                                                    </option>
+                                                                <th:block th:if="${listPhieuGiamGia != null and not #lists.isEmpty(listPhieuGiamGia)}">
+                                                                    <th:block th:each="phieuGiamGia : ${listPhieuGiamGia}">
+                                                                        <option th:value="${phieuGiamGia.tenPhieuGiamGia}"
+                                                                                th:text="${phieuGiamGia.tenPhieuGiamGia + ' ( ' + #numbers.formatInteger(phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VND ) '}">
+                                                                        </option>
+                                                                    </th:block>
                                                                 </th:block>
+                                                                <th:block th:if="${listPhieuGiamGia == null or #lists.isEmpty(listPhieuGiamGia)}">
+                                                                    <option value="" disabled selected>Không có phiếu giảm giá</option>
+                                                                </th:block>
+
                                                             </select>
                                                         </div>
                                                         <button type="button" class="btn btn-primary"

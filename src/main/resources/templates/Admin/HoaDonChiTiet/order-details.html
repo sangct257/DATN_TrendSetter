@@ -161,11 +161,50 @@
         background-color: #9f191f;
     }
 
-    .progress-bar {
-        transition: width 0.4s ease; /* Thêm hiệu ứng chuyển động cho thanh tiến trình */
+</style>
+<style>
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
+
+    .toast {
+        background-color: #333;
+        color: #fff;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 250px;
+        max-width: 400px;
+    }
+
+    .toast.success {
+        background-color: #28a745;
+    }
+
+    .toast.danger {
+        background-color: #dc3545;
+    }
+
+    .toast.primary {
+        background-color: #007bff;
+    }
+
+    .toast .close-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
     }
 
 </style>
+
 <body class="hold-transition skin-blue sidebar-mini">
 <!-- Site wrapper -->
 <div class="wrapper">
@@ -191,24 +230,7 @@
                 <li><a href="#">Examples</a></li>
                 <li class="active">Blank page</li>
             </ol>
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Đang tạo hóa đơn, vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
+            <div id="toast-container"></div>
 
         </section>
 
@@ -242,11 +264,12 @@
                                 <div class="d-flex gap-2">
                                     <!-- Nút Xác Nhận -->
                                     <button type="button" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận'}"
+                                            th:if="${not #lists.isEmpty(listLichSuHoaDon) and listLichSuHoaDon[listLichSuHoaDon.size() - 1].hanhDong == 'Chờ Xác Nhận'}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Xác Nhận
                                     </button>
+
 
                                     <!-- Nút Vận Chuyển -->
                                     <button type="button" class="btn btn-warning"
@@ -1018,30 +1041,40 @@
 <!-- Dữ liệu Thymeleaf được nhúng vào JavaScript -->
 <div th:replace="admin/fragments/script :: script"></div>
 <script>
-    function showToast(message, type) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
+    function showToast(message, type = "info", duration = 3000) {
+        let container = document.getElementById("toast-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "toast-container";
+            document.body.appendChild(container);
+        }
 
-        // Xóa tất cả các class màu trước đó
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger");
-        toastLoadingBar.classList.remove("bg-light", "bg-success", "bg-danger");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span>${message}</span> <button class="close-btn">&times;</button>`;
 
-        // Gán màu mới dựa trên loại thông báo
-        toast.classList.add(`text-bg-${type}`);
-        toastLoadingBar.classList.add(type === "primary" ? "bg-light" : type === "success" ? "bg-success" : "bg-danger");
+        toast.querySelector(".close-btn").addEventListener("click", () => {
+            toast.remove();
+        });
 
-        // Hiển thị toast
-        toast.classList.remove("hide");
-        toast.classList.add("show");
-        toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
+        setTimeout(() => {
+            toast.remove();
+        }, duration);
 
-        return toastLoadingBar;
+        container.appendChild(toast);
     }
-</script>
 
-<script>
+    window.addEventListener("load", function () {
+        let message = localStorage.getItem("toastMessage");
+        let type = localStorage.getItem("toastType") || "info";
+
+        if (message) {
+            showToast(message, type);
+            localStorage.removeItem("toastMessage");
+            localStorage.removeItem("toastType");
+        }
+    });
+
     function moModalXacNhanChung(button, modalId) {
         let hoaDonId = button.getAttribute("data-hoaDonId");
         let modal = new bootstrap.Modal(document.getElementById(modalId));
@@ -1059,56 +1092,31 @@
         let modal = bootstrap.Modal.getInstance(document.getElementById("xacNhanChungModal"));
         modal.hide();
 
-        const toastLoadingBar = showToast("Đang xử lý, vui lòng chờ...", "primary");
-
-        let progress = 0;
-        const loadingInterval = setInterval(() => {
-            if (progress < 90) {
-                progress += 10;
-                toastLoadingBar.style.width = `${progress}%`;
-            }
-        }, 400);
+        showToast("Đang xử lý, vui lòng chờ...", "primary");
 
         fetch(apiEndpoint, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `hoaDonId=${hoaDonId}`
         })
             .then(response => response.json())
             .then(data => {
-                clearInterval(loadingInterval);
-                toastLoadingBar.style.width = "100%";
-
-                setTimeout(() => {
-                    showToast(data.message || "Thao tác thành công!", "success");
-
-                    setTimeout(() => {
-                        document.getElementById("toast-message").classList.remove("show");
-                        document.getElementById("toast-message").classList.add("hide");
-
-                        setTimeout(() => {
-                            location.reload();
-                        }, 500);
-                    }, 2000);
-                }, 500);
+                localStorage.setItem("toastMessage", data.message || "Thao tác thành công!");
+                localStorage.setItem("toastType", "success");
+                setTimeout(() => location.reload(), 500);
             })
             .catch(error => {
                 console.error("Lỗi:", error);
-                clearInterval(loadingInterval);
-                toastLoadingBar.style.width = "100%";
-
-                setTimeout(() => {
-                    showToast("Có lỗi xảy ra, vui lòng thử lại.", "danger");
-                    setTimeout(() => {
-                        document.getElementById("toast-message").classList.remove("show");
-                        document.getElementById("toast-message").classList.add("hide");
-                    }, 4000);
-                }, 500);
+                localStorage.setItem("toastMessage", "Có lỗi xảy ra, vui lòng thử lại.");
+                localStorage.setItem("toastType", "danger");
+                setTimeout(() => location.reload(), 500);
             });
     });
+
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <!-- JavaScript -->
 <div th:replace="~{admin/shop/script :: script}"></div>
 

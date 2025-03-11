@@ -32,10 +32,6 @@
                     <div class="d-flex">
                         <div class="toast-body">
                             <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
                                 aria-label="Close"></button>
@@ -186,10 +182,9 @@
 
 <!--Hiển thị Toast Notification-->
 <script>
-    function showToast(message, type, autoHide = true, duration = 3000) {
+    function showToast(message, type, duration = 3000) {
         const toast = document.getElementById("toast-message");
         const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
 
         // Reset trạng thái
         toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
@@ -197,15 +192,9 @@
         toast.style.opacity = "1";
         toast.classList.add("show");
         toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
 
-        if (autoHide) {
-            animateProgressBar(toastLoadingBar, duration, () => {
-                hideToast();
-            });
-        }
-
-        return toastLoadingBar;
+        // Tự động ẩn sau khoảng thời gian đã định
+        setTimeout(hideToast, duration);
     }
 
     function hideToast() {
@@ -216,29 +205,10 @@
             toast.classList.add("hide");
         }, 300);
     }
-
-    function animateProgressBar(progressBar, duration = 4000, callback) {
-        let startTime = null;
-
-        function updateProgress(timestamp) {
-            if (!startTime) startTime = timestamp;
-            let progress = ((timestamp - startTime) / duration) * 100;
-
-            if (progress < 100) {
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
-                requestAnimationFrame(updateProgress);
-            } else {
-                progressBar.style.width = "100%";
-                if (callback) callback();
-            }
-        }
-
-        requestAnimationFrame(updateProgress);
-    }
 </script>
 
 <script>
-    // Hàm thêm thương hiệu
+    // Hàm thêm kích thước
     function saveKichThuoc() {
         let tenKichThuoc = document.getElementById("tenKichThuoc").value;
         let trangThai = document.getElementById("trangThai").value;
@@ -248,20 +218,17 @@
             trangThai: trangThai
         };
 
-        let progressBar = showToast("Đang thêm kích thước ...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/kich-thuoc/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+        fetch('/api/kich-thuoc/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.text())
+            .then(message => {
+                showToast(message, "success");
+                setTimeout(() => location.reload(), 1500);
             })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi khi thêm kích thước!", "danger"));
-        });
+            .catch(error => showToast("Lỗi khi thêm kích thước!", "danger"));
     }
 
     function deleteKichThuoc(button) {
@@ -275,22 +242,19 @@
 
         let kichThuocId = hiddenInput.value;
         if (confirm("Bạn có chắc chắn muốn xóa kích thước này không?")) {
-            let progressBar = showToast("Đang xóa kích thước...", "primary");
-            animateProgressBar(progressBar, 3000, () => {
-                fetch(`/api/kich-thuoc/delete/${kichThuocId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
+            fetch(`/api/kich-thuoc/delete/${kichThuocId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error("Xóa thất bại!");
+                    return response.text();
                 })
-                    .then(response => {
-                        if (!response.ok) throw new Error("Xóa thất bại!");
-                        return response.text();
-                    })
-                    .then(message => {
-                        showToast(message, "success");
-                        setTimeout(() => location.reload(), 1500);
-                    })
-                    .catch(error => showToast(error.message, "danger"));
-            });
+                .then(message => {
+                    showToast(message, "success");
+                    setTimeout(() => row.remove(), 1500);
+                })
+                .catch(error => showToast(error.message, "danger"));
         }
     }
 
@@ -305,20 +269,17 @@
             trangThai: kichThuocStatus
         };
 
-        let progressBar = showToast("Đang cập nhật kích thước...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/kich-thuoc/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedKichThuoc)
+        fetch('/api/kich-thuoc/update', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedKichThuoc)
+        })
+            .then(response => response.text())
+            .then(message => {
+                showToast(message, "success");
+                setTimeout(() => location.reload(), 1500);
             })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi cập nhật!", "danger"));
-        });
+            .catch(error => showToast("Lỗi cập nhật!", "danger"));
     }
 
     function openKichThuocDetailModal(button) {
@@ -336,7 +297,6 @@
         let modal = new bootstrap.Modal(document.getElementById("modalKichThuocDetail"));
         modal.show();
     }
-
 </script>
 <!--Load table-->
 <script>

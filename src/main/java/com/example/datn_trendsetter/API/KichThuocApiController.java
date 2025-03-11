@@ -43,7 +43,7 @@ public class KichThuocApiController {
     }
 
 
-    @PostMapping("update")
+    @PutMapping("update")
     public ResponseEntity<String> update(@RequestBody KichThuoc updatedKichThuoc) {
         KichThuoc kichThuoc = kichThuocRepository.findById(updatedKichThuoc.getId()).orElse(null);
         if (kichThuoc != null) {

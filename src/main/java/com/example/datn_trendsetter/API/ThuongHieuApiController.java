@@ -43,22 +43,20 @@ public class ThuongHieuApiController {
     }
 
 
-    @PostMapping("update")
+    @PutMapping("update")
     public ResponseEntity<String> updateThuongHieu(@RequestBody ThuongHieu updatedBrand) {
         ThuongHieu thuongHieu = thuongHieuRepository.findById(updatedBrand.getId()).orElse(null);
         if (thuongHieu != null) {
-            thuongHieu.setMaThuongHieu(thuongHieu.getMaThuongHieu());
-            thuongHieu.setTenThuongHieu(thuongHieu.getTenThuongHieu());
-            thuongHieu.setNgayTao(thuongHieu.getNgayTao());
-            thuongHieu.setNgaySua(LocalDate.now());
-            thuongHieu.setNguoiTao(thuongHieu.getNguoiTao());
-            thuongHieu.setNguoiSua(thuongHieu.getNguoiSua());
-            thuongHieu.setTrangThai(thuongHieu.getTrangThai());
+            thuongHieu.setTenThuongHieu(updatedBrand.getTenThuongHieu()); // Cập nhật tên
+            thuongHieu.setTrangThai(updatedBrand.getTrangThai()); // Cập nhật trạng thái
+            thuongHieu.setNgaySua(LocalDate.now()); // Cập nhật ngày sửa
+
             thuongHieuRepository.save(thuongHieu);
-            return ResponseEntity.ok("Cập nhật thành công");
+            return ResponseEntity.ok("Cập nhật thương hiệu thành công");
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy thương hiệu");
     }
+
 
     @DeleteMapping("delete/{id}")
     public ResponseEntity<String> deleteThuongHieu(@PathVariable Integer id) {

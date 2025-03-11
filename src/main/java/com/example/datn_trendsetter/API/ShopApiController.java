@@ -44,29 +44,42 @@ public class ShopApiController {
     public ResponseEntity<?> createHoaDon() {
         try {
             HoaDon hoaDon = new HoaDon();
-            hoaDon.setKhachHang(null);  // Hoặc thiết lập khách hàng mặc định nếu cần
-            hoaDon.setNhanVien(null);   // Hoặc thiết lập nhân viên mặc định nếu cần
+            hoaDon.setKhachHang(null);  // Hoặc gán khách hàng mặc định nếu cần
+            hoaDon.setNhanVien(null);   // Hoặc gán nhân viên mặc định nếu cần
 
             HoaDon createdHoaDon = shopService.createHoaDon(hoaDon);
+
+            if (createdHoaDon == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Không thể tạo hóa đơn, vui lòng thử lại.");
+            }
+
             return ResponseEntity.ok(createdHoaDon);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi khi tạo hóa đơn: " + e.getMessage());
         }
     }
 
+
     @PostMapping("delete/{id}")
-    public ResponseEntity<?> deleteHoaDon(@PathVariable("id") Integer hoaDonId) {
+    public ResponseEntity<Map<String, String>> deleteHoaDon(@PathVariable("id") Integer hoaDonId) {
+        Map<String, String> response = new HashMap<>();
         try {
             // Gọi service để xóa hóa đơn
             shopService.deleteHoaDon(hoaDonId);
 
             // Trả về JSON thông báo thành công
-            return ResponseEntity.ok(Map.of("message", "Hóa đơn đã được xóa thành công!"));
+            response.put("message", "🗑️ Hóa đơn đã được xóa!");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            response.put("error", "🚨 " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (Exception e) {
-            // Trả về JSON thông báo lỗi
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Xóa hóa đơn thất bại: " + e.getMessage()));
+            response.put("error", "❌ Lỗi khi xóa hóa đơn: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     @PostMapping("/add-customer")
     public ResponseEntity<?> addCustomerToInvoice(@RequestParam("hoaDonId") Integer hoaDonId,
@@ -107,17 +120,26 @@ public class ShopApiController {
             @RequestParam("tenPhieuGiamGia") String tenPhieuGiamGia) {
         Map<String, Object> response = new HashMap<>();
         try {
+            if (hoaDonId == null || tenPhieuGiamGia == null || tenPhieuGiamGia.isEmpty()) {
+                throw new IllegalArgumentException("Dữ liệu không hợp lệ");
+            }
+
             String message = shopService.applyPhieuGiamGia(hoaDonId, tenPhieuGiamGia);
 
             response.put("success", true);
             response.put("message", message);
             return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("error", "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
+            return ResponseEntity.badRequest().body(response);
         } catch (RuntimeException e) {
             response.put("success", false);
-            response.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            response.put("error", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     @PutMapping("/update-shipping")
     public ResponseEntity<Map<String, String>> updateShipping(@RequestParam Integer hoaDonId,

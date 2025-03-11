@@ -126,6 +126,7 @@ public class SanPhamAPIController {
                     chiTiet.setMauSac(mauSacRepository.findById(mauSacId).orElse(null));
                     chiTiet.setKichThuoc(kichThuocRepository.findById(kichThuocId).orElse(null));
                     sanPhamChiTietRepository.save(chiTiet);
+                    capNhatSoLuongTonKhoSanPham(chiTiet.getSanPham());
                 }
             }
         }

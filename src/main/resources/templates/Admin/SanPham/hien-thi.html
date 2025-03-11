@@ -32,10 +32,6 @@
                     <div class="d-flex">
                         <div class="toast-body">
                             <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
                                 aria-label="Close"></button>
@@ -128,10 +124,9 @@
 
 <!--Hiển thị Toast Notification-->
 <script>
-    function showToast(message, type) {
+    function showToast(message, type, duration = 3000) {
         const toast = document.getElementById("toast-message");
         const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
 
         // Reset trạng thái
         toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
@@ -139,26 +134,9 @@
         toast.style.opacity = "1";
         toast.classList.add("show");
         toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
 
-        // Hiệu ứng thanh loading bar
-        setTimeout(() => {
-            toastLoadingBar.style.transition = "width 3s linear";
-            toastLoadingBar.style.width = "100%";
-        }, 100); // Chờ 100ms để tránh lỗi animation
-
-        // Ẩn toast sau 3 giây
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toastLoadingBar.style.transition = "none";
-                toastLoadingBar.style.width = "0%";
-            }, 500); // Chờ 0.5 giây rồi reset trạng thái toast
-        }, 3000);
-
-        return toastLoadingBar;
+        // Tự động ẩn sau khoảng thời gian đã định
+        setTimeout(hideToast, duration);
     }
 
     function hideToast() {
@@ -169,7 +147,6 @@
             toast.classList.add("hide");
         }, 300);
     }
-
 </script>
 
 <script>

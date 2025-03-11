@@ -68,10 +68,6 @@
                     <div class="d-flex">
                         <div class="toast-body">
                             <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
                                 aria-label="Close"></button>
@@ -395,10 +391,9 @@
 
 <!--Hiển thị Toast Notification-->
 <script>
-    function showToast(message, type) {
+    function showToast(message, type, duration = 3000) {
         const toast = document.getElementById("toast-message");
         const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
 
         // Reset trạng thái
         toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
@@ -406,9 +401,9 @@
         toast.style.opacity = "1";
         toast.classList.add("show");
         toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
 
-        return toastLoadingBar;
+        // Tự động ẩn sau khoảng thời gian đã định
+        setTimeout(hideToast, duration);
     }
 
     function hideToast() {
@@ -418,26 +413,6 @@
             toast.classList.remove("show");
             toast.classList.add("hide");
         }, 300);
-    }
-
-    function animateProgressBar(progressBar, duration = 4000, callback) {
-        let startTime = null;
-
-        function updateProgress(timestamp) {
-            if (!startTime) startTime = timestamp;
-            let progress = ((timestamp - startTime) / duration) * 100;
-
-            if (progress < 100) {
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
-                requestAnimationFrame(updateProgress);
-            } else {
-                progressBar.style.width = "100%";
-                setTimeout(() => hideToast(), 1000); // Ẩn toast sau 1 giây
-                if (callback) callback();
-            }
-        }
-
-        requestAnimationFrame(updateProgress);
     }
 </script>
 
@@ -463,7 +438,7 @@
                     formData.append("files", file);
                 }
 
-                let progressBar = showToast("Đang tải ảnh lên...", "primary");
+                showToast("Đang tải ảnh lên...", "primary");
 
                 fetch(`/api/san-pham/upload/${spctId}`, { method: "POST", body: formData })
                     .then(response => {
@@ -471,39 +446,37 @@
                         return response.json();
                     })
                     .then(imageUrls => {
-                        animateProgressBar(progressBar, 2000, () => {
-                            let uploadButton = imgContainer.querySelector("label.btn-light");
-                            imageUrls.forEach(url => {
-                                let imgWrapper = document.createElement("div");
-                                imgWrapper.classList.add("image-wrapper", "position-relative");
-                                imgWrapper.innerHTML = `
-                                <img src="${url}" class="img-thumbnail" width="60" height="60">
-                                <div class="image-overlay">
-                                    <button type="button" class="btn btn-sm btn-outline-light view-image" data-url="${url}">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-light delete-image" data-url="${url}">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            `;
+                        let uploadButton = imgContainer.querySelector("label.btn-light");
+                        imageUrls.forEach(url => {
+                            let imgWrapper = document.createElement("div");
+                            imgWrapper.classList.add("image-wrapper", "position-relative");
+                            imgWrapper.innerHTML = `
+                        <img src="${url}" class="img-thumbnail" width="60" height="60">
+                        <div class="image-overlay">
+                            <button type="button" class="btn btn-sm btn-outline-light view-image" data-url="${url}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-light delete-image" data-url="${url}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `;
 
-                                if (uploadButton) {
-                                    imgContainer.insertBefore(imgWrapper, uploadButton);
-                                } else {
-                                    imgContainer.appendChild(imgWrapper);
-                                }
-                            });
-
-                            showToast("Upload thành công!", "success");
-                            setTimeout(() => location.reload(), 1000); // Reload sau 1 giây
+                            if (uploadButton) {
+                                imgContainer.insertBefore(imgWrapper, uploadButton);
+                            } else {
+                                imgContainer.appendChild(imgWrapper);
+                            }
                         });
+
+                        showToast("Upload thành công!", "success");
+                        setTimeout(() => location.reload(), 1000);
                     })
                     .catch(error => showToast("Upload thất bại!", "danger"));
             }
         });
 
-        // Xử lý sự kiện xóa ảnh (sử dụng event delegation để áp dụng cho cả ảnh mới)
+        // Xử lý sự kiện xóa ảnh
         document.addEventListener("click", function (event) {
             if (event.target.closest(".delete-image")) {
                 let button = event.target.closest(".delete-image");
@@ -514,14 +487,9 @@
                 }
                 let wrapper = button.closest(".image-wrapper");
 
-                if (!imageId) {
-                    showToast("Lỗi: Không tìm thấy ID ảnh!", "danger");
-                    return;
-                }
-
                 if (!confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
 
-                let progressBar = showToast("Đang xóa ảnh...", "primary");
+                showToast("Đang xóa ảnh...", "primary");
 
                 fetch(`/api/san-pham/xoa/${imageId}`, { method: "DELETE" })
                     .then(response => {
@@ -529,10 +497,8 @@
                         return response.text();
                     })
                     .then(() => {
-                        animateProgressBar(progressBar, 1500, () => {
-                            wrapper.remove(); // Xóa ảnh khỏi giao diện
-                            showToast("Xóa ảnh thành công!", "success");
-                        });
+                        wrapper.remove();
+                        showToast("Xóa ảnh thành công!", "success");
                     })
                     .catch(error => {
                         console.error("Lỗi xóa ảnh:", error);
@@ -541,7 +507,7 @@
             }
         });
 
-        // Xử lý sự kiện xem ảnh (sử dụng event delegation)
+        // Xử lý sự kiện xem ảnh
         document.addEventListener("click", function (event) {
             if (event.target.closest(".view-image")) {
                 let button = event.target.closest(".view-image");
@@ -584,18 +550,22 @@
     function viewProductDetail(button) {
         let productId = button.getAttribute("data-id");
         let url = `/admin/san-pham-chi-tiet?sanPhamChiTietId=` + productId;
+        let modalContent = document.getElementById("productDetailContent");
 
-        // Gọi AJAX để tải nội dung chi tiết sản phẩm
+        // Hiển thị loading trước khi tải dữ liệu
+        modalContent.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-primary" role="status"></div></div>';
+
         fetch(url)
             .then(response => response.text())
             .then(html => {
-                document.getElementById("productDetailContent").innerHTML = html;
-                new bootstrap.Modal(document.getElementById("productDetailModal")).show();
+                modalContent.innerHTML = html;
             })
             .catch(error => {
                 console.error("Lỗi khi tải chi tiết sản phẩm:", error);
-                document.getElementById("productDetailContent").innerHTML = "Không thể tải dữ liệu.";
+                modalContent.innerHTML = "<p class='text-danger'>Không thể tải dữ liệu.</p>";
             });
+
+        new bootstrap.Modal(document.getElementById("productDetailModal")).show();
     }
 </script>
 
@@ -604,8 +574,6 @@
         event.preventDefault(); // Ngăn chặn load lại trang
 
         let formData = new FormData(this);
-        let progressBar = showToast("Đang cập nhật sản phẩm...", "primary");
-
         let requestBody = Object.fromEntries(formData);
 
         // Xử lý giá tiền nếu có đơn vị VND
@@ -620,14 +588,11 @@
                 'Content-Type': 'application/json'
             }
         })
-            .then(response => response.json().then(data => ({status: response.status, body: data})))
-            .then(({status, body}) => {
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
                 if (status === 200) {
-                    animateProgressBar(progressBar, 3000); // Chạy tiến trình trong 3 giây
-                    setTimeout(() => {
-                        showToast("Cập nhật thành công!", "success");
-                        setTimeout(() => window.location.reload(), 1000); // Tải lại trang sau khi hoàn thành
-                    }, 3000);
+                    showToast("Cập nhật thành công!", "success");
+                    setTimeout(() => window.location.reload(), 1000); // Tải lại trang sau khi hoàn thành
                 } else {
                     let errorMessage = body.error || "Có lỗi xảy ra!";
                     switch (status) {
@@ -672,25 +637,20 @@
                     return;
                 }
 
-                let progressBar = showToast("Đang thêm sản phẩm...", "primary");
-                animateProgressBar(progressBar, 3000);
-
                 fetch("/api/san-pham/add-mau-sac-kich-thuoc", {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         sanPhamId: sanPhamId,
                         mauSacIds: selectedMauSac,
                         kichThuocIds: selectedKichThuoc
                     })
                 })
-                    .then(response => response.text().then(data => ({status: response.status, body: data})))
-                    .then(({status, body}) => {
+                    .then(response => response.text().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
                         if (status === 200) {
-                            setTimeout(() => {
-                                showToast("Thêm thành công!", "success");
-                                setTimeout(() => window.location.reload(), 1000);
-                            }, 3000);
+                            showToast("Thêm thành công!", "success");
+                            setTimeout(() => window.location.reload(), 1000);
                         } else {
                             throw new Error(body || "Có lỗi xảy ra!");
                         }
@@ -728,7 +688,6 @@
         let soLuong = soLuongInput.value.trim();
         let gia = giaInput.value.replace(/\D/g, "").trim(); // Loại bỏ ký tự không phải số
 
-        // Kiểm tra xem có nhập giá trị chưa
         if (soLuong === "" || gia === "") {
             showToast("Vui lòng nhập đầy đủ thông tin!", "danger");
             return;
@@ -736,21 +695,16 @@
 
         let id = button.getAttribute("data-id");
 
-        let progressBar = showToast("Đang cập nhật sản phẩm...", "primary");
-        animateProgressBar(progressBar, 3000);
-
         fetch("/api/san-pham/update", {
             method: "PUT",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({id: id, soLuong: soLuong, gia: gia})
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: id, soLuong: soLuong, gia: gia })
         })
-            .then(response => response.text().then(data => ({status: response.status, body: data})))
-            .then(({status, body}) => {
+            .then(response => response.text().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
                 if (status === 200) {
-                    setTimeout(() => {
-                        showToast("Cập nhật thành công!", "success");
-                        setTimeout(() => location.reload(), 1000);
-                    }, 3000);
+                    showToast("Cập nhật thành công!", "success");
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     throw new Error(body || "Cập nhật thất bại!");
                 }
@@ -764,20 +718,14 @@
     function deleteProduct(button) {
         let id = button.getAttribute("data-id");
         if (confirm("Bạn có chắc chắn muốn xóa?")) {
-            let progressBar = showToast("Đang xóa sản phẩm...", "primary");
-            animateProgressBar(progressBar, 3000);
-
             fetch("/api/san-pham/delete/" + encodeURIComponent(id), {
                 method: "DELETE"
             })
-
-                .then(response => response.text().then(data => ({status: response.status, body: data})))
-                .then(({status, body}) => {
+                .then(response => response.text().then(data => ({ status: response.status, body: data })))
+                .then(({ status, body }) => {
                     if (status === 200) {
-                        setTimeout(() => {
-                            showToast("Xóa thành công!", "success");
-                            setTimeout(() => location.reload(), 1000);
-                        }, 3000);
+                        showToast("Xóa thành công!", "success");
+                        setTimeout(() => location.reload(), 1000);
                     } else {
                         throw new Error(body || "Xóa thất bại!");
                     }
@@ -788,6 +736,7 @@
                 });
         }
     }
+
 
 </script>
 
