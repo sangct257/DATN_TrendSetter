@@ -65,10 +65,6 @@
                                             data-status="Đã Hoàn Thành">
                                         Đã Hoàn Thành (<span id="count-completed">0</span>)
                                     </button>
-                                    <button class="btn btn-outline-warning filter-btn px-2 py-1 fw-bold border border-warning rounded-pill"
-                                            data-status="Hoàn Trả">
-                                        Hoàn Trả (<span id="count-returned">0</span>)
-                                    </button>
                                     <button class="btn btn-outline-danger filter-btn px-2 py-1 fw-bold border border-danger rounded-pill"
                                             data-status="Đã Hủy">
                                         Đã Hủy (<span id="count-canceled">0</span>)
@@ -284,7 +280,6 @@
                     document.getElementById("count-shipping").innerText = counts["Chờ Vận Chuyển"] || 0;
                     document.getElementById("count-paid").innerText = counts["Đã Thanh Toán"] || 0;
                     document.getElementById("count-completed").innerText = counts["Đã Hoàn Thành"] || 0;
-                    document.getElementById("count-returned").innerText = counts["Hoàn Trả"] || 0;
                     document.getElementById("count-canceled").innerText = counts["Đã Hủy"] || 0;
                 })
                 .catch(error => console.error("Lỗi:", error));

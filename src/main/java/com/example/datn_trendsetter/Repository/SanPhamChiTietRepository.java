@@ -20,8 +20,9 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     // Phương thức tìm các sản phẩm có trạng thái "Còn Hàng"
     List<SanPhamChiTiet> findByTrangThai(String trangThai);
 
-    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.soLuong <= 10 AND spct.deleted = false ORDER BY spct.soLuong ASC")
+    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.soLuong <= 10")
     List<SanPhamChiTiet> findLowStockProducts();
+
 
     @Query("SELECT new com.example.datn_trendsetter.DTO.SanPhamChiTietDTO(" +
             "sp.tenSanPham, ms.tenMauSac, kt.tenKichThuoc) " +

@@ -1,7 +1,6 @@
 package com.example.datn_trendsetter.Service;
 
 import com.example.datn_trendsetter.DTO.PhieuGiamGiaDTO;
-import com.example.datn_trendsetter.Entity.DotGiamGia;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
 import com.example.datn_trendsetter.Entity.PhieuGiamGiaChiTiet;
@@ -18,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;

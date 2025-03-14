@@ -2,7 +2,6 @@ package com.example.datn_trendsetter.Service;
 
 import com.example.datn_trendsetter.Entity.HoaDon;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 

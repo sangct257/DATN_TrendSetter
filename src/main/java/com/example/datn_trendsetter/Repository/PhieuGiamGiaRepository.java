@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integer> {
-    List<PhieuGiamGia> findByDieuKienLessThanEqual(Float tongTien);
+    List<PhieuGiamGia> findByDieuKienLessThanEqualAndTrangThaiAndDeletedFalse(Float tongTien, String trangThai);
     List<PhieuGiamGia> findAllByTrangThai(@Param("trangThai") String trangThai);
 
     List<PhieuGiamGia> findByTrangThai(String trangThai, Sort sort);

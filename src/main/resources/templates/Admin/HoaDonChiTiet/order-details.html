@@ -280,18 +280,22 @@
                                     </button>
 
                                     <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
+                                            th:if="${!listLichSuHoaDon.isEmpty()
+               and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'
+               and hoaDon.loaiGiaoDich != 'Đã Thanh Toán'}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan-thanh-toan'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Xác Nhận Thanh Toán
                                     </button>
 
                                     <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Thanh Toán'}"
+                                            th:if="${!listLichSuHoaDon.isEmpty()
+               and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Thanh Toán'}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan-hoan-thanh'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Xác Nhận Hoàn Thành
                                     </button>
+
 
                                     <button type="submit" class="btn btn-warning"
                                             th:if="${!listLichSuHoaDon.isEmpty() and
@@ -479,12 +483,24 @@
                                             </div>
                                             <form id="updateShippingForm">
                                                 <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
+                                                <!-- Trả Sau (Ẩn mặc định) -->
+                                                <div class="info mb-4 d-flex align-items-center payLaterSection"
+                                                     id="payLaterSection"
+                                                     th:style="${hoaDon.loaiHoaDon != 'Giao Hàng' ? 'display: none;' : 'display: flex;'}">
+                                                    <i class="fas fa-money-bill-wave me-2"></i>
+                                                    <span class="me-auto fw-bold">Trả Sau:</span>
+                                                    <div class="form-check form-switch">
+                                                        <input id="payLaterSwitch" class="form-check-input" type="checkbox"
+                                                               th:data-hoa-don-id="${hoaDon.id}"
+                                                               th:checked="${hoaDon.loaiGiaoDich == 'Trả Sau'}">
+                                                    </div>
+                                                </div>
+
                                                 <div class="row">
                                                     <div class="col-md-12 mb-3">
                                                         <input type="text" name="nguoiNhan" class="form-control w-100"
                                                                id="shippingNguoiNhan"
-                                                               th:value="${hoaDon.nguoiNhan != null ? hoaDon.nguoiNhan : ''}"
-                                                               th:disabled="${hoaDon.khachHang != null}">
+                                                               th:value="${hoaDon.nguoiNhan != null ? hoaDon.nguoiNhan : ''}">
                                                         <input type="hidden"
                                                                th:value="${hoaDon.nguoiNhan}">
                                                         <span class="text-danger" id="shippingNguoiNhanError"></span>
@@ -493,8 +509,7 @@
                                                     <div class="col-md-12 mb-3">
                                                         <input type="text" name="soDienThoai" class="form-control w-100"
                                                                id="shippingSoDienThoai"
-                                                               th:value="${hoaDon.soDienThoai != null ? hoaDon.soDienThoai : ''}"
-                                                               th:disabled="${hoaDon.khachHang != null}">
+                                                               th:value="${hoaDon.soDienThoai != null ? hoaDon.soDienThoai : ''}">
                                                         <input type="hidden"
                                                                th:value="${hoaDon.soDienThoai }">
                                                         <span class="text-danger" id="shippingSoDienThoaiError"></span>
@@ -502,8 +517,7 @@
 
                                                     <div class="row">
                                                         <div class="col-md-6 mb-3">
-                                                            <input type="text" id="soNha" name="soNha"
-                                                                   class="form-control"
+                                                            <input type="text" id="soNha" name="soNha" class="form-control"
                                                                    th:value="${hoaDon.soNha}" placeholder="Số nhà">
                                                             <span class="text-danger" id="soNhaError"></span>
                                                         </div>
@@ -886,20 +900,22 @@
                                         </div>
                                     </div>
 
-                                    <!-- Mã Giảm Giá -->
+                                    <!-- Phiếu Giảm Giá -->
                                     <div class="d-flex align-items-center mb-4">
                                     <span>
                                         <i class="fas fa-tag"></i>
-                                        <strong>Mã giảm giá: </strong>
+                                        <strong>Phiếu giảm giá: </strong>
                                         <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenPhieuGiamGia : 'Chưa có phiếu giảm giá'}"></span>
                                     </span>
 
                                         <!-- Mở modal chọn mã giảm giá -->
                                         <button type="button" class="btn btn-outline-primary ms-auto"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#discountModal">
+                                                data-bs-target="#discountModal"
+                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}">
                                             <i class="fas fa-tag"></i>
                                         </button>
+
 
                                         <!-- Modal mã giảm giá -->
                                         <div class="modal fade" id="discountModal" tabindex="-1"
@@ -946,14 +962,16 @@
                                     <!-- Phí Ship -->
                                     <div class="info mb-4">
                                         <span><i class="fas fa-box"></i> Phí Ship:</span>
-                                        <span th:text="${hoaDon.phiShip != 0 ? #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VND' : '0 VND'}"></span>
+                                        <span th:text="${hoaDon.phiShip != null ? (hoaDon.phiShip != 0 ? #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VND' : '0 VND') : '0 VND'}"></span>
                                     </div>
 
                                     <!-- Tiền hàng -->
                                     <div class="info mb-4">
                                         <span><i class="fas fa-box"></i> Tiền hàng:</span>
                                         <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-                                    #numbers.formatInteger(hoaDon.tongTien + (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0) - hoaDon.phiShip, 3, 'COMMA') + ' VNĐ'
+                                    #numbers.formatInteger(hoaDon.tongTien +
+                                    (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0) -
+                                    (hoaDon.phiShip != null ? hoaDon.phiShip : 0), 3, 'COMMA') + ' VNĐ'
                                     : '0 VND'}"></span>
                                     </div>
 
@@ -964,7 +982,7 @@
                                     </div>
 
                                     <!-- Tổng Tiền -->
-                                    <div class="info mb-3">
+                                    <div class="info mb-3"><br>
                                         <!-- Tổng Tiền -->
                                         <div class="info mb-3">
                                             <strong>Tổng tiền:</strong>
@@ -984,39 +1002,31 @@
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="infoModalLabel">Cách tính Tổng
-                                                            tiền</h5>
+                                                        <h5 class="modal-title" id="infoModalLabel">Cách tính Tổng tiền</h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                                 aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <p>Công thức tính tổng tiền là:</p>
                                                         <ul>
-                                                            <li><strong> Tổng Thành Tiền </strong> - <strong>Giá trị
-                                                                phiếu giảm giá</strong> + <strong>Phí vận
-                                                                chuyển</strong></li>
+                                                            <li><strong>Tổng Thành Tiền</strong> - <strong>Giá trị phiếu giảm giá</strong> + <strong>Phí vận chuyển</strong></li>
                                                             <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-                                                            #numbers.formatInteger(hoaDon.tongTien + (hoaDon.phieuGiamGia != null ?
-                                                            hoaDon.phieuGiamGia.giaTriGiam : 0) - hoaDon.phiShip, 3, 'COMMA') + ' VNĐ'
-                                                            : '0 VND'}"></span> -
+        #numbers.formatInteger(hoaDon.tongTien +
+        (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0) -
+        (hoaDon.phiShip != null ? hoaDon.phiShip : 0), 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span> -
                                                             <span th:text="${(hoaDon.phieuGiamGia != null && hoaDon.phieuGiamGia.giaTriGiam != 0) ?
-                                                            #numbers.formatInteger((hoaDon.phieuGiamGia != null ?
-                                                            hoaDon.phieuGiamGia.giaTriGiam : 0), 3, 'COMMA') + ' VNĐ'
-                                                            : '0 VND'}"></span> +
+        #numbers.formatInteger(hoaDon.phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span> +
                                                             <span th:text="${(hoaDon.phiShip != null && hoaDon.phiShip != 0) ?
-                                                            #numbers.formatInteger((hoaDon.phiShip != null ?
-                                                            hoaDon.phiShip : 0), 3, 'COMMA') + ' VNĐ'
-                                                            : '0 VND'}"></span> =
+        #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span> =
                                                             <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-                                                    #numbers.formatInteger(hoaDon.tongTien, 3, 'COMMA') + ' VNĐ'
-                                                    : '0 VNĐ'}"></span>
+        #numbers.formatInteger(hoaDon.tongTien, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span>
                                                         </ul>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -1041,27 +1051,15 @@
 <!-- Dữ liệu Thymeleaf được nhúng vào JavaScript -->
 <div th:replace="admin/fragments/script :: script"></div>
 <script>
-    function showToast(message, type = "info", duration = 3000) {
-        let container = document.getElementById("toast-container");
-        if (!container) {
-            container = document.createElement("div");
-            container.id = "toast-container";
-            document.body.appendChild(container);
-        }
-
-        const toast = document.createElement("div");
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `<span>${message}</span> <button class="close-btn">&times;</button>`;
-
-        toast.querySelector(".close-btn").addEventListener("click", () => {
-            toast.remove();
+    // Hàm hiển thị thông báo với SweetAlert
+    function showAlert(message, type = "info", duration = 3000) {
+        Swal.fire({
+            title: type === "success" ? "Thành công!" : type === "error" ? "Lỗi!" : "Thông báo",
+            text: message,
+            icon: type,
+            timer: duration,
+            showConfirmButton: false
         });
-
-        setTimeout(() => {
-            toast.remove();
-        }, duration);
-
-        container.appendChild(toast);
     }
 
     window.addEventListener("load", function () {
@@ -1069,7 +1067,7 @@
         let type = localStorage.getItem("toastType") || "info";
 
         if (message) {
-            showToast(message, type);
+            showAlert(message, type);
             localStorage.removeItem("toastMessage");
             localStorage.removeItem("toastType");
         }
@@ -1092,7 +1090,8 @@
         let modal = bootstrap.Modal.getInstance(document.getElementById("xacNhanChungModal"));
         modal.hide();
 
-        showToast("Đang xử lý, vui lòng chờ...", "primary");
+        // Hiển thị thông báo đang xử lý
+        showAlert("Đang xử lý, vui lòng chờ...", "info");
 
         fetch(apiEndpoint, {
             method: "POST",
@@ -1101,18 +1100,17 @@
         })
             .then(response => response.json())
             .then(data => {
-                localStorage.setItem("toastMessage", data.message || "Thao tác thành công!");
-                localStorage.setItem("toastType", "success");
-                setTimeout(() => location.reload(), 500);
+                // Thông báo thành công
+                showAlert(data.message || "Thao tác thành công!", "success");
+                setTimeout(() => location.reload(), 1500); // Chờ 1.5 giây để hiển thị thông báo trước khi tải lại trang
             })
             .catch(error => {
                 console.error("Lỗi:", error);
-                localStorage.setItem("toastMessage", "Có lỗi xảy ra, vui lòng thử lại.");
-                localStorage.setItem("toastType", "danger");
-                setTimeout(() => location.reload(), 500);
+                // Thông báo lỗi
+                showAlert("Có lỗi xảy ra, vui lòng thử lại.", "error");
+                setTimeout(() => location.reload(), 1500); // Chờ 1.5 giây để hiển thị thông báo trước khi tải lại trang
             });
     });
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

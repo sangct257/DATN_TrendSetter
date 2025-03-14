@@ -40,9 +40,6 @@ public class ThongKeControlller {
         Float doanhThuNgayNay = hoaDonService.getDoanhThuNgayNay();
         int soLuongSanPhamThangNay = hoaDonChiTietService.getTongSanPhamBanTrongThang();
 
-        List<Object[]> productList = hoaDonChiTietService.getTotalSoldByProductInMonthWithImages(); // Lấy danh sách sản phẩm từ Page
-        model.addAttribute("productsPage", productList);
-
 
         // Lấy dữ liệu thống kê
         Map<String, Integer> totalProductsByDateMonthYear = thongKeService.getTotalProductsByDateMonthYear();
@@ -73,7 +70,10 @@ public class ThongKeControlller {
         model.addAttribute("cancelledPercentage", orderStatusPercentages.get(6));
         model.addAttribute("failedPercentage", orderStatusPercentages.get(7));
 
-        // Lấy danh sách sản phẩm tồn kho thấp
+        // thống kê số lượng sản phẩm bán chạy trong tháng hiện tại
+        List<Object[]> productList = hoaDonChiTietService.getTotalSoldByProductInMonthWithImages();
+        model.addAttribute("productsPage", productList);
+        // Lấy danh sách sản phẩm sắp hết và hết hàng
         List<SanPhamChiTiet> lowStockProducts = sanPhamChiTietService.findLowStockProducts();
         model.addAttribute("lowStockProducts", lowStockProducts);
 
@@ -91,19 +91,6 @@ public class ThongKeControlller {
         model.addAttribute("soLuongHoaDonNgayNay", soLuongHoaDonNgayNay);
         model.addAttribute("soLuongHoaDonThangNay", soLuongHoaDonThangNay);
 
-        // Các giá trị tăng trưởng
-        model.addAttribute("tangTruongNgay", data.get("tangTruongNgay"));
-        model.addAttribute("tangTruongThang", data.get("tangTruongThang"));
-        model.addAttribute("tangTruongNam", data.get("tangTruongNam"));
-
-        model.addAttribute("prevTangTruongNgay", data.get("prevTangTruongNgay"));
-        model.addAttribute("prevDoanhThuThang", data.get("prevDoanhThuThang"));
-        model.addAttribute("prevDoanhThuNam", data.get("prevDoanhThuNam"));
-
-
-        model.addAttribute("tangTruongSanPham", data.get("tangTruongSanPham"));
-        model.addAttribute("tangTruongHoaDonNgay", data.get("tangTruongHoaDonNgay"));
-        model.addAttribute("tangTruongHoaDonThang", data.get("tangTruongHoaDonThang"));
 
         return "Admin/ThongKe/hien-thi";
     }
