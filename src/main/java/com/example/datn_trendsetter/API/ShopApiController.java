@@ -3,24 +3,15 @@ package com.example.datn_trendsetter.API;
 import com.example.datn_trendsetter.DTO.ProductOrderRequest;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.Entity.HoaDon;
-import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
-import com.example.datn_trendsetter.Service.HoaDonChiTietService;
 import com.example.datn_trendsetter.Service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 public class ShopApiController {
@@ -162,6 +153,8 @@ public class ShopApiController {
         }
     }
 
+
+
     @PostMapping("/add-new-customer")
     public ResponseEntity<Map<String, String>> addNewCustomer(@RequestParam("hoaDonId") Integer hoaDonId,
                                                               @RequestParam("nguoiNhan") String nguoiNhan,
@@ -209,16 +202,25 @@ public class ShopApiController {
             }
 
             HoaDon hoaDon = hoaDonOpt.get();
-            if (!"Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
-                response.put("errorMessage", "Hóa đơn không thuộc loại Giao Hàng!");
+
+            if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
+                hoaDon.setPhiShip(null); // Tại quầy thì phí ship null
+            } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
+                // Nếu là giao hàng, tự động tính phí ship
+                float phiShip = shopService.tinhPhiShip(hoaDon.getThanhPho(), hoaDon.getHuyen());
+                hoaDon.setPhiShip(phiShip);
+            } else {
+                response.put("errorMessage", "Loại hóa đơn không hợp lệ!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
+            // Chuyển đổi trạng thái loại giao dịch
             hoaDon.setLoaiGiaoDich("Trả Sau".equals(hoaDon.getLoaiGiaoDich()) ? "Đã Thanh Toán" : "Trả Sau");
 
             hoaDonRepository.save(hoaDon);
             response.put("successMessage", "Cập nhật loại giao dịch thành công!");
             response.put("loaiGiaoDich", hoaDon.getLoaiGiaoDich());
+            response.put("phiShip", hoaDon.getPhiShip());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -226,6 +228,7 @@ public class ShopApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
 
 
