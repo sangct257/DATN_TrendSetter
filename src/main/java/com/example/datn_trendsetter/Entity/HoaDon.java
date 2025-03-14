@@ -139,10 +139,11 @@ public class HoaDon {
             return 0.0F;
         }
 
-        float phiShip = 100000.0F; // Mặc định phí ship tỉnh khác
+        float phiShip = 50000.0F; // Mặc định phí ship tỉnh khác
 
         if ("Hà Nội".equalsIgnoreCase(thanhPho) || "Hồ Chí Minh".equalsIgnoreCase(thanhPho)) {
             phiShip = 30000.0F;
+
             List<String> quanTrungTamHN = List.of("Quận Hoàn Kiếm", "Quận Ba Đình", "Quận Đống Đa", "Quận Hai Bà Trưng");
             List<String> quanTrungTamHCM = List.of("Quận 1", "Quận 3", "Quận 5", "Quận 10");
 

@@ -6,13 +6,12 @@ import com.example.datn_trendsetter.Service.HoaDonService;
 import com.example.datn_trendsetter.Service.SanPhamChiTietService;
 import com.example.datn_trendsetter.Service.ThongKeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -25,42 +24,38 @@ public class ThongKeControlller {
     private HoaDonChiTietService hoaDonChiTietService;
     @Autowired
     private SanPhamChiTietService sanPhamChiTietService;
-
     @Autowired
     private ThongKeService thongKeService;
 
     @RequestMapping("admin/thong-ke")
     public String ThongKe(Model model) {
-
-        // Lấy tháng và năm hiện tại nếu không được truyền từ giao diện
+        // Lấy dữ liệu doanh thu và số lượng hóa đơn
         Float doanhThuNamNay = hoaDonService.getDoanhThuNamNay();
-        int soLuongHoaDonThangNay = hoaDonService.countHoaDonThangNay();
         Float doanhThuThangNay = hoaDonService.getDoanhThuThangNay();
-        int soLuongHoaDonNgayNay = hoaDonService.countHoaDonNgayNay();
         Float doanhThuNgayNay = hoaDonService.getDoanhThuNgayNay();
+        int soLuongHoaDonThangNay = hoaDonService.countHoaDonThangNay();
+        int soLuongHoaDonNgayNay = hoaDonService.countHoaDonNgayNay();
         int soLuongSanPhamThangNay = hoaDonChiTietService.getTongSanPhamBanTrongThang();
-
 
         // Lấy dữ liệu thống kê
         Map<String, Integer> totalProductsByDateMonthYear = thongKeService.getTotalProductsByDateMonthYear();
         Map<String, Integer> invoiceData = thongKeService.getInvoiceCountByDateMonthYear();
 
-        // Chuyển đổi dữ liệu thống kê thành danh sách
         List<String> formattedDates = new ArrayList<>(totalProductsByDateMonthYear.keySet());
         List<Integer> salesData = new ArrayList<>(totalProductsByDateMonthYear.values());
-        List<Integer> invoiceCounts = new ArrayList<>();
+        List<Integer> invoiceCounts = new ArrayList<>(invoiceData.values());
 
-        for (Map.Entry<String, Integer> entry : invoiceData.entrySet()) {
-            invoiceCounts.add(entry.getValue());  // Số lượng hóa đơn
+        // Đảm bảo danh sách không rỗng trước khi truy cập phần tử
+        List<Long> orderStatusPercentages = hoaDonService.getOrderStatusStatistics();
+        while (orderStatusPercentages.size() < 8) {
+            orderStatusPercentages.add(0L);
         }
 
         // Thêm vào model dữ liệu thống kê
-        model.addAttribute("invoiceData", invoiceCounts);
-        model.addAttribute("dates", formattedDates);
-        model.addAttribute("salesData", salesData);
+        model.addAttribute("invoiceData", invoiceCounts.isEmpty() ? Collections.emptyList() : invoiceCounts);
+        model.addAttribute("dates", formattedDates.isEmpty() ? Collections.emptyList() : formattedDates);
+        model.addAttribute("salesData", salesData.isEmpty() ? Collections.emptyList() : salesData);
 
-        // Lấy dữ liệu thống kê trạng thái hóa đơn
-        List<Long> orderStatusPercentages = hoaDonService.getOrderStatusStatistics();
         model.addAttribute("processingPercentage", orderStatusPercentages.get(0));
         model.addAttribute("waitingConfirmationPercentage", orderStatusPercentages.get(1));
         model.addAttribute("confirmedPercentage", orderStatusPercentages.get(2));
@@ -70,15 +65,13 @@ public class ThongKeControlller {
         model.addAttribute("cancelledPercentage", orderStatusPercentages.get(6));
         model.addAttribute("failedPercentage", orderStatusPercentages.get(7));
 
-        // thống kê số lượng sản phẩm bán chạy trong tháng hiện tại
+        // Thống kê số lượng sản phẩm bán chạy trong tháng
         List<Object[]> productList = hoaDonChiTietService.getTotalSoldByProductInMonthWithImages();
-        model.addAttribute("productsPage", productList);
+        model.addAttribute("productsPage", productList.isEmpty() ? Collections.emptyList() : productList);
+
         // Lấy danh sách sản phẩm sắp hết và hết hàng
         List<SanPhamChiTiet> lowStockProducts = sanPhamChiTietService.findLowStockProducts();
-        model.addAttribute("lowStockProducts", lowStockProducts);
-
-        // Lấy dữ liệu thống kê doanh thu và tăng trưởng
-        Map<String, Float> data = thongKeService.getDoanhThuVaTangTruong();
+        model.addAttribute("lowStockProducts", lowStockProducts.isEmpty() ? Collections.emptyList() : lowStockProducts);
 
         // Thêm các giá trị vào model
         model.addAttribute("doanhThuNgayNay", doanhThuNgayNay);
@@ -87,15 +80,7 @@ public class ThongKeControlller {
         model.addAttribute("soLuongSanPhamThangNay", soLuongSanPhamThangNay);
         model.addAttribute("soLuongHoaDonNgayNay", soLuongHoaDonNgayNay);
         model.addAttribute("soLuongHoaDonThangNay", soLuongHoaDonThangNay);
-        model.addAttribute("soLuongSanPhamThangNay", soLuongSanPhamThangNay);
-        model.addAttribute("soLuongHoaDonNgayNay", soLuongHoaDonNgayNay);
-        model.addAttribute("soLuongHoaDonThangNay", soLuongHoaDonThangNay);
-
 
         return "Admin/ThongKe/hien-thi";
     }
-
-
-
-
 }
