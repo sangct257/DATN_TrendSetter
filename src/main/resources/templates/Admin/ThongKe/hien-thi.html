@@ -265,13 +265,14 @@
                                                 <tr th:each="lowStockProduct, iterStat : ${lowStockProducts}">
                                                     <td th:text="${iterStat.index + 1}"></td>
                                                     <td>
-                                                        <img th:src="${lowStockProduct.hinhAnh[0].urlHinhAnh}"
+                                                        <img th:if="${not #lists.isEmpty(lowStockProduct.hinhAnh)}"
+                                                             th:src="${lowStockProduct.hinhAnh[0].urlHinhAnh}"
                                                              alt="Hình Ảnh" width="80">
                                                     </td>
                                                     <td>
-                                                        <span th:text="${lowStockProduct.sanPham.tenSanPham}"></span> -
-                                                        <span th:text="${lowStockProduct.mauSac.tenMauSac}"></span> -
-                                                        <span th:text="${lowStockProduct.kichThuoc.tenKichThuoc}"></span>
+                                                        <span th:text="${lowStockProduct.sanPham?.tenSanPham}"></span> -
+                                                        <span th:text="${lowStockProduct.mauSac?.tenMauSac}"></span> -
+                                                        <span th:text="${lowStockProduct.kichThuoc?.tenKichThuoc}"></span>
                                                         <br> <!-- Xuống dòng -->
                                                         <div class="progress">
                                                             <div th:classappend="${lowStockProduct.trangThai == 'Còn Hàng' ? 'bg-success' : 'bg-danger'}"
@@ -280,14 +281,10 @@
                                                                  style="width: 100%">
                                                             </div>
                                                         </div>
-
-
-
-
                                                     </td>
-                                                    <td th:text="${#numbers.formatInteger(lowStockProduct.gia, 3, 'COMMA') + ' VND'}"></td>
+                                                    <td th:text="${lowStockProduct.gia != null ? #numbers.formatInteger(lowStockProduct.gia, 3, 'COMMA') + ' VND' : 'N/A'}"></td>
                                                     <td style="color: red; font-weight: bold; font-size: 1.2em;"
-                                                        th:text="${lowStockProduct.soLuong}"></td>
+                                                        th:text="${lowStockProduct.soLuong != null ? lowStockProduct.soLuong : '0'}"></td>
                                                 </tr>
                                                 </tbody>
                                             </table>
