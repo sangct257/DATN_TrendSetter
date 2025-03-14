@@ -546,7 +546,15 @@ public class ShopService {
             throw new RuntimeException("Không thể thay đổi phiếu giảm giá sau khi thanh toán.");
         }
 
-        // Lấy phiếu giảm giá dựa trên tên chương trình
+        // Kiểm tra nếu hóa đơn đã có phiếu giảm giá
+        PhieuGiamGia phieuGiamGiaCu = hoaDon.getPhieuGiamGia();
+        if (phieuGiamGiaCu != null) {
+            // Hoàn trả số lượt sử dụng cho phiếu cũ
+            phieuGiamGiaCu.setSoLuotSuDung(phieuGiamGiaCu.getSoLuotSuDung() + 1);
+            phieuGiamGiaRepository.save(phieuGiamGiaCu);
+        }
+
+        // Lấy phiếu giảm giá mới dựa trên tên chương trình
         PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findByTenPhieuGiamGia(tenPhieuGiamGia)
                 .orElseThrow(() -> new RuntimeException("Phiếu giảm giá không hợp lệ"));
 
@@ -570,6 +578,13 @@ public class ShopService {
             throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
         }
 
+        // Kiểm tra số lượt sử dụng
+        if (phieuGiamGia.getSoLuotSuDung() <= 0) {
+            throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng.");
+        }
+
+        // Giảm số lượt sử dụng của phiếu mới
+        phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() - 1);
         hoaDon.setPhieuGiamGia(phieuGiamGia);
 
         // Tính lại tổng tiền sau khi áp dụng phiếu giảm giá
@@ -582,7 +597,7 @@ public class ShopService {
         float tongTienMoi = Math.max(tongTienSanPham + phiShip - phieuGiamGia.getGiaTriGiam(), 0);
         hoaDon.setTongTien(tongTienMoi);
 
-        // Lưu hóa đơn
+        // Lưu hóa đơn và phiếu giảm giá mới
         hoaDonRepository.save(hoaDon);
         phieuGiamGiaRepository.save(phieuGiamGia);
 
