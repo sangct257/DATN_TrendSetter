@@ -152,16 +152,23 @@ public class ShopService {
     @Transactional
     public void deleteHoaDon(Integer hoaDonId) {
         try {
-            // Tìm hóa đơn theo id
+            // Tìm hóa đơn theo ID
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                     .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
 
-            // Kiểm tra danh sách chi tiết hóa đơn
+            // Hoàn trả số lượt sử dụng của phiếu giảm giá nếu hóa đơn có sử dụng
+            if (hoaDon.getPhieuGiamGia() != null) {
+                PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+                phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
+                phieuGiamGiaRepository.save(phieuGiamGia);
+            }
+
+            // Kiểm tra và khôi phục số lượng sản phẩm trong chi tiết hóa đơn
             if (hoaDon.getHoaDonChiTiet() != null && !hoaDon.getHoaDonChiTiet().isEmpty()) {
                 for (HoaDonChiTiet hoaDonChiTiet : hoaDon.getHoaDonChiTiet()) {
-                    if (hoaDonChiTiet == null) continue; // Nếu có chi tiết null, bỏ qua
+                    if (hoaDonChiTiet == null) continue; // Bỏ qua nếu null
 
-                    // Lấy sản phẩm chi tiết
+                    // Lấy sản phẩm chi tiết và khôi phục số lượng
                     SanPhamChiTiet sanPhamChiTiet = hoaDonChiTiet.getSanPhamChiTiet();
                     if (sanPhamChiTiet != null) {
                         Integer soLuongChiTiet = hoaDonChiTiet.getSoLuong();
@@ -170,7 +177,7 @@ public class ShopService {
                             sanPhamChiTietRepository.save(sanPhamChiTiet);
                         }
 
-                        // Lấy sản phẩm chính
+                        // Cập nhật số lượng sản phẩm chính
                         SanPham sanPham = sanPhamChiTiet.getSanPham();
                         if (sanPham != null) {
                             updateStockForProduct(sanPham);
@@ -178,7 +185,7 @@ public class ShopService {
                     }
                 }
 
-                // Xóa các chi tiết hóa đơn
+                // Xóa chi tiết hóa đơn sau khi khôi phục số lượng sản phẩm
                 hoaDonChiTietRepository.deleteAll(hoaDon.getHoaDonChiTiet());
             }
 
@@ -537,72 +544,83 @@ public class ShopService {
 
     @Transactional
     public String applyPhieuGiamGia(Integer hoaDonId, String tenPhieuGiamGia) {
-        // Lấy hóa đơn từ cơ sở dữ liệu
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
 
-        // Kiểm tra nếu hóa đơn đã thanh toán
         if ("Đã Hoàn Thành".equalsIgnoreCase(hoaDon.getTrangThai())) {
             throw new RuntimeException("Không thể thay đổi phiếu giảm giá sau khi thanh toán.");
         }
 
-        // Kiểm tra nếu hóa đơn đã có phiếu giảm giá
-        PhieuGiamGia phieuGiamGiaCu = hoaDon.getPhieuGiamGia();
-        if (phieuGiamGiaCu != null) {
-            // Hoàn trả số lượt sử dụng cho phiếu cũ
-            phieuGiamGiaCu.setSoLuotSuDung(phieuGiamGiaCu.getSoLuotSuDung() + 1);
-            phieuGiamGiaRepository.save(phieuGiamGiaCu);
-        }
-
-        // Lấy phiếu giảm giá mới dựa trên tên chương trình
-        PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findByTenPhieuGiamGia(tenPhieuGiamGia)
-                .orElseThrow(() -> new RuntimeException("Phiếu giảm giá không hợp lệ"));
-
-        // Kiểm tra hạn sử dụng
-        LocalDate now = LocalDate.now();
-        if (phieuGiamGia.getNgayBatDau().isAfter(now)) {
-            throw new RuntimeException("Phiếu giảm giá chưa đến thời gian áp dụng.");
-        }
-        if (phieuGiamGia.getNgayKetThuc().isBefore(now)) {
-            throw new RuntimeException("Phiếu giảm giá đã hết hạn.");
-        }
-
-        // Kiểm tra điều kiện tổng tiền
-        if (hoaDon.getTongTien() < phieuGiamGia.getDieuKien()) {
-            throw new RuntimeException("Điều kiện phiếu giảm giá không thỏa mãn.");
-        }
-
-        // Kiểm tra loại hóa đơn có phù hợp không (nếu áp dụng cho giao hàng)
-        if ("Giao Hàng".equalsIgnoreCase(phieuGiamGia.getLoaiApDung()) &&
-                !"Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
-            throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
-        }
-
-        // Kiểm tra số lượt sử dụng
-        if (phieuGiamGia.getSoLuotSuDung() <= 0) {
-            throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng.");
-        }
-
-        // Giảm số lượt sử dụng của phiếu mới
-        phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() - 1);
-        hoaDon.setPhieuGiamGia(phieuGiamGia);
-
-        // Tính lại tổng tiền sau khi áp dụng phiếu giảm giá
+        // Kiểm tra tổng thành tiền của hóa đơn chi tiết
         float tongTienSanPham = hoaDon.getHoaDonChiTiet().stream()
                 .map(HoaDonChiTiet::getThanhTien)
                 .filter(Objects::nonNull)
                 .reduce(0F, Float::sum);
 
+        if (tongTienSanPham <= 0) {
+            throw new RuntimeException("Hóa đơn chưa có sản phẩm hợp lệ để áp dụng phiếu giảm giá.");
+        }
+
+        // Nếu hóa đơn đã có phiếu giảm giá, hoàn lại số lượt trước khi thay đổi
+        if (hoaDon.getPhieuGiamGia() != null) {
+            PhieuGiamGia phieuGiamGiaCu = hoaDon.getPhieuGiamGia();
+            phieuGiamGiaCu.setSoLuotSuDung(phieuGiamGiaCu.getSoLuotSuDung() + 1);
+
+            // Nếu số lượt sử dụng > 0, giữ trạng thái bình thường, ngược lại đặt thành "Ngừng Hoạt Động"
+            if (phieuGiamGiaCu.getSoLuotSuDung() > 0) {
+                phieuGiamGiaCu.setTrangThai("Hoạt Động");
+            }
+
+            phieuGiamGiaRepository.save(phieuGiamGiaCu);
+        }
+
+        // Tìm phiếu giảm giá mới
+        PhieuGiamGia phieuGiamGiaMoi = phieuGiamGiaRepository.findByTenPhieuGiamGia(tenPhieuGiamGia)
+                .orElseThrow(() -> new RuntimeException("Phiếu giảm giá không hợp lệ"));
+
+        LocalDate now = LocalDate.now();
+        if (phieuGiamGiaMoi.getNgayBatDau().isAfter(now)) {
+            throw new RuntimeException("Phiếu giảm giá chưa đến thời gian áp dụng.");
+        }
+        if (phieuGiamGiaMoi.getNgayKetThuc().isBefore(now)) {
+            throw new RuntimeException("Phiếu giảm giá đã hết hạn.");
+        }
+        if (tongTienSanPham < phieuGiamGiaMoi.getDieuKien()) {
+            throw new RuntimeException("Điều kiện phiếu giảm giá không thỏa mãn.");
+        }
+        if ("Giao Hàng".equalsIgnoreCase(phieuGiamGiaMoi.getLoaiApDung()) &&
+                !"Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
+            throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
+        }
+        if (phieuGiamGiaMoi.getSoLuotSuDung() <= 0) {
+            throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng.");
+        }
+
+        // Trừ lượt sử dụng của phiếu giảm giá mới ngay khi áp dụng
+        phieuGiamGiaMoi.setSoLuotSuDung(phieuGiamGiaMoi.getSoLuotSuDung() - 1);
+
+        // Nếu số lượt sử dụng giảm xuống 0, đặt trạng thái thành "Ngừng Hoạt Động"
+        if (phieuGiamGiaMoi.getSoLuotSuDung() == 0) {
+            phieuGiamGiaMoi.setTrangThai("Ngừng Hoạt Động");
+        }
+
+        phieuGiamGiaRepository.save(phieuGiamGiaMoi);
+
+        // Gán phiếu giảm giá mới cho hóa đơn
+        hoaDon.setPhieuGiamGia(phieuGiamGiaMoi);
+
+        // Tính tổng tiền mới sau khi áp dụng phiếu giảm giá
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0F;
-        float tongTienMoi = Math.max(tongTienSanPham + phiShip - phieuGiamGia.getGiaTriGiam(), 0);
+        float tongTienMoi = Math.max(tongTienSanPham + phiShip - phieuGiamGiaMoi.getGiaTriGiam(), 0);
+
         hoaDon.setTongTien(tongTienMoi);
-
-        // Lưu hóa đơn và phiếu giảm giá mới
         hoaDonRepository.save(hoaDon);
-        phieuGiamGiaRepository.save(phieuGiamGia);
 
-        return "Phiếu giảm giá đã được áp dụng!";
+        return "Phiếu giảm giá đã được áp dụng! Lượt sử dụng đã bị trừ.";
     }
+
+
+
 
     public String confirmPayment(Integer hoaDonId, RedirectAttributes redirectAttributes) {
         try {
@@ -623,8 +641,6 @@ public class ShopService {
                     .mapToDouble(HoaDonChiTiet::getThanhTien)
                     .sum();
             tongTien += (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0;
-            tongTien -= (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTriGiam() != null)
-                    ? hoaDon.getPhieuGiamGia().getGiaTriGiam() : 0;
 
             hoaDon.setTongTien(tongTien);
             hoaDon.setNgaySua(LocalDateTime.now());
@@ -665,7 +681,6 @@ public class ShopService {
                 lichSuHoaDon1.setNgayTao(LocalDateTime.now());
                 lichSuHoaDon1.setNguoiTao(hoaDon.getNguoiTao());
                 lichSuHoaDon1.setDeleted(false);
-
                 lichSuHoaDon1.setGhiChu("Hóa đơn: " + hoaDon.getMaHoaDon() + " " + hoaDon.getTrangThai());
                 lichSuHoaDonRepository.save(lichSuHoaDon1);
                 return "redirect:/admin/sell-counter";

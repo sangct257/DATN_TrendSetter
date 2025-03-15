@@ -165,10 +165,18 @@ public class HoaDon {
         // Lấy phí ship (nếu có)
         float phiShip = Objects.requireNonNullElse(this.phiShip, 0F);
 
-        // Kiểm tra phiếu giảm giá (nếu có)
-        float giaTriGiam = Objects.requireNonNullElse(
-                (phieuGiamGia != null ? phieuGiamGia.getGiaTriGiam() : null), 0F
-        );
+        float giaTriGiam = 0F;
+
+        // Kiểm tra phiếu giảm giá (nếu có) và điều kiện áp dụng
+        if (phieuGiamGia != null && phieuGiamGia.getDieuKien() != null) {
+            if (tongTienSanPham >= phieuGiamGia.getDieuKien()) {
+                giaTriGiam = Objects.requireNonNullElse(phieuGiamGia.getGiaTriGiam(), 0F);
+            } else {
+                // Nếu không đủ điều kiện, không áp dụng phiếu giảm giá
+                this.phieuGiamGia = null;
+            }
+        }
+
         // Tổng tiền hóa đơn
         return Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
     }
