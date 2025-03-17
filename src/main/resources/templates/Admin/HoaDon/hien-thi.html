@@ -78,7 +78,6 @@
                                     <a th:href="@{/admin/sell-counter}">
                                         Tạo Hóa Đơn
                                     </a>
-
                                 </button>
 
                                 <thead class="table-dark">
@@ -143,51 +142,6 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
-<script>
-    function showToast(message, type) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
-
-        // Hiệu ứng thanh loading bar
-        setTimeout(() => {
-            toastLoadingBar.style.transition = "width 3s linear";
-            toastLoadingBar.style.width = "100%";
-        }, 100); // Chờ 100ms để tránh lỗi animation
-
-        // Ẩn toast sau 3 giây
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toastLoadingBar.style.transition = "none";
-                toastLoadingBar.style.width = "0%";
-            }, 500); // Chờ 0.5 giây rồi reset trạng thái toast
-        }, 3000);
-
-        return toastLoadingBar;
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-
-</script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let table = $("#productTable").DataTable({

@@ -60,21 +60,6 @@
                 <li><a href="#">Examples</a></li>
                 <li class="active">Blank page</li>
             </ol>
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Vui lòng chờ...</span>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
-
         </section>
 
         <!-- Main content -->
@@ -388,34 +373,6 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
-
-<!--Hiển thị Toast Notification-->
-<script>
-    function showToast(message, type, duration = 3000) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-
-        // Tự động ẩn sau khoảng thời gian đã định
-        setTimeout(hideToast, duration);
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-</script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // Upload ảnh khi chọn file
@@ -424,10 +381,12 @@
                 let input = event.target;
                 let closestRow = input.closest("tr");
                 let spctIdElement = closestRow.querySelector(".spct-id");
+
                 if (!spctIdElement) {
-                    showToast("Không tìm thấy ID sản phẩm!", "danger");
+                    Swal.fire("Lỗi!", "Không tìm thấy ID sản phẩm!", "error");
                     return;
                 }
+
                 let spctId = spctIdElement.value;
                 let imgContainer = closestRow.querySelector(".d-flex");
                 let files = input.files;
@@ -438,7 +397,13 @@
                     formData.append("files", file);
                 }
 
-                showToast("Đang tải ảnh lên...", "primary");
+                Swal.fire({
+                    title: "Đang tải ảnh lên...",
+                    text: "Vui lòng chờ!",
+                    icon: "info",
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
 
                 fetch(`/api/san-pham/upload/${spctId}`, { method: "POST", body: formData })
                     .then(response => {
@@ -451,16 +416,16 @@
                             let imgWrapper = document.createElement("div");
                             imgWrapper.classList.add("image-wrapper", "position-relative");
                             imgWrapper.innerHTML = `
-                        <img src="${url}" class="img-thumbnail" width="60" height="60">
-                        <div class="image-overlay">
-                            <button type="button" class="btn btn-sm btn-outline-light view-image" data-url="${url}">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-light delete-image" data-url="${url}">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    `;
+                            <img src="${url}" class="img-thumbnail" width="60" height="60">
+                            <div class="image-overlay">
+                                <button type="button" class="btn btn-sm btn-outline-light view-image" data-url="${url}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-light delete-image" data-url="${url}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        `;
 
                             if (uploadButton) {
                                 imgContainer.insertBefore(imgWrapper, uploadButton);
@@ -469,10 +434,12 @@
                             }
                         });
 
-                        showToast("Upload thành công!", "success");
+                        Swal.fire("Thành công!", "Upload ảnh thành công!", "success");
                         setTimeout(() => location.reload(), 1000);
                     })
-                    .catch(error => showToast("Upload thất bại!", "danger"));
+                    .catch(error => {
+                        Swal.fire("Lỗi!", "Upload thất bại!", "error");
+                    });
             }
         });
 
@@ -481,29 +448,48 @@
             if (event.target.closest(".delete-image")) {
                 let button = event.target.closest(".delete-image");
                 let imageId = button.getAttribute("data-id");
+
                 if (!imageId) {
-                    showToast("Không tìm thấy ID ảnh!", "danger");
+                    Swal.fire("Lỗi!", "Không tìm thấy ID ảnh!", "error");
                     return;
                 }
+
                 let wrapper = button.closest(".image-wrapper");
 
-                if (!confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
+                Swal.fire({
+                    title: "Bạn có chắc chắn muốn xóa ảnh này?",
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Có, xóa ngay!",
+                    cancelButtonText: "Hủy",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: "Đang xóa ảnh...",
+                            text: "Vui lòng chờ!",
+                            icon: "info",
+                            showConfirmButton: false,
+                            allowOutsideClick: false
+                        });
 
-                showToast("Đang xóa ảnh...", "primary");
-
-                fetch(`/api/san-pham/xoa/${imageId}`, { method: "DELETE" })
-                    .then(response => {
-                        if (!response.ok) throw new Error("Xóa ảnh thất bại!");
-                        return response.text();
-                    })
-                    .then(() => {
-                        wrapper.remove();
-                        showToast("Xóa ảnh thành công!", "success");
-                    })
-                    .catch(error => {
-                        console.error("Lỗi xóa ảnh:", error);
-                        showToast("Xóa ảnh thất bại!", "danger");
-                    });
+                        fetch(`/api/san-pham/xoa/${imageId}`, { method: "DELETE" })
+                            .then(response => {
+                                if (!response.ok) throw new Error("Xóa ảnh thất bại!");
+                                return response.text();
+                            })
+                            .then(() => {
+                                wrapper.remove();
+                                Swal.fire("Thành công!", "Ảnh đã được xóa!", "success");
+                            })
+                            .catch(error => {
+                                console.error("Lỗi xóa ảnh:", error);
+                                Swal.fire("Lỗi!", "Xóa ảnh thất bại!", "error");
+                            });
+                    }
+                });
             }
         });
 
@@ -514,32 +500,15 @@
                 let imageUrl = button.getAttribute("data-url");
 
                 if (!imageUrl) {
-                    showToast("Không tìm thấy ảnh!", "danger");
+                    Swal.fire("Lỗi!", "Không tìm thấy ảnh!", "error");
                     return;
                 }
 
-                let modalHtml = `
-            <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Xem ảnh</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center">
-                            <img src="${imageUrl}" class="img-fluid">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-                document.body.insertAdjacentHTML("beforeend", modalHtml);
-                let modal = new bootstrap.Modal(document.getElementById("imageModal"));
-
-                modal.show();
-                document.getElementById("imageModal").addEventListener("hidden.bs.modal", function () {
-                    this.remove();
+                Swal.fire({
+                    title: "Xem ảnh",
+                    imageUrl: imageUrl,
+                    imageAlt: "Hình ảnh",
+                    showCloseButton: true
                 });
             }
         });
@@ -591,8 +560,13 @@
             .then(response => response.json().then(data => ({ status: response.status, body: data })))
             .then(({ status, body }) => {
                 if (status === 200) {
-                    showToast("Cập nhật thành công!", "success");
-                    setTimeout(() => window.location.reload(), 1000); // Tải lại trang sau khi hoàn thành
+                    Swal.fire({
+                        title: "Thành công!",
+                        text: "Cập nhật sản phẩm thành công!",
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
                 } else {
                     let errorMessage = body.error || "Có lỗi xảy ra!";
                     switch (status) {
@@ -611,7 +585,12 @@
             })
             .catch(error => {
                 console.error("Lỗi cập nhật:", error);
-                showToast(error.message, "danger");
+                Swal.fire({
+                    title: "Thất bại!",
+                    text: error.message,
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
             });
     });
 </script>
@@ -625,7 +604,12 @@
                 const sanPhamId = urlParams.get("sanPhamId");
 
                 if (!sanPhamId) {
-                    showToast("Không tìm thấy sản phẩm. Vui lòng kiểm tra lại URL.", "danger");
+                    Swal.fire({
+                        title: "Lỗi!",
+                        text: "Không tìm thấy sản phẩm. Vui lòng kiểm tra lại URL.",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
                     return;
                 }
 
@@ -633,7 +617,12 @@
                 let selectedKichThuoc = [...document.querySelectorAll("input[name='kichThuocIds']:checked")].map(el => el.value);
 
                 if (selectedMauSac.length === 0 || selectedKichThuoc.length === 0) {
-                    showToast("Vui lòng chọn ít nhất một kích thước và một màu sắc.", "danger");
+                    Swal.fire({
+                        title: "Cảnh báo!",
+                        text: "Vui lòng chọn ít nhất một kích thước và một màu sắc.",
+                        icon: "warning",
+                        confirmButtonText: "OK"
+                    });
                     return;
                 }
 
@@ -649,15 +638,25 @@
                     .then(response => response.text().then(data => ({ status: response.status, body: data })))
                     .then(({ status, body }) => {
                         if (status === 200) {
-                            showToast("Thêm thành công!", "success");
-                            setTimeout(() => window.location.reload(), 1000);
+                            Swal.fire({
+                                title: "Thành công!",
+                                text: "Thêm thành công!",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
                         } else {
                             throw new Error(body || "Có lỗi xảy ra!");
                         }
                     })
                     .catch(error => {
                         console.error("Lỗi:", error);
-                        showToast(error.message, "danger");
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: error.message,
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
                     });
             });
         } else {
@@ -689,7 +688,12 @@
         let gia = giaInput.value.replace(/\D/g, "").trim(); // Loại bỏ ký tự không phải số
 
         if (soLuong === "" || gia === "") {
-            showToast("Vui lòng nhập đầy đủ thông tin!", "danger");
+            Swal.fire({
+                title: "Lỗi!",
+                text: "Vui lòng nhập đầy đủ thông tin!",
+                icon: "error",
+                confirmButtonText: "OK"
+            });
             return;
         }
 
@@ -703,43 +707,74 @@
             .then(response => response.text().then(data => ({ status: response.status, body: data })))
             .then(({ status, body }) => {
                 if (status === 200) {
-                    showToast("Cập nhật thành công!", "success");
-                    setTimeout(() => location.reload(), 1000);
+                    Swal.fire({
+                        title: "Thành công!",
+                        text: "Cập nhật thành công!",
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
                 } else {
                     throw new Error(body || "Cập nhật thất bại!");
                 }
             })
             .catch(error => {
                 console.error("Lỗi cập nhật sản phẩm:", error);
-                showToast(error.message, "danger");
+                Swal.fire({
+                    title: "Lỗi!",
+                    text: error.message,
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
             });
     }
 
     function deleteProduct(button) {
         let id = button.getAttribute("data-id");
-        if (confirm("Bạn có chắc chắn muốn xóa?")) {
-            fetch("/api/san-pham/delete/" + encodeURIComponent(id), {
-                method: "DELETE"
-            })
-                .then(response => response.text().then(data => ({ status: response.status, body: data })))
-                .then(({ status, body }) => {
-                    if (status === 200) {
-                        showToast("Xóa thành công!", "success");
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        throw new Error(body || "Xóa thất bại!");
-                    }
+
+        Swal.fire({
+            title: "Bạn có chắc chắn muốn xóa?",
+            text: "Hành động này không thể hoàn tác!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Có, xóa ngay!",
+            cancelButtonText: "Hủy",
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch("/api/san-pham/delete/" + encodeURIComponent(id), {
+                    method: "DELETE"
                 })
-                .catch(error => {
-                    console.error("Lỗi xóa sản phẩm:", error);
-                    showToast(error.message, "danger");
-                });
-        }
+                    .then(response => response.text().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status === 200) {
+                            Swal.fire({
+                                title: "Đã xóa!",
+                                text: "Sản phẩm đã được xóa thành công.",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            throw new Error(body || "Xóa thất bại!");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Lỗi xóa sản phẩm:", error);
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: error.message,
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    });
+            }
+        });
     }
 
 
 </script>
-
 
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function () {
@@ -837,5 +872,6 @@
         });
     });
 </script>
+
 </body>
 </html>

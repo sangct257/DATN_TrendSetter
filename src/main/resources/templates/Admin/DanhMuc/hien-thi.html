@@ -25,20 +25,6 @@
                 <li><a href="/admin"><i class="fa fa-dashboard"></i>Home</a></li>
                 <li><a href="#">Danh Mục</a></li>
             </ol>
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Vui lòng chờ...</span>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- Main content -->
@@ -175,32 +161,6 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
-<!--Hiển thị Toast Notification-->
-<script>
-    function showToast(message, type, duration = 3000) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-
-        // Tự động ẩn sau khoảng thời gian đã định
-        setTimeout(hideToast, duration);
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-</script>
 
 <script>
     // Hàm thêm danh mục
@@ -213,6 +173,14 @@
             trangThai: trangThai
         };
 
+        Swal.fire({
+            title: "Đang thêm danh mục...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         fetch('/api/danh-muc/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -220,39 +188,61 @@
         })
             .then(response => response.text())
             .then(message => {
-                showToast(message, "success");
-                setTimeout(() => location.reload(), 1500);
+                Swal.fire("Thành công!", message, "success").then(() => {
+                    location.reload();
+                });
             })
-            .catch(error => showToast("Lỗi khi thêm danh mục!", "danger"));
+            .catch(error => Swal.fire("Lỗi!", "Lỗi khi thêm danh mục!", "error"));
     }
 
+    // Hàm xóa danh mục
     function deleteDanhMuc(button) {
         let row = button.closest("tr");
         let hiddenInput = row.querySelector("td input[type='hidden']");
 
         if (!hiddenInput) {
-            showToast("Không tìm thấy ID danh mục!", "danger");
+            Swal.fire("Lỗi!", "Không tìm thấy ID danh mục!", "error");
             return;
         }
 
         let danhMucId = hiddenInput.value;
-        if (confirm("Bạn có chắc chắn muốn xóa danh mục này không?")) {
-            fetch(`/api/danh-muc/delete/${danhMucId}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error("Xóa thất bại!");
-                    return response.text();
+
+        Swal.fire({
+            title: "Bạn có chắc chắn muốn xóa danh mục này?",
+            text: "Hành động này không thể hoàn tác!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Đang xóa danh mục...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                fetch(`/api/danh-muc/delete/${danhMucId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
                 })
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast(error.message, "danger"));
-        }
+                    .then(response => {
+                        if (!response.ok) throw new Error("Xóa thất bại!");
+                        return response.text();
+                    })
+                    .then(message => {
+                        Swal.fire("Đã xóa!", message, "success").then(() => {
+                            row.remove();
+                        });
+                    })
+                    .catch(error => Swal.fire("Lỗi!", error.message, "error"));
+            }
+        });
     }
 
+    // Hàm cập nhật danh mục
     function updateDanhMuc() {
         let danhMucId = document.getElementById("modalDanhMucId").value;
         let danhMucName = document.getElementById("modalDanhMucName").value;
@@ -264,8 +254,16 @@
             trangThai: danhMucStatus
         };
 
+        Swal.fire({
+            title: "Đang cập nhật danh mục...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         fetch('/api/danh-muc/update', {
-            method: 'PUT', // ✅ Thay vì POST
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedDanhMuc)
         })
@@ -274,13 +272,11 @@
                 return response.text();
             })
             .then(message => {
-                showToast(message, "success");
-                setTimeout(() => location.reload(), 1500);
+                Swal.fire("Thành công!", message, "success").then(() => {
+                    location.reload();
+                });
             })
-            .catch(error => {
-                console.error("Lỗi:", error);
-                showToast("Lỗi cập nhật!", "danger");
-            });
+            .catch(error => Swal.fire("Lỗi!", "Cập nhật thất bại!", "error"));
     }
 
     function openDanhMucDetailModal(button) {

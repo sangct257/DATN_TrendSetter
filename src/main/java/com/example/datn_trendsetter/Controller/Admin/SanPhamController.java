@@ -80,6 +80,11 @@ public class SanPhamController {
         // Lấy danh sách sản phẩm chi tiết theo ID sản phẩm
         List<SanPhamChiTiet> sanPhamChiTiet = sanPhamChiTietRepository.findBySanPhamId(sanPhamId);
 
+        Map<MauSac, List<SanPhamChiTiet>> sanPhamChiTietGroupedByMauSac = sanPhamChiTiet.stream()
+                .collect(Collectors.groupingBy(SanPhamChiTiet::getMauSac));
+
+        model.addAttribute("sanPhamChiTietGroupedByMauSac", sanPhamChiTietGroupedByMauSac);
+
         // Lọc danh sách màu sắc và kích thước có trong sản phẩm chi tiết
         List<MauSac> mauSacSanPham = sanPhamChiTiet.stream()
                 .map(SanPhamChiTiet::getMauSac)

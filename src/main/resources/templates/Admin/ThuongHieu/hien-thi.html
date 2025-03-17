@@ -25,20 +25,6 @@
                 <li><a href="#">Thương Hiệu</a></li>
             </ol>
 
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Vui lòng chờ...</span>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- Main content -->
@@ -179,126 +165,142 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
-<!--Hiển thị Toast Notification-->
-<script>
-    function showToast(message, type, duration = 3000) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-
-        // Tự động ẩn sau khoảng thời gian đã định
-        setTimeout(hideToast, duration);
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-</script>
 
 <script>
     // Hàm thêm thương hiệu
-    function saveBrand() {
+    async function saveBrand() {
         let tenThuongHieu = document.getElementById("tenThuongHieu").value;
         let trangThai = document.getElementById("trangThai").value;
 
-        let data = {
-            tenThuongHieu: tenThuongHieu,
-            trangThai: trangThai
-        };
+        let data = { tenThuongHieu, trangThai };
 
-        showToast("Đang thêm thương hiệu...", "primary");
-        fetch('/api/thuong-hieu/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.text())
-            .then(message => {
-                showToast(message, "success");
-                setTimeout(() => location.reload(), 1500);
-            })
-            .catch(error => showToast("Lỗi khi thêm thương hiệu!", "danger"));
+        Swal.fire({
+            title: "Đang thêm thương hiệu...",
+            text: "Vui lòng chờ...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            let response = await fetch('/api/thuong-hieu/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            let message = await response.text();
+
+            Swal.fire({
+                icon: "success",
+                title: "Thành công!",
+                text: message,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
+        } catch (error) {
+            Swal.fire("Lỗi!", "Lỗi khi thêm thương hiệu!", "error");
+        }
     }
 
-    function deleteBrand(button) {
+    // Hàm xóa thương hiệu
+    async function deleteBrand(button) {
         let row = button.closest("tr");
         let hiddenInput = row.querySelector("td input[type='hidden']");
 
         if (!hiddenInput) {
-            showToast("Không tìm thấy ID thương hiệu!", "danger");
+            Swal.fire("Lỗi!", "Không tìm thấy ID thương hiệu!", "error");
             return;
         }
 
         let brandId = hiddenInput.value;
-        if (confirm("Bạn có chắc chắn muốn xóa thương hiệu này không?")) {
-            showToast("Đang xóa thương hiệu...", "primary");
-            fetch(`/api/thuong-hieu/delete/${brandId}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            })
-                .then(response => {
+
+        Swal.fire({
+            title: "Bạn có chắc không?",
+            text: "Thao tác này sẽ xóa thương hiệu vĩnh viễn!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Xóa!",
+            cancelButtonText: "Hủy"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    let response = await fetch(`/api/thuong-hieu/delete/${brandId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
                     if (!response.ok) throw new Error("Xóa thất bại!");
-                    return response.text();
-                })
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => row.remove(), 1500);
-                })
-                .catch(error => showToast(error.message, "danger"));
-        }
+
+                    let message = await response.text();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Xóa thành công!",
+                        text: message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => row.remove());
+                } catch (error) {
+                    Swal.fire("Lỗi!", error.message, "error");
+                }
+            }
+        });
     }
 
-    function updateBrand() {
+    // Hàm cập nhật thương hiệu
+    async function updateBrand() {
         let brandId = document.getElementById("modalBrandId").value;
         let brandName = document.getElementById("modalBrandName").value;
         let brandStatus = document.getElementById("modalBrandStatus").value;
 
-        let updatedBrand = {
-            id: brandId,
-            tenThuongHieu: brandName,
-            trangThai: brandStatus
-        };
+        let updatedBrand = { id: brandId, tenThuongHieu: brandName, trangThai: brandStatus };
 
-        showToast("Đang cập nhật thương hiệu...", "primary");
-        fetch('/api/thuong-hieu/update', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedBrand)
-        })
-            .then(response => response.text())
-            .then(message => {
-                showToast(message, "success");
-                setTimeout(() => location.reload(), 1500);
-            })
-            .catch(error => showToast("Lỗi cập nhật!", "danger"));
+        Swal.fire({
+            title: "Đang cập nhật thương hiệu...",
+            text: "Vui lòng chờ...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            let response = await fetch('/api/thuong-hieu/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedBrand)
+            });
+            let message = await response.text();
+
+            Swal.fire({
+                icon: "success",
+                title: "Cập nhật thành công!",
+                text: message,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
+        } catch (error) {
+            Swal.fire("Lỗi!", "Lỗi cập nhật thương hiệu!", "error");
+        }
     }
 
+    // Hàm mở modal chỉnh sửa
     function openBrandDetailModal(button) {
         let row = button.closest("tr");
         let brandId = row.querySelector("td input[type='hidden']").value;
         let brandName = row.cells[2].innerText;
         let brandStatus = row.cells[3].innerText.trim();
 
-        // Gán giá trị vào modal
         document.getElementById("modalBrandId").value = brandId;
         document.getElementById("modalBrandName").value = brandName;
         document.getElementById("modalBrandStatus").value = brandStatus;
 
-        // Hiển thị modal
         let modal = new bootstrap.Modal(document.getElementById("modalBrandDetail"));
         modal.show();
     }
+
 </script>
 <!--Load table-->
 <script>

@@ -162,9 +162,6 @@ public class HoaDon {
                 .mapToDouble(HoaDonChiTiet::getThanhTien)
                 .sum();
 
-        // Lấy phí ship (nếu có)
-        float phiShip = Objects.requireNonNullElse(this.phiShip, 0F);
-
         float giaTriGiam = 0F;
 
         // Kiểm tra phiếu giảm giá (nếu có) và điều kiện áp dụng
@@ -177,9 +174,17 @@ public class HoaDon {
             }
         }
 
+        // Nếu tổng tiền sản phẩm (trước khi trừ giảm giá) >= 1.000.000 thì miễn phí ship
+        if (tongTienSanPham >= 500_000) {
+            this.phiShip = 0F;  // Cập nhật phí ship thành 0
+        }
+
+        float phiShip = Objects.requireNonNullElse(this.phiShip, 0F);
+
         // Tổng tiền hóa đơn
         return Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
     }
+
 
 
 }

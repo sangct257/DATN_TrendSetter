@@ -16,7 +16,7 @@ public class ShopController {
     private ShopService shopService;
 
     @GetMapping("admin/sell-counter")
-    public String sellCounter(@RequestParam(value = "hoaDonId", required = false) Integer hoaDonId,
+    public String sellCounter(@RequestParam(value = "hoaDonId", required = false, defaultValue = "0") Integer hoaDonId,
                               Model model) {
         shopService.getHoaDonAndProducts(hoaDonId, model);
         return "Admin/Shop/dashboard"; // Return to the page where the form is rendered

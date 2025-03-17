@@ -36,6 +36,8 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "AND s.deleted = false")
     List<SanPhamChiTietDTO> suggestSanPhamAndMauSacAndKichThuoc(@Param("search") String search);
 
+    @Query("SELECT sp FROM SanPhamChiTiet sp WHERE sp.sanPham.id = :sanPhamId GROUP BY sp.mauSac")
+    List<SanPhamChiTiet> findBySanPhamIdGroupedByColor(@Param("sanPhamId") Integer sanPhamId);
 
     List<SanPhamChiTiet> findBySanPhamId(Integer sanPhamId);
 
