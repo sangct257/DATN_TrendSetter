@@ -6,9 +6,15 @@ import com.example.datn_trendsetter.DTO.RegisterRequest;
 import com.example.datn_trendsetter.Service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -31,25 +37,16 @@ public class LogRestController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Lấy thông tin phản hồi từ service
             AuthResponse response = authService.login(request);
 
-            // Lưu role và token vào session (hoặc có thể dùng localStorage trên client)
-            session.setAttribute("role", response.getRole());
-            session.setAttribute("token", response.getToken());
-
-            System.out.println("💾 Role đã được lưu vào session: " + session.getAttribute("role"));
-            System.out.println("💾 Token đã được lưu vào session: " + session.getAttribute("token"));
-
-            // Trả về response body với token và role để client lưu trữ
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + response.getToken())  // Thêm Authorization header
                     .body(Map.of(
                             "redirect", response.getRedirectUrl(),
                             "token", response.getToken(),
-                            "role", response.getRole()
+                            "roles", response.getRoles()
                     ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -57,12 +54,25 @@ public class LogRestController {
     }
 
 
-
-
-
-
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok().body("{\"message\": \"Logged out successfully\"}");
     }
+
+    @GetMapping("/api/user-info")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_NHANVIEN', 'ROLE_KHACHHANG')")
+    public ResponseEntity<?> getUserInfo(Authentication authentication) {
+        String username = authentication.getName();
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+
+        List<String> roles = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(Map.of(
+                "username", username,
+                "roles", roles
+        ));
+    }
+
 }

@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -32,51 +33,70 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        System.out.println("🔍 Kiểm tra JWT Filter...");
-
-        // ✅ In toàn bộ headers để kiểm tra
-        request.getHeaderNames().asIterator().forEachRemaining(headerName ->
-                System.out.println("📌 Header: " + headerName + " = " + request.getHeader(headerName))
-        );
-
         String authHeader = request.getHeader("Authorization");
 
-        // Kiểm tra header có chứa token hay không
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("❌ Không có token hợp lệ trong request.");
+            System.out.println("❌ Không tìm thấy Authorization header hợp lệ.");
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);  // Lấy token từ header
-        System.out.println("✅ Token nhận được: " + token);
+        String token = authHeader.substring(7);
 
-        // Kiểm tra tính hợp lệ của token
         if (!jwtUtil.validateToken(token)) {
-            System.out.println("❌ Token không hợp lệ!");
+            System.out.println("❌ Token không hợp lệ hoặc đã hết hạn.");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
             return;
         }
 
-        // Lấy thông tin người dùng từ token
         String username = jwtUtil.getUsernameFromToken(token);
-        String role = jwtUtil.getRoleFromToken(token);
+        List<String> roles = jwtUtil.getRolesFromToken(token);
+        String requestURI = request.getRequestURI();
+
+        System.out.println("✅ Token nhận được: " + token);
         System.out.println("✅ Username từ token: " + username);
-        System.out.println("✅ Role từ token: " + role);
+        System.out.println("✅ Roles từ token: " + roles);
+        System.out.println("🔹 Yêu cầu đến: " + requestURI);
 
-        // Kiểm tra người dùng có tồn tại trong hệ thống không
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        // Tạo đối tượng Authentication và set vào SecurityContext
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                userDetails, null, List.of(new SimpleGrantedAuthority("ROLE_" + role))
-        );
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
 
-        // Đảm bảo Authentication đã được set vào SecurityContext
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        System.out.println("✅ Đã set Authentication vào SecurityContext");
+            if (!isAuthorized(roles, requestURI)) {
+                System.out.println("❌ Người dùng không có quyền truy cập: " + requestURI);
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập vào đường dẫn này.");
+                return;
+            }
 
-        filterChain.doFilter(request, response);  // Tiếp tục chuỗi lọc
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            // Kiểm tra trước khi set authentication
+            System.out.println("🔹 Trước khi set authentication: " + SecurityContextHolder.getContext().getAuthentication());
+
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            // Kiểm tra sau khi set authentication
+            System.out.println("✅ Sau khi set authentication: " + SecurityContextHolder.getContext().getAuthentication());
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private boolean isAuthorized(List<String> roles, String requestURI) {
+        if (roles.contains("ROLE_ADMIN")) {
+            return true; // Admin truy cập mọi đường dẫn
+        }
+        if (roles.contains("ROLE_KHACHHANG") && requestURI.startsWith("/trendsetter")) {
+            return true; // Khách hàng chỉ được vào /trendsetter
+        }
+        if (roles.contains("ROLE_NHANVIEN")) {
+            return !(requestURI.startsWith("/admin/thong-ke") || requestURI.startsWith("/admin/quan-ly-tai-khoan"));
+        }
+        return false;
     }
 }

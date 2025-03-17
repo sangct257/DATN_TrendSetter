@@ -5,8 +5,12 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
@@ -17,63 +21,55 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // Tạo token cho người dùng với tên đăng nhập và vai trò
-    public String generateToken(String username, String role) {
+    public String generateToken(String username, List<String> roles) {
+        if (roles == null || roles.isEmpty()) {
+            roles = List.of("USER");
+        }
+
         return Jwts.builder()
                 .setSubject(username)
-                .claim("role", role)
+                .claim("roles", roles) // Lưu danh sách roles đúng định dạng
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // Lấy username từ token
+
     public String getUsernameFromToken(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+    public List<String> getRolesFromToken(String token) {
+        Object rolesObject = extractClaim(token, claims -> claims.get("roles"));
 
-    // Lấy role từ token
-    public String getRoleFromToken(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
+        if (rolesObject instanceof String) {
+            return Arrays.asList(((String) rolesObject).split(",")); // Chuyển từ String sang List<String>
+        } else if (rolesObject instanceof List<?>) {
+            return ((List<?>) rolesObject).stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList());
+        } else {
+            return new ArrayList<>();
+        }
     }
 
-    // Xác thực token có hợp lệ hay không
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
             return true;
-        } catch (ExpiredJwtException e) {
-            System.out.println("❌ Token đã hết hạn: " + e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            System.out.println("❌ Token không hỗ trợ: " + e.getMessage());
-        } catch (MalformedJwtException e) {
-            System.out.println("❌ Token không hợp lệ: " + e.getMessage());
-        } catch (SignatureException e) {
-            System.out.println("❌ Chữ ký không hợp lệ: " + e.getMessage());
         } catch (JwtException e) {
-            System.out.println("❌ Lỗi xác thực JWT: " + e.getMessage());
+            System.out.println("❌ JWT Error: " + e.getMessage());
+            return false;
         }
-        return false;
     }
 
-    // Kiểm tra xem token đã hết hạn hay chưa
-    private boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
-    }
-
-    // Trích xuất claim từ token
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    // Lấy tất cả các claim từ token
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
+        final Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+        return claimsResolver.apply(claims);
     }
 }
