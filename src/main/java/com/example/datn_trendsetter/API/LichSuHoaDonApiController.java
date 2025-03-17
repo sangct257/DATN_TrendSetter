@@ -36,6 +36,9 @@ public class LichSuHoaDonApiController {
     @Autowired
     private HoaDonChiTietService hoaDonChiTietService;
 
+    @Autowired
+    private PhieuGiamGiaRepository phieuGiamGiaRepository;
+    
     private ResponseEntity<Map<String, Object>> response(String message, boolean success) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", message);
@@ -114,8 +117,19 @@ public class LichSuHoaDonApiController {
         // Lấy danh sách chi tiết hóa đơn theo hoaDonId
         List<HoaDonChiTiet> danhSachChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
 
+        // Tìm hóa đơn theo ID
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
+                .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
+
         if (danhSachChiTiet.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("errorMessage", "Không tìm thấy chi tiết hóa đơn!"));
+        }
+
+        // Hoàn trả số lượt sử dụng của phiếu giảm giá nếu hóa đơn có sử dụng
+        if (hoaDon.getPhieuGiamGia() != null) {
+            PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+            phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
+            phieuGiamGiaRepository.save(phieuGiamGia);
         }
 
         // Hoàn trả lại số lượng sản phẩm

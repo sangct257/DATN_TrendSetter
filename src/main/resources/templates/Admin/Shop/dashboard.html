@@ -23,6 +23,10 @@
         opacity: 1;
         visibility: visible;
     }
+    .selected-hoa-don {
+        box-shadow: 0 0 10px 3px rgba(0, 123, 255, 0.7) !important; /* Viền sáng xanh */
+        border: 2px solid #007bff !important; /* Đường viền xanh */
+    }
 
 </style>
 <body class="hold-transition skin-blue sidebar-mini">
@@ -78,24 +82,23 @@
                         <div class="row g-4">
                             <th:block th:each="hoaDon, status : ${hoaDons}">
                                 <div class="col-12 col-sm-6 col-lg-4">
-                                    <div class="card border-primary shadow-sm position-relative rounded-3 overflow-hidden">
+                                    <div class="card border-primary shadow-sm position-relative rounded-3 overflow-hidden"
+                                         onclick="selectHoaDon(this)">
                                         <div class="position-absolute top-0 end-0 m-2">
                                             <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
-                                            <button type="button"
-                                                    class="btn btn-sm btn-danger d-flex align-items-center justify-content-center p-0"
+                                            <button type="button" class="btn btn-sm btn-danger d-flex align-items-center justify-content-center p-0"
                                                     style="width: 30px; height: 30px; border-radius: 50%;"
                                                     title="Xóa hóa đơn"
                                                     th:attr="onclick=|confirmDeleteHoaDon(this, '${hoaDon.id}')|">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
-                                        <!-- Nội dung hóa đơn -->
-                                        <form th:action="@{/admin/sell-counter}" method="GET" class="w-100">
+                                        <form th:action="@{/admin/sell-counter}" method="GET" class="w-100"
+                                              onsubmit="saveHoaDonId(this.querySelector('input[name=hoaDonId]').value)">
                                             <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                             <button type="submit" class="btn p-0 w-100 text-start">
                                                 <div class="card-header bg-primary text-white text-center py-3">
-                                                    <h6 class="mb-0 text-uppercase"># <span
-                                                            th:text="${hoaDon.maHoaDon}"></span></h6>
+                                                    <h6 class="mb-0 text-uppercase"># <span th:text="${hoaDon.maHoaDon}"></span></h6>
                                                 </div>
                                                 <div class="card-body text-center">
                                                     <p class="card-text text-muted">
@@ -108,7 +111,6 @@
                                                 </div>
                                             </button>
                                         </form>
-
                                     </div>
                                 </div>
                             </th:block>
@@ -604,10 +606,10 @@
                                                             <!-- Nội dung động sẽ hiển thị ở đây -->
                                                         </div>
 
-                                                        <button type="button" id="addPaymentMethodButton"
-                                                                class="btn btn-primary">
+                                                        <button type="button" id="addPaymentMethodButton" class="btn btn-primary">
                                                             Cập nhật
                                                         </button>
+
                                                     </form>
                                                 </div>
                                             </div>
@@ -690,7 +692,7 @@
                                 <div class="info mb-4">
                                     <span><i class="fas fa-box"></i> Phí Ship:</span>
                                     <span th:text="${hoaDon.phiShip != null ? (hoaDon.phiShip != 0 ? #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VND' : '0 VND') : '0 VND'}"></span>
-<!--                                    <span id="shippingFee">Đang tính...</span>-->
+                                    <!--<span id="shippingFee">Đang tính...</span>-->
                                 </div>
 
                                 <!-- Tiền hàng -->
@@ -815,8 +817,8 @@
 <!-- jQuery 3 -->
 
 <div th:replace="~{admin/fragments/script :: script}"></div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<div th:replace="~{admin/shop/script :: script}"></div>
+
+<script src="/js/shop.js"></script>
 
 
 </body>

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
+@RequestMapping("/admin")
 public class ShopApiController {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;

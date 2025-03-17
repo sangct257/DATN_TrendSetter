@@ -385,7 +385,7 @@
                                                                     th:text="${status.index+1}"></td>
                                                                 <td th:text="${lichSuHoaDon.hanhDong}"></td>
                                                                 <td th:text="${lichSuHoaDon.nhanVien?.hoTen ?: ''}"></td>
-                                                                <td th:text="${lichSuHoaDon.khachHang?.hoTen ?: ''}"></td>
+                                                                <td th:text="${lichSuHoaDon.khachHang != null ? lichSuHoaDon.khachHang.hoTen : lichSuHoaDon.hoaDon.nguoiNhan}"></td>
                                                                 <td class="text-center"
                                                                     th:text="${lichSuHoaDon.ngayTao}"></td>
                                                                 <td th:text="${lichSuHoaDon.ghiChu}"></td>
@@ -441,7 +441,8 @@
 
                                             </td>
                                             <td>
-                                                <button class="btn btn-success" th:if="${hoaDon.phuongThucThanhToan != null}">
+                                                <button class="btn btn-success"
+                                                        th:if="${hoaDon.phuongThucThanhToan != null}">
                                                     <span th:text="${hoaDon.phuongThucThanhToan.tenPhuongThuc}"></span>
                                                 </button>
 
@@ -490,7 +491,8 @@
                                                     <i class="fas fa-money-bill-wave me-2"></i>
                                                     <span class="me-auto fw-bold">Trả Sau:</span>
                                                     <div class="form-check form-switch">
-                                                        <input id="payLaterSwitch" class="form-check-input" type="checkbox"
+                                                        <input id="payLaterSwitch" class="form-check-input"
+                                                               type="checkbox"
                                                                th:data-hoa-don-id="${hoaDon.id}"
                                                                th:checked="${hoaDon.loaiGiaoDich == 'Trả Sau'}">
                                                     </div>
@@ -517,7 +519,8 @@
 
                                                     <div class="row">
                                                         <div class="col-md-6 mb-3">
-                                                            <input type="text" id="soNha" name="soNha" class="form-control"
+                                                            <input type="text" id="soNha" name="soNha"
+                                                                   class="form-control"
                                                                    th:value="${hoaDon.soNha}" placeholder="Số nhà">
                                                             <span class="text-danger" id="soNhaError"></span>
                                                         </div>
@@ -591,14 +594,14 @@
                                                 <label class="col-md-5 fw-bold">Trạng thái:</label>
                                                 <div class="col-md-3">
                                                     <span class="badge bg-primary border border-dark rounded p-2 w-100 text-center"
-                                                                th:text="${hoaDon.trangThai}"></span>
+                                                          th:text="${hoaDon.trangThai}"></span>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
                                                 <label class="col-md-5 fw-bold">Loại Hóa Đơn:</label>
                                                 <div class="col-md-3">
                                                     <span class="badge bg-secondary border border-dark rounded p-2 w-100 text-center"
-                                                            th:text="${hoaDon.loaiHoaDon}"></span>
+                                                          th:text="${hoaDon.loaiHoaDon}"></span>
                                                 </div>
                                             </div>
 
@@ -638,7 +641,7 @@
                                                 <label class="col-md-5 fw-bold">Thời gian dự kiến nhận:</label>
                                                 <div class="col-md-5">
                                                     <span class="badge bg-success p-2 w-100 text-center border border-dark"
-                                                            th:text="${hoaDon.thoiGianNhanDuKien}"></span>
+                                                          th:text="${hoaDon.thoiGianNhanDuKien}"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -646,7 +649,8 @@
                                         <!-- Ghi chú -->
                                         <div class="mt-3">
                                             <p><strong>Ghi chú: </strong>
-                                                <span class="badge bg-dark p-2 border border-light" th:text="${hoaDon.ghiChu}"></span>
+                                                <span class="badge bg-dark p-2 border border-light"
+                                                      th:text="${hoaDon.ghiChu}"></span>
                                             </p>
                                         </div>
                                     </div>
@@ -978,7 +982,9 @@
                                     <!-- Giảm Giá -->
                                     <div class="info mb-4">
                                         <span><i class="fas fa-percent"></i> Giảm giá:</span>
-                                        <span th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam + ' VNĐ' : '0 VNĐ'}"></span>
+                                        <span
+                                                th:text="${(hoaDon.phieuGiamGia == null or hoaDon.phieuGiamGia.giaTriGiam == null or hoaDon.phieuGiamGia.giaTriGiam == 0) ? '0 VND' : #numbers.formatInteger(hoaDon.phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VND'}">
+                                        </span>
                                     </div>
 
                                     <!-- Tổng Tiền -->
@@ -1002,14 +1008,16 @@
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="infoModalLabel">Cách tính Tổng tiền</h5>
+                                                        <h5 class="modal-title" id="infoModalLabel">Cách tính Tổng
+                                                            tiền</h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                                 aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <p>Công thức tính tổng tiền là:</p>
                                                         <ul>
-                                                            <li><strong>Tổng Thành Tiền</strong> - <strong>Giá trị phiếu giảm giá</strong> + <strong>Phí vận chuyển</strong></li>
+                                                            <li><strong>Tổng Thành Tiền</strong> - <strong>Giá trị phiếu
+                                                                giảm giá</strong> + <strong>Phí vận chuyển</strong></li>
                                                             <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
         #numbers.formatInteger(hoaDon.tongTien +
         (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0) -
@@ -1095,7 +1103,7 @@
 
         fetch(apiEndpoint, {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: `hoaDonId=${hoaDonId}`
         })
             .then(response => response.json())

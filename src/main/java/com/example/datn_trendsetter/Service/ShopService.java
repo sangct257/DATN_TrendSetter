@@ -160,6 +160,12 @@ public class ShopService {
             if (hoaDon.getPhieuGiamGia() != null) {
                 PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
                 phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
+
+                // Kiểm tra nếu số lượt sử dụng > 0 thì đặt trạng thái là Đang Hoạt Động
+                if (phieuGiamGia.getSoLuotSuDung() > 0) {
+                    phieuGiamGia.setTrangThai("Đang Hoạt Động");
+                }
+
                 phieuGiamGiaRepository.save(phieuGiamGia);
             }
 
@@ -202,6 +208,7 @@ public class ShopService {
         }
     }
 
+
     // Phương thức cập nhật tồn kho cho sản phẩm chính
     private void updateStockForProduct(SanPham sanPham) {
         if (sanPham == null) return; // Nếu sản phẩm chính bị null, không làm gì cả
@@ -225,65 +232,67 @@ public class ShopService {
         List<HoaDon> hoaDons = hoaDonRepository.findByTrangThai("Đang Xử Lý");
 
         // Đếm tổng số sản phẩm cho từng hóa đơn
-        for (HoaDon hoaDon : hoaDons) {
-            if (hoaDon.getHoaDonChiTiet() != null) { // Tránh NullPointerException
-                int tongSanPham = hoaDon.getHoaDonChiTiet()
-                        .stream()
-                        .mapToInt(HoaDonChiTiet::getSoLuong)
-                        .sum();
-                hoaDon.setTongSanPham(tongSanPham);
+        hoaDons.forEach(hoaDon -> {
+            if (hoaDon.getHoaDonChiTiet() != null) {
+                hoaDon.setTongSanPham(
+                        hoaDon.getHoaDonChiTiet().stream()
+                                .filter(Objects::nonNull) // Tránh null
+                                .mapToInt(HoaDonChiTiet::getSoLuong)
+                                .sum()
+                );
             }
-        }
+        });
+
         model.addAttribute("hoaDons", hoaDons);
 
-        // Nếu có hoaDonId, lấy chi tiết hóa đơn và sản phẩm
-        if (hoaDonId != null) {
-            HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
-            if (hoaDon == null) return; // Tránh lỗi nếu không tìm thấy hóa đơn
+        // Nếu không có hóa đơn ID, không cần xử lý tiếp
+        if (hoaDonId == null) return;
 
-            List<HoaDonChiTiet> hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
-            model.addAttribute("hoaDonChiTiet", hoaDonChiTiet);
-            model.addAttribute("hoaDon", hoaDon);
+        // Lấy hóa đơn từ DB
+        Optional<HoaDon> hoaDonOpt = hoaDonRepository.findById(hoaDonId);
+        if (hoaDonOpt.isEmpty()) return; // Nếu không tìm thấy hóa đơn, dừng lại
 
-            // Lấy sản phẩm chi tiết có trạng thái "Còn Hàng" và lọc theo hình ảnh duy nhất
-            List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
+        HoaDon hoaDon = hoaDonOpt.get();
+        model.addAttribute("hoaDon", hoaDon);
 
-            Set<String> seenImages = new HashSet<>();
-            List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
+        // Lấy chi tiết hóa đơn
+        List<HoaDonChiTiet> hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
+        model.addAttribute("hoaDonChiTiet", hoaDonChiTiet);
 
-            for (SanPhamChiTiet sp : allSanPhamChiTiet) {
-                List<HinhAnh> hinhAnhs = sp.getHinhAnh();
-                if (hinhAnhs != null && !hinhAnhs.isEmpty()) { // Tránh lỗi IndexOutOfBoundsException
-                    String imageUrl = hinhAnhs.get(0).getUrlHinhAnh();
-                    if (seenImages.add(imageUrl)) { // Chỉ thêm sản phẩm nếu ảnh chưa xuất hiện
-                        uniqueSanPhamChiTiet.add(sp);
-                    }
-                }
+        // Lấy danh sách sản phẩm có trạng thái "Còn Hàng"
+        List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
+
+        // Lọc sản phẩm theo hình ảnh duy nhất
+        Map<String, SanPhamChiTiet> uniqueSanPhamMap = new LinkedHashMap<>();
+        for (SanPhamChiTiet sp : allSanPhamChiTiet) {
+            List<HinhAnh> hinhAnhs = sp.getHinhAnh();
+            if (hinhAnhs != null && !hinhAnhs.isEmpty()) {
+                String imageUrl = hinhAnhs.get(0).getUrlHinhAnh();
+                uniqueSanPhamMap.putIfAbsent(imageUrl, sp); // Chỉ thêm nếu chưa có
             }
-
-            Collections.shuffle(uniqueSanPhamChiTiet);
-            model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
-
-            // Lấy danh sách khách hàng và phương thức thanh toán
-            Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
-            List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
-            model.addAttribute("khachHangs", khachHangs);
-            model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);
-
-
-            // Tính tổng thành tiền của hóa đơn chi tiết theo hoaDonId
-            Float tongThanhTien = hoaDonChiTietRepository.getTongThanhTienByHoaDonId(hoaDonId);
-
-            // Lọc danh sách phiếu giảm giá dựa trên tổng thành tiền
-            List<PhieuGiamGia> validPhieuGiamGia = (tongThanhTien != null)
-                    ? phieuGiamGiaRepository.findByDieuKienLessThanEqualAndTrangThaiAndDeletedFalse(tongThanhTien, "Đang Hoạt Động")
-                    : new ArrayList<>();
-
-
-            // Đưa danh sách phiếu giảm giá vào model
-            model.addAttribute("listPhieuGiamGia", validPhieuGiamGia);
-
         }
+
+        // Lấy danh sách sản phẩm duy nhất và trộn ngẫu nhiên
+        List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>(uniqueSanPhamMap.values());
+        Collections.shuffle(uniqueSanPhamChiTiet);
+        model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
+
+        // Lấy danh sách khách hàng và phương thức thanh toán
+        Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
+        List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
+
+        model.addAttribute("khachHangs", khachHangs);
+        model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);
+
+        // Tính tổng thành tiền của hóa đơn chi tiết
+        Float tongThanhTien = hoaDonChiTietRepository.getTongThanhTienByHoaDonId(hoaDonId);
+
+        // Lọc danh sách phiếu giảm giá nếu tổng tiền hợp lệ
+        List<PhieuGiamGia> validPhieuGiamGia = (tongThanhTien != null)
+                ? phieuGiamGiaRepository.findByDieuKienLessThanEqualAndTrangThaiAndDeletedFalse(tongThanhTien, "Đang Hoạt Động")
+                : Collections.emptyList();
+
+        model.addAttribute("listPhieuGiamGia", validPhieuGiamGia);
     }
 
     //     Thêm khách hàng vào hóa đơn
@@ -568,7 +577,9 @@ public class ShopService {
 
             // Nếu số lượt sử dụng > 0, giữ trạng thái bình thường, ngược lại đặt thành "Ngừng Hoạt Động"
             if (phieuGiamGiaCu.getSoLuotSuDung() > 0) {
-                phieuGiamGiaCu.setTrangThai("Hoạt Động");
+                phieuGiamGiaCu.setTrangThai("Đang Hoạt Động");
+            } else {
+                phieuGiamGiaCu.setTrangThai("Ngừng Hoạt Động");
             }
 
             phieuGiamGiaRepository.save(phieuGiamGiaCu);
@@ -577,6 +588,12 @@ public class ShopService {
         // Tìm phiếu giảm giá mới
         PhieuGiamGia phieuGiamGiaMoi = phieuGiamGiaRepository.findByTenPhieuGiamGia(tenPhieuGiamGia)
                 .orElseThrow(() -> new RuntimeException("Phiếu giảm giá không hợp lệ"));
+
+        if (phieuGiamGiaMoi.getSoLuotSuDung() <= 0) {
+            phieuGiamGiaMoi.setTrangThai("Ngừng Hoạt Động");
+            phieuGiamGiaRepository.save(phieuGiamGiaMoi);
+            throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng và không thể áp dụng.");
+        }
 
         LocalDate now = LocalDate.now();
         if (phieuGiamGiaMoi.getNgayBatDau().isAfter(now)) {
@@ -591,9 +608,6 @@ public class ShopService {
         if ("Giao Hàng".equalsIgnoreCase(phieuGiamGiaMoi.getLoaiApDung()) &&
                 !"Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
             throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
-        }
-        if (phieuGiamGiaMoi.getSoLuotSuDung() <= 0) {
-            throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng.");
         }
 
         // Trừ lượt sử dụng của phiếu giảm giá mới ngay khi áp dụng
@@ -618,8 +632,6 @@ public class ShopService {
 
         return "Phiếu giảm giá đã được áp dụng! Lượt sử dụng đã bị trừ.";
     }
-
-
 
 
     public String confirmPayment(Integer hoaDonId, RedirectAttributes redirectAttributes) {
