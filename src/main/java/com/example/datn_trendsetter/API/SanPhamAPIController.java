@@ -120,9 +120,13 @@ public class SanPhamAPIController {
                 if (!exists) {
                     SanPhamChiTiet chiTiet = new SanPhamChiTiet();
                     chiTiet.setSanPham(sanPham);
+                    chiTiet.setSoLuong(1);
+                    chiTiet.setGia(100000F);
+                    chiTiet.setTrangThai(chiTiet.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
                     chiTiet.setMauSac(mauSacRepository.findById(mauSacId).orElse(null));
                     chiTiet.setKichThuoc(kichThuocRepository.findById(kichThuocId).orElse(null));
                     sanPhamChiTietRepository.save(chiTiet);
+                    capNhatSoLuongTonKhoSanPham(chiTiet.getSanPham());
                 }
             }
         }
@@ -182,7 +186,7 @@ public class SanPhamAPIController {
                 .sum();
 
         sanPham.setSoLuong(tongSoLuong);
-        sanPham.setTrangThai(tongSoLuong > 0 ? "Đang Hoạt Động" : "Không Hoạt Động");
+        sanPham.setTrangThai(tongSoLuong > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
         sanPhamRepository.save(sanPham);
     }
 

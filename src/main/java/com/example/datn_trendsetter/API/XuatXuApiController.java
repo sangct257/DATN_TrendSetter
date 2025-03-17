@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.API;
 
 
 import com.example.datn_trendsetter.Entity.MauSac;
+import com.example.datn_trendsetter.Entity.ThuongHieu;
 import com.example.datn_trendsetter.Entity.XuatXu;
 import com.example.datn_trendsetter.Repository.XuatXuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ public class XuatXuApiController {
     }
 
 
-    @PostMapping("update")
+    @PutMapping("update")
     public ResponseEntity<String> update(@RequestBody XuatXu updatedXuatXu) {
         XuatXu xuatXu = xuatXuRepository.findById(updatedXuatXu.getId()).orElse(null);
         if (xuatXu != null) {

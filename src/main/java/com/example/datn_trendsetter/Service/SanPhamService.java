@@ -41,10 +41,8 @@ public class SanPhamService {
     @Transactional
     public synchronized ResponseEntity<?> addSanPham(SanPhamDTO sanPhamDTO) {
         try {
-            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPhamAndDanhMucIdAndThuongHieuId(
-                    sanPhamDTO.getTenSanPham(),
-                    sanPhamDTO.getDanhMucId(),
-                    sanPhamDTO.getThuongHieuId()
+            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPham(
+                    sanPhamDTO.getTenSanPham()
             );
 
             if (existingSanPhamOpt.isPresent()) {
@@ -106,10 +104,8 @@ public class SanPhamService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sản phẩm không tồn tại!"));
 
             // Kiểm tra trùng lặp sản phẩm
-            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPhamAndDanhMucIdAndThuongHieuId(
-                    sanPhamDTO.getTenSanPham(),
-                    sanPhamDTO.getDanhMucId(),
-                    sanPhamDTO.getThuongHieuId()
+            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPham(
+                    sanPhamDTO.getTenSanPham()
             );
 
             if (existingSanPhamOpt.isPresent() && !existingSanPhamOpt.get().getId().equals(id)) {
@@ -122,7 +118,7 @@ public class SanPhamService {
 
             if (sanPhamDTO.getSoLuong() != null) {
                 sanPham.setSoLuong(sanPhamDTO.getSoLuong());
-                sanPham.setTrangThai(sanPhamDTO.getSoLuong() > 0 ? "Đang Hoạt Động" : "Không Hoạt Động");
+                sanPham.setTrangThai(sanPhamDTO.getSoLuong() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
             }
 
             sanPham.setNgaySua(LocalDate.now());

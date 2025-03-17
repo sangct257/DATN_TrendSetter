@@ -42,6 +42,10 @@
                                         Tất Cả (<span id="count-all">0</span>)
                                     </button>
                                     <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Đang Xử Lý">
+                                        Đang Xử Lý (<span id="count-processing">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
                                             data-status="Chờ Xác Nhận">
                                         Chờ Xác Nhận (<span id="count-waiting">0</span>)
                                     </button>
@@ -60,10 +64,6 @@
                                     <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
                                             data-status="Đã Hoàn Thành">
                                         Đã Hoàn Thành (<span id="count-completed">0</span>)
-                                    </button>
-                                    <button class="btn btn-outline-warning filter-btn px-2 py-1 fw-bold border border-warning rounded-pill"
-                                            data-status="Hoàn Trả">
-                                        Hoàn Trả (<span id="count-returned">0</span>)
                                     </button>
                                     <button class="btn btn-outline-danger filter-btn px-2 py-1 fw-bold border border-danger rounded-pill"
                                             data-status="Đã Hủy">
@@ -274,12 +274,12 @@
                 .then(response => response.json())
                 .then(counts => {
                     document.getElementById("count-all").innerText = counts["Tất Cả"] || 0;
+                    document.getElementById("count-processing").innerText = counts["Đang Xử Lý"] || 0;
                     document.getElementById("count-waiting").innerText = counts["Chờ Xác Nhận"] || 0;
                     document.getElementById("count-confirmed").innerText = counts["Đã Xác Nhận"] || 0;
                     document.getElementById("count-shipping").innerText = counts["Chờ Vận Chuyển"] || 0;
                     document.getElementById("count-paid").innerText = counts["Đã Thanh Toán"] || 0;
                     document.getElementById("count-completed").innerText = counts["Đã Hoàn Thành"] || 0;
-                    document.getElementById("count-returned").innerText = counts["Hoàn Trả"] || 0;
                     document.getElementById("count-canceled").innerText = counts["Đã Hủy"] || 0;
                 })
                 .catch(error => console.error("Lỗi:", error));
