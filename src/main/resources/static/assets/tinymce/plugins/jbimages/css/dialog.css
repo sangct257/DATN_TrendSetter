@@ -38,7 +38,7 @@ h2 {color:#666;}
 
 #close_link {margin-top:10px; display:none;} /* for opera */
 
-/* this class makes the upload script output visible */
+/* this class makes the upload script.html output visible */
 .upload_target_visible {width:100%!important; height:200px!important; border:1px solid #000!important; display:block!important}
 
 /* sweet upload button (from twitter bootstrap) */

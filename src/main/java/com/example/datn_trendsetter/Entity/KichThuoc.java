@@ -19,6 +19,10 @@ public class KichThuoc {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+
+    @Column(name = "ma_kich_thuoc",columnDefinition = "NVARCHAR(255)")
+    private String maKichThuoc;
+
     @Column(name = "ten_kich_thuoc",columnDefinition = "NVARCHAR(255)")
     private String tenKichThuoc;
 

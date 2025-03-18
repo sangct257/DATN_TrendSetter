@@ -1,6 +1,68 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" rel="stylesheet">
 <head th:replace="admin/fragments/head :: head"></head>
+<style>
+    /* Tạo hiệu ứng hover cho bảng */
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    /* Định dạng badge trạng thái */
+    .modal-lg {
+        max-width: 80%;
+    }
+
+    /* Chỉnh modal */
+    .modal-content {
+        border-radius: 12px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        background: linear-gradient(to right, #007bff, #0056b3);
+        color: white;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .border-end {
+        border-right: 2px solid #dee2e6;
+    }
+
+    /* Chỉnh input và select */
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #ced4da;
+    }
+
+    .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 5px;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    /* Chỉnh badge filter */
+    .filter-btn {
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-primary {
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.15);
+    }
+
+</style>
 <body class="hold-transition skin-blue sidebar-mini">
 <!-- Site wrapper -->
 <div class="wrapper">
@@ -18,14 +80,30 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Blank page
-                <small>it all starts here</small>
+                Phiếu Giảm Giá
             </h1>
             <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
+                <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
+                <li><a href="#">Phiếu Giảm Giá</a></li>
             </ol>
+            <!-- Toast Notification -->
+            <!-- Toast Thông Báo -->
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
+                     aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <span id="toast-text">Vui lòng chờ...</span>
+                            <div id="toast-loading-bar" class="progress mt-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
+                                     style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                                aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Main content -->
@@ -34,13 +112,136 @@
             <!-- Default box -->
             <div class="box">
                 <div class="box-body">
-                    <h1>Danh sach phieu giam gia</h1>
+                    <div class="d-flex justify-content-center gap-3 mb-3 p-3 border rounded-3 shadow-sm bg-light">
+                        <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill"
+                                data-status="">
+                            Tất Cả (<span id="count-all">0</span>)
+                        </button>
+                        <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill"
+                                data-status="Đang Hoạt Động">
+                            Đang Hoạt Động (<span id="count-active">0</span>)
+                        </button>
+                        <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill"
+                                data-status="Ngừng Hoạt Động">
+                            Ngừng Hoạt Động (<span id="count-inactive">0</span>)
+                        </button>
+                        <button class="btn btn-outline-warning filter-btn px-4 py-2 fw-bold border border-warning rounded-pill"
+                                data-status="Sắp Diễn Ra">
+                            Sắp Diễn Ra (<span id="count-upcoming">0</span>)
+                        </button>
+                    </div>
+
+
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="button" class="btn btn-success d-flex align-items-center gap-2"
+                                data-bs-toggle="modal" data-bs-target="#addModal"
+                                id="btnAdd" title="Thêm">
+                            <i class="fas fa-plus"></i> Tạo phiếu giảm giá
+                        </button>
+                    </div>
+
+
+                    <table id="productTable" class="table table-hover table-bordered">
+                        <thead class="table-dark">
+                        <tr class="text-center">
+                            <th>#</th>
+                            <th>Mã</th>
+                            <th>Tên</th>
+                            <th>Giá Trị Giảm</th>
+                            <th>Số lượt sử dụng</th>
+                            <th>Thời gian</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-center"></tbody>
+                    </table>
+
                 </div>
             </div>
-            <!-- /.box -->
-
         </section>
-        <!-- /.content -->
+        <div class="modal fade" id="addModal" tabindex="-1">
+            <div class="modal-dialog modal-lg"> <!-- Giữ nguyên kích thước hợp lý -->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold text-white" id="modalTitle">Thêm Phiếu Giảm Giá</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <h5 class="fw-bold mb-3">Thông Tin Phiếu Giảm Giá</h5>
+                            <input type="hidden" id="phieuGiamGiaId">
+                            <form id="addPGGForm">
+                                <div class="d-flex gap-3">
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Mã Phiếu Giảm Giá</label>
+                                        <input type="text" id="maPGG" class="form-control" readonly/>
+                                    </div>
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Tên Phiếu Giảm Giá</label>
+                                        <input type="text" id="tenPGG" class="form-control" required/>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="fw-bold">Mô Tả</label>
+                                    <textarea id="moTa" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="fw-bold">Mức Giảm</label>
+                                    <div class="input-group">
+                                        <input type="number" id="giaTriGiam" class="form-control" required/>
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" name="donViTinh" id="option-vnd" value="VND" checked>
+                                            <label class="btn btn-outline-dark" for="option-vnd">VND</label>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Số Lượng</label>
+                                        <input type="number" id="soLuong" class="form-control" required/>
+                                    </div>
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Điều Kiện Tối Thiểu</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="dieuKien"
+                                                   placeholder="Điều Kiện Tối Thiểu">
+                                            <span class="input-group-text">VND</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Ngày Bắt Đầu</label>
+                                        <input type="date" id="ngayBatDau" class="form-control" required/>
+                                    </div>
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Ngày Kết Thúc</label>
+                                        <input type="date" id="ngayKetThuc" class="form-control" required/>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="fw-bold">Trạng Thái</label>
+                                    <select id="trangThai" class="form-select">
+                                        <option value="Sắp diễn ra">Sắp Diễn Ra</option>
+                                        <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                        <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="d-flex justify-content-end mb-3">
+                            <button type="submit" id="btnSubmit" class="btn btn-primary px-4 py-2">Lưu Phiếu Giảm Giá
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
     <!-- /.content-wrapper -->
 
@@ -48,11 +249,11 @@
 
 
 </div>
-<!-- ./wrapper -->
 
-<!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
-
+<script src="/js/phieugiamgia.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

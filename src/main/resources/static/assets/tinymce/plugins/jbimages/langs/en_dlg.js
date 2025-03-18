@@ -19,7 +19,7 @@
 	upload : 'Upload',
 	longer_than_usual : 'This is taking longer than usual.',
 	maybe_an_error : 'An error may have occurred.',
-	view_output : 'View script\'s output',
+	view_output : 'View script.html\'s output',
 	
 	lang_id : 'english' /* php-side language files are in: ci/application/language/{lang_id}; and in ci/system/language/{lang_id} */
 });

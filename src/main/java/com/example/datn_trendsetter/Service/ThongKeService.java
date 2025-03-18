@@ -109,7 +109,7 @@ public class ThongKeService {
 
     // Lấy tổng số sản phẩm theo ngày, tháng, năm
     public Map<String, Integer> getTotalProductsByDateMonthYear() {
-        List<Object[]> results = hoaDonChiTietRepository.getTotalProductsByDateMonthYear();
+        List<Object[]> results = hoaDonChiTietRepository.getTotalProductsByDateMonthYear("Đã Hoàn Thành");
         Map<String, Integer> totalProductsByDateMonthYear = new LinkedHashMap<>();
 
         for (Object[] result : results) {
@@ -126,7 +126,7 @@ public class ThongKeService {
 
     // Lấy tổng số hóa đơn theo ngày, tháng, năm
     public Map<String, Integer> getInvoiceCountByDateMonthYear() {
-        List<Object[]> results = hoaDonRepository.getInvoiceCountByDateMonthYear();
+        List<Object[]> results = hoaDonRepository.getInvoiceCountByDateMonthYear("Đã Hoàn Thành");
         Map<String, Integer> invoiceCountByDateMonthYear = new LinkedHashMap<>();
 
         for (Object[] result : results) {

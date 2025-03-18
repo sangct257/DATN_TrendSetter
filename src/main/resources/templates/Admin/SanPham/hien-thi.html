@@ -17,76 +17,86 @@
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <section class="content-header">
-            <h1 style="color: #333;">Quản lý Sản Phẩm</h1>
-            <ol class="breadcrumb" style="background-color: #fff; padding: 10px; border-radius: 5px;">
-                <li><a href="#" style="color: #007bff;"><i class="fa fa-dashboard"></i><a href="/admin">Home</a></a>
-                </li>
-                <li class="active">Danh sách sản phẩm</li>
+            <h1>
+                <h5 class="fw-bold">Danh Sách Sản Phẩm</h5>
+            </h1>
+            <ol class="breadcrumb">
+                <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
+                <li><a href="#">Danh Sách Sản Phẩm</a></li>
             </ol>
         </section>
 
         <!-- Main content -->
-        <div class="box-body">
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                <i class="fas fa-box"></i> Thêm Sản Phẩm
-            </button>
-        </div>
+        <section class="content">
 
-        <!-- Bảng hiển thị danh sách sản phẩm -->
-        <div class="box-body mt-3">
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Tên Sản Phẩm</th>
-                    <th>Số Lượng</th>
-                    <th>Mô Tả</th>
-                    <th>Thương Hiệu</th>
-                    <th>Xuất Xứ</th>
-                    <th>Chọn</th>
-                </tr>
-                </thead>
-                <tbody id="productTableBody">  <tr th:each="sanPham, status : ${sanPhamList}">
-                    <td th:text="${status.index + 1}"></td>
-                    <td th:text="${sanPham.tenSanPham}"></td>
-                    <td th:text="${sanPham.soLuong}"></td>
-                    <td th:text="${sanPham.moTa ?: 'Không có mô tả'}"></td>
-                    <td th:text="${sanPham.thuongHieu?.tenThuongHieu ?: 'Không có'}"></td>
-                    <td th:text="${sanPham.xuatXu?.tenXuatXu ?: 'Không có'}"></td>
-                    <td>
-                        <form onsubmit="event.preventDefault(); addProductToInvoice(this)">
-                            <input type="hidden" name="sanPhamId" th:value="${sanPham.id}">
-                            <button type="submit" class="btn btn-primary">Chọn</button>
-                        </form>
-                    </td>
-                </tr></tbody>
-            </table>
-        </div>
-
-        <!-- Modal Thêm Sản Phẩm -->
-        <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addProductModalLabel">Thêm Sản Phẩm</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="addProductForm" method="post">
-                            <div class="mb-3">
-                                <label for="productName" class="form-label">Tên Sản Phẩm</label>
-                                <input type="text" class="form-control" id="productName" name="tenSanPham" required>
+            <!-- Default box -->
+            <div class="box">
+                <div class="box-body">
+                    <section class="content">
+                        <div class="box-body">
+                            <div class="d-flex justify-content-center gap-3 mb-3 p-3 border rounded-3 shadow-sm bg-light">
+                                <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill" data-status="">
+                                    Tất Cả (<span id="count-all">0</span>)
+                                </button>
+                                <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill" data-status="Đang Hoạt Động">
+                                    Đang Hoạt Động (<span id="count-active">0</span>)
+                                </button>
+                                <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill" data-status="Ngừng Hoạt Động">
+                                    Ngừng Hoạt Động (<span id="count-inactive">0</span>)
+                                </button>
                             </div>
-                            <button type="submit" class="btn btn-success">Lưu</button>
-                        </form>
 
-                    </div>
+                            <div class="d-flex justify-content-end mb-3">
+                                <form th:action="@{/admin/add-san-pham}" method="get">
+                                    <button type="submit" class="btn btn-success fw-bold">
+                                        <i class="bi bi-plus-lg"></i> Thêm Sản Phẩm
+                                    </button>
+                                </form>
+
+                            </div>
+
+                            <table id="productTable" class="table table-striped table-bordered">
+                                <thead class="table-dark">
+                                <tr class="text-center">
+                                    <th>#</th>
+                                    <th>Mã Sản Phẩm</th>
+                                    <th>Tên Sản Phẩm</th>
+                                    <th>Số Lượng</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                <tr th:each="sanPham, i : ${sanPham}" class="text-center">
+                                    <td th:text="${i.index + 1}"></td>
+                                    <td th:text="${sanPham.maSanPham}"></td>
+                                    <td th:text="${sanPham.tenSanPham}"></td>
+                                    <td class="fw-bold text-danger" th:text="${#numbers.formatInteger(sanPham.soLuong, 0, 'DEFAULT') ?: 0}"></td>
+                                    <td>
+                                        <button class="badge" th:classappend="${sanPham.trangThai == 'Đang Hoạt Động'} ? 'bg-success' : 'bg-danger'"
+                                                th:attr="data-id=${sanPham.id}">
+                                            <span th:text="${sanPham.trangThai}"></span>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/admin/detail-san-pham(sanPhamId=${sanPham.id})}" class="btn btn-primary btn-sm fw-bold me-2">
+                                            <i class="bi bi-eye"></i> Chi Tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </section>
                 </div>
             </div>
-        </div>
-</div>
+            <!-- /.box -->
 
-        <!-- /.content-wrapper -->
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
 
     <div th:replace="admin/fragments/footer :: footer"></div>
 
@@ -97,58 +107,118 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
-<script>
-    document.getElementById("addProductForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-
-        let formData = {
-            tenSanPham: document.getElementById("productName").value,
-        };
-
-        fetch("/api/san-pham/add", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData)
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => { throw new Error(text); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                let newRow = `<tr>
-            <td>#</td>
-            <td>${data.tenSanPham}</td>
-
-            <td><button class="btn btn-primary">Chọn</button></td>
-        </tr>`;
-
-                document.getElementById("productTableBody").insertAdjacentHTML("beforeend", newRow);
-                document.getElementById("addProductForm").reset();
-                new bootstrap.Modal(document.getElementById("addProductModal")).hide();
-            })
-            .catch(error => {
-                console.error("Lỗi khi thêm sản phẩm:", error);
-                alert("Lỗi: " + error.message);
-            });
-    });
-</script>
-
-
 
 <script>
-    $(document).ready(function () {
-        $('#productTable').DataTable({
+    document.addEventListener("DOMContentLoaded", function () {
+        let table = $("#productTable").DataTable({
             "paging": true,
             "lengthMenu": [5, 10, 20],
             "pageLength": 5,
             "autoWidth": false,
-            "responsive": true
+            "responsive": true,
+            "destroy": true,
+            "language": {
+                "sProcessing": "Đang xử lý...",
+                "sLengthMenu": "Hiển thị _MENU_ dòng",
+                "sZeroRecords": "Không tìm thấy dữ liệu",
+                "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+                "sInfoEmpty": "Không có dữ liệu để hiển thị",
+                "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+                "sSearch": "Tìm kiếm:",
+                "oPaginate": {
+                    "sFirst": "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext": "Tiếp",
+                    "sLast": "Cuối"
+                }
+            }
         });
+
+        loadSanPham(""); // Load tất cả sản phẩm ban đầu
+        loadCount();
+
+        document.querySelectorAll(".filter-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let trangThai = this.getAttribute("data-status");
+                loadSanPham(trangThai);
+            });
+        });
+
+        function loadSanPham(trangThai) {
+            fetch(`/api/san-pham/list?trangThai=${encodeURIComponent(trangThai)}`)
+                .then(response => response.json())
+                .then(data => {
+                    table.clear().draw();
+
+                    data.forEach((sanPham, index) => {
+                        table.row.add([
+                            index + 1,
+                            sanPham.maSanPham,
+                            sanPham.tenSanPham,
+                            `<span class="fw-bold text-danger">${sanPham.soLuong != null ? sanPham.soLuong : 0}</span>`,
+                            `<button class="badge ${sanPham.trangThai === 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'} btn-status"
+                     data-id="${sanPham.id}">
+                    ${sanPham.trangThai}
+                </button>`,
+                            `<a href="/admin/detail-san-pham?sanPhamId=${sanPham.id}" class="btn btn-primary btn-sm fw-bold me-2">
+                    <i class="bi bi-eye"></i> Chi Tiết
+                </a>`
+                        ]).draw(false);
+                    });
+
+                    document.querySelectorAll(".btn-status").forEach(button => {
+                        button.addEventListener("click", function () {
+                            const sanPhamId = this.getAttribute("data-id");
+
+                            Swal.fire({
+                                title: "Xác nhận thay đổi trạng thái?",
+                                text: "Bạn có chắc muốn cập nhật trạng thái sản phẩm này?",
+                                icon: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#3085d6",
+                                cancelButtonColor: "#d33",
+                                confirmButtonText: "Có, cập nhật!",
+                                cancelButtonText: "Hủy"
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    fetch(`/api/san-pham/toggle-status/${sanPhamId}`, { method: "PUT" })
+                                        .then(response => response.json()
+                                            .then(data => ({
+                                                status: response.status,
+                                                message: data.error || data.message || "Có lỗi xảy ra!"
+                                            })))
+                                        .then(({ status, message }) => {
+                                            if (status === 200) {
+                                                Swal.fire("Thành công!", "Trạng thái sản phẩm đã được cập nhật.", "success");
+                                                loadSanPham(trangThai);
+                                                loadCount();
+                                            } else {
+                                                Swal.fire("Lỗi!", message, "error");
+                                            }
+                                        })
+                                        .catch(error => {
+                                            Swal.fire("Lỗi hệ thống!", error.message, "error");
+                                        });
+                                }
+                            });
+                        });
+                    });
+                })
+                .catch(error => console.error("Lỗi:", error));
+        }
+
+        function loadCount() {
+            fetch("/api/san-pham/count")
+                .then(response => response.json())
+                .then(counts => {
+                    document.getElementById("count-all").innerText = counts["Tất Cả"];
+                    document.getElementById("count-active").innerText = counts["Đang Hoạt Động"];
+                    document.getElementById("count-inactive").innerText = counts["Ngừng Hoạt Động"];
+                })
+                .catch(error => console.error("Lỗi:", error));
+        }
     });
 </script>
-
 
 </body>
 </html>

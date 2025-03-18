@@ -1,9 +1,8 @@
 package com.example.datn_trendsetter.API;
 
-import com.example.datn_trendsetter.Entity.HoaDon;
-import com.example.datn_trendsetter.Entity.LichSuHoaDon;
-import com.example.datn_trendsetter.Repository.HoaDonRepository;
-import com.example.datn_trendsetter.Repository.LichSuHoaDonRepository;
+import com.example.datn_trendsetter.Entity.*;
+import com.example.datn_trendsetter.Repository.*;
+import com.example.datn_trendsetter.Service.HoaDonChiTietService;
 import com.example.datn_trendsetter.Service.LichSuHoaDonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,6 +27,18 @@ public class LichSuHoaDonApiController {
     @Autowired
     private HoaDonRepository hoaDonRepository;
 
+    @Autowired
+    private HoaDonChiTietRepository hoaDonChiTietRepository;
+
+    @Autowired
+    private SanPhamChiTietRepository sanPhamChiTietRepository;
+
+    @Autowired
+    private HoaDonChiTietService hoaDonChiTietService;
+
+    @Autowired
+    private PhieuGiamGiaRepository phieuGiamGiaRepository;
+    
     private ResponseEntity<Map<String, Object>> response(String message, boolean success) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", message);
@@ -50,6 +62,7 @@ public class LichSuHoaDonApiController {
         LichSuHoaDon lichSu = new LichSuHoaDon();
         lichSu.setHoaDon(hoaDon);
         lichSu.setHanhDong(hanhDong);
+        lichSu.setKhachHang(hoaDon.getKhachHang());
         lichSu.setNgayTao(LocalDateTime.now());
         lichSu.setNguoiTao(hoaDon.getNguoiTao());
         lichSu.setGhiChu(ghiChu);
@@ -64,16 +77,6 @@ public class LichSuHoaDonApiController {
     @PostMapping("/van-chuyen")
     public ResponseEntity<?> vanChuyen(@RequestParam("hoaDonId") Integer hoaDonId) {
         return thayDoiTrangThaiHoaDon(hoaDonId, "Chờ Vận Chuyển", "Hóa đơn đang vận chuyển");
-    }
-
-    @PostMapping("/giao-hang")
-    public ResponseEntity<?> giaoHang(@RequestParam("hoaDonId") Integer hoaDonId) {
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Đang Giao Hàng", "Hóa đơn đang giao hàng");
-    }
-
-    @PostMapping("/xac-nhan-giao-hang")
-    public ResponseEntity<?> xacNhanGiaoHang(@RequestParam("hoaDonId") Integer hoaDonId) {
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Giao Hàng", "Hóa đơn đã giao hàng");
     }
 
     @PostMapping("/xac-nhan-thanh-toan")
@@ -111,7 +114,39 @@ public class LichSuHoaDonApiController {
 
     @PostMapping("/huy")
     public ResponseEntity<?> huy(@RequestParam("hoaDonId") Integer hoaDonId) {
+        // Lấy danh sách chi tiết hóa đơn theo hoaDonId
+        List<HoaDonChiTiet> danhSachChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
+
+        // Tìm hóa đơn theo ID
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
+                .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
+
+        if (danhSachChiTiet.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("errorMessage", "Không tìm thấy chi tiết hóa đơn!"));
+        }
+
+        // Hoàn trả số lượt sử dụng của phiếu giảm giá nếu hóa đơn có sử dụng
+        if (hoaDon.getPhieuGiamGia() != null) {
+            PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+            phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
+            phieuGiamGiaRepository.save(phieuGiamGia);
+        }
+
+        // Hoàn trả lại số lượng sản phẩm
+        for (HoaDonChiTiet hoaDonChiTiet : danhSachChiTiet) {
+            SanPhamChiTiet sanPhamChiTiet = hoaDonChiTiet.getSanPhamChiTiet();
+            if (sanPhamChiTiet != null) {
+                sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() + hoaDonChiTiet.getSoLuong());
+                sanPhamChiTietRepository.save(sanPhamChiTiet);
+
+                // Cập nhật số lượng sản phẩm chính
+                hoaDonChiTietService.updateStockForProduct(sanPhamChiTiet.getSanPham());
+            }
+        }
+
+        // Đổi trạng thái hóa đơn thành "Đã Hủy"
         return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Hủy", "Hóa đơn đã bị hủy");
     }
+
 
 }

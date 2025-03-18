@@ -1,7 +1,5 @@
 package com.example.datn_trendsetter.Entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +21,9 @@ public class SanPham {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ma_san_pham",columnDefinition = "NVARCHAR(255)")
+    private String maSanPham;
+
     @Column(name = "ten_san_pham",columnDefinition = "NVARCHAR(255)")
     private String tenSanPham;
 
@@ -34,16 +35,14 @@ public class SanPham {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_thuong_hieu", referencedColumnName = "id")
-    @JsonBackReference
     private ThuongHieu thuongHieu;
-
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_xuat_xu", referencedColumnName = "id")
     private XuatXu xuatXu;
 
-    @ManyToOne
-    @JoinColumn(name = "id_danh_muc",referencedColumnName = "id")
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_danh_muc", referencedColumnName = "id")
     private DanhMuc danhMuc;
 
     @ManyToOne
@@ -68,9 +67,8 @@ public class SanPham {
     @Column(name = "deleted")
     private Boolean deleted;
 
-    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnoreProperties("sanPham") // Tránh vòng lặp JSON
-    private List<SanPhamChiTiet> chiTietSanPhams;
-
+    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<SanPhamChiTiet> sanPhamChiTiet;
 
 }
