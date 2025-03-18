@@ -21,5 +21,11 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integ
 
     Optional<PhieuGiamGia> findByTenPhieuGiamGia(String tenPhieuGiamGia);
 
-    Page<PhieuGiamGia> findByDeletedFalse(Pageable pageable);
+    List<PhieuGiamGia> findByDeletedFalse(String trangThai ,Sort sort);
+
+    List<PhieuGiamGia> findByDeletedFalse(Sort sort);
+
+    Integer countByTrangThai(String trangThai);
+
+    List<PhieuGiamGia> findByDeletedFalseAndTrangThai(String trangThai, Sort sort);
 }

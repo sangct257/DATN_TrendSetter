@@ -3,16 +3,15 @@ package com.example.datn_trendsetter.Service;
 import com.example.datn_trendsetter.DTO.PhieuGiamGiaDTO;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
-import com.example.datn_trendsetter.Entity.PhieuGiamGiaChiTiet;
+import com.example.datn_trendsetter.Entity.SanPham;
 import com.example.datn_trendsetter.Repository.KhachHangRepository;
-import com.example.datn_trendsetter.Repository.PhieuGiamGiaChiTietRepository;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
-import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,16 +26,22 @@ import java.util.stream.Collectors;
 public class PhieuGiamGiaService {
     @Autowired
     private PhieuGiamGiaRepository phieuGiamGiaRepository;
-    @Autowired
-    private KhachHangRepository khachHangRepository;
 
-    @Autowired
-    private PhieuGiamGiaChiTietRepository phieuGiamGiaChiTietRepository;
 
     @Transactional
-    public Page<PhieuGiamGiaDTO> getAllPhieuGiamGia(Pageable pageable) {
-        return phieuGiamGiaRepository.findByDeletedFalse(pageable)
-                .map(this::convertToDTO);
+    public List<PhieuGiamGiaDTO> getPhieuGiamGiaByTrangThai(String trangThai) {
+        return phieuGiamGiaRepository.findByDeletedFalseAndTrangThai(trangThai, Sort.by(Sort.Direction.DESC, "id"))
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<PhieuGiamGiaDTO> getAllPhieuGiamGia() {
+        return phieuGiamGiaRepository.findByDeletedFalse(Sort.by(Sort.Direction.DESC,"id"))
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     private PhieuGiamGiaDTO convertToDTO(PhieuGiamGia entity) {
@@ -58,12 +63,7 @@ public class PhieuGiamGiaService {
         );
     }
 
-    public PhieuGiamGia addPhieuGiamGiaForMultipleCustomers(PhieuGiamGiaDTO dto, List<Integer> khachHangIds) {
-        List<KhachHang> khachHangs = khachHangRepository.findAllById(khachHangIds);
-        if (khachHangs.isEmpty()) {
-            throw new RuntimeException("Không tìm thấy khách hàng nào phù hợp");
-        }
-
+    public PhieuGiamGia addPhieuGiamGiaForMultipleCustomers(PhieuGiamGiaDTO dto) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         PhieuGiamGia phieuGiamGia = new PhieuGiamGia();
@@ -87,17 +87,6 @@ public class PhieuGiamGiaService {
 
         phieuGiamGia = phieuGiamGiaRepository.save(phieuGiamGia);
 
-        List<PhieuGiamGiaChiTiet> chiTietList = new ArrayList<>();
-        for (KhachHang khachHang : khachHangs) {
-            PhieuGiamGiaChiTiet chiTiet = new PhieuGiamGiaChiTiet();
-            chiTiet.setKhachHang(khachHang);
-            chiTiet.setPhieuGiamGia(phieuGiamGia);
-            chiTiet.setSoLuotDaDung(0);
-            chiTietList.add(chiTiet);
-        }
-
-        phieuGiamGiaChiTietRepository.saveAll(chiTietList);
-
         return phieuGiamGia;
     }
 
@@ -105,14 +94,9 @@ public class PhieuGiamGiaService {
         PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
 
-        List<Integer> khachHangIds = phieuGiamGiaChiTietRepository.findByPhieuGiamGiaId(id)
-                .stream()
-                .map(chiTiet -> chiTiet.getKhachHang().getId())
-                .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();
         response.put("phieuGiamGia", convertToDTO(phieuGiamGia)); // Dùng DTO để tránh lộ thông tin không cần thiết
-        response.put("khachHangIds", khachHangIds);
 
         return ResponseEntity.ok(response);
     }
@@ -144,22 +128,6 @@ public class PhieuGiamGiaService {
         }
 
         phieuGiamGia = phieuGiamGiaRepository.save(phieuGiamGia);
-
-        // Xóa danh sách khách hàng cũ
-        phieuGiamGiaChiTietRepository.deleteByPhieuGiamGia_Id(id);
-
-        // Thêm danh sách khách hàng mới
-        List<KhachHang> khachHangs = khachHangRepository.findAllById(khachHangIds);
-        List<PhieuGiamGiaChiTiet> chiTietList = new ArrayList<>();
-        for (KhachHang khachHang : khachHangs) {
-            PhieuGiamGiaChiTiet chiTiet = new PhieuGiamGiaChiTiet();
-            chiTiet.setKhachHang(khachHang);
-            chiTiet.setPhieuGiamGia(phieuGiamGia);
-            chiTiet.setSoLuotDaDung(0);
-            chiTietList.add(chiTiet);
-        }
-        phieuGiamGiaChiTietRepository.saveAll(chiTietList);
-
         return phieuGiamGia;
     }
 
@@ -172,5 +140,26 @@ public class PhieuGiamGiaService {
         phieuGiamGiaRepository.save(entity);
     }
 
+
+
+    public boolean togglePhieuGiamGiaStatus(Integer id) {
+        Optional<PhieuGiamGia> optionalPhieuGiamGia = phieuGiamGiaRepository.findById(id);
+        if (optionalPhieuGiamGia.isPresent()) {
+            PhieuGiamGia phieuGiamGia = optionalPhieuGiamGia.get();
+
+            // Thay đổi trạng thái và đánh dấu xóa mềm
+            if ("Đang Hoạt Động".equals(phieuGiamGia.getTrangThai())) {
+                phieuGiamGia.setTrangThai("Ngừng Hoạt Động");
+                phieuGiamGia.setDeleted(false);
+            } else {
+                phieuGiamGia.setTrangThai("Đang Hoạt Động");
+                phieuGiamGia.setDeleted(false);
+            }
+
+            phieuGiamGiaRepository.save(phieuGiamGia);
+            return true;
+        }
+        return false;
+    }
 
 }

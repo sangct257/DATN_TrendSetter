@@ -127,18 +127,21 @@
 <div th:replace="admin/fragments/script :: script"></div>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.tom-select').forEach((el) => {
-            new TomSelect(el, {
-                create: false,
-                sortField: {
-                    field: "text",
-                    direction: "asc"
-                },
-                placeholder: "Chọn một mục...",
-                allowEmptyOption: true, // Giữ lại option mặc định
+        setTimeout(() => {
+            document.querySelectorAll('.tom-select').forEach((el) => {
+                console.log("Khởi tạo Tom Select cho:", el.id);
+                new TomSelect(el, {
+                    create: false,
+                    sortField: { field: "text", direction: "asc" },
+                    placeholder: "Chọn một mục...",
+                    allowEmptyOption: true,
+                    searchField: ["value", "text"]
+                });
             });
-        });
+        }, 500); // Chờ 0.5 giây để đảm bảo danh sách đã render
     });
+
+
 
     document.getElementById("btnAddSanPham").addEventListener("click", function () {
         let sanPhamData = {

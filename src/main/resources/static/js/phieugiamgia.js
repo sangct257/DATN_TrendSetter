@@ -1,58 +1,153 @@
-document.addEventListener("DOMContentLoaded", function () {
-    let currentPage = 0;
-    const pageSize = 7;
+let dataTable; // Biến toàn cục để lưu instance của DataTable
 
-    function fetchPhieuGiamGia(page) {
-        fetch(`/api/phieu-giam-gia?page=${page}`)
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Hàm lấy dữ liệu phiếu giảm giá từ API
+    function fetchPhieuGiamGia(trangThai = "") {
+        let url = '/api/phieu-giam-gia';
+        if (trangThai) {
+            url += `?trangThai=${encodeURIComponent(trangThai)}`;
+        }
+
+        console.log("Fetching from URL: ", url);  // In ra URL API để kiểm tra
+
+        fetch(url)
             .then(response => response.json())
             .then(data => {
-                renderTable(data.content);
-                renderPagination(data.totalPages, page);
+                console.log("Data received: ", data);  // In ra dữ liệu nhận được từ API
+                if (Array.isArray(data) && data.length > 0) {
+                    renderTable(data);
+                    loadCount();
+                } else {
+                    console.error("Dữ liệu rỗng hoặc không hợp lệ");
+                    // Nếu cần, bạn có thể xóa dữ liệu bảng khi không có dữ liệu:
+                    if(dataTable){
+                        dataTable.clear().draw();
+                    }
+                }
             })
-            .catch(error => console.error("Lỗi khi tải dữ liệu:", error));
+            .catch(error => {
+                console.error("Lỗi khi lấy dữ liệu:", error);
+            });
     }
 
+    // Hàm chuyển đổi ngày sang định dạng Việt Nam
     function formatDate(dateString) {
         const date = new Date(dateString);
         return date.toLocaleDateString("vi-VN");
     }
-    function getStatus(ngayBatDau) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const startDate = new Date(ngayBatDau);
-        startDate.setHours(0, 0, 0, 0);
 
-        if (startDate > today) return "Sắp Diễn Ra";
-        if (startDate.getTime() === today.getTime()) return "Đang Hoạt Động";
-        return "Ngừng Hoạt Động";
-    }
+    // Hàm render bảng qua DataTable API
     function renderTable(phieuGiamGiaList) {
-        const tbody = document.querySelector("#productTable tbody");
-        tbody.innerHTML = phieuGiamGiaList.map((item, index) => `
-            <tr class="text-center">
-                <td>${index + 1 + currentPage * pageSize}</td>
-                <td>${item.maPhieuGiamGia}</td>
-                <td>${item.tenPhieuGiamGia}</td>
-                <td>${item.giaTriGiam}${item.donViTinh}</td>
-                <td>${item.soLuotSuDung}</td>
-                <td>${formatDate(item.ngayBatDau)} - ${formatDate(item.ngayKetThuc)}</td>
-                <td>
-                    <span class="badge ${getStatus(item.ngayBatDau) === 'Đang Hoạt Động' ? 'bg-success' :
-            getStatus(item.ngayBatDau) === 'Sắp Diễn Ra' ? 'bg-warning' : 'bg-danger'}">
-                        ${getStatus(item.ngayBatDau)}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-primary btn-sm" onclick="viewDetail(${item.id})">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deletePhieuGiamGia(${item.id})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join("");
+        if (!Array.isArray(phieuGiamGiaList) || phieuGiamGiaList.length === 0) {
+            console.error("Dữ liệu không hợp lệ hoặc rỗng");
+            return;
+        }
+
+        // Tạo mảng rows cho DataTable
+        const rows = phieuGiamGiaList.map((item, index) => {
+            return [
+                index + 1,
+                item.maPhieuGiamGia,
+                item.tenPhieuGiamGia,
+                `${item.giaTriGiam} ${item.donViTinh}`,
+                item.soLuotSuDung,
+                `${formatDate(item.ngayBatDau)} - ${formatDate(item.ngayKetThuc)}`,
+                // Thay thế <span> thành <button> để người dùng có thể nhấn vào
+                `<button class="btn ${
+                    item.trangThai === 'Đang Hoạt Động' ? 'btn-success' : 
+                        item.trangThai === 'Sắp Diễn Ra' ? 'btn-warning' : 
+                            'btn-danger'} btn-sm" 
+                                onclick="toggleStatus(${item.id}, '${item.trangThai}')">
+                            ${item.trangThai}
+                </button>`,
+                `<button class="btn btn-primary btn-sm" onclick="viewDetail(${item.id})">
+                <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deletePhieuGiamGia(${item.id})">
+                <i class="bi bi-trash"></i>
+            </button>`
+            ];
+        });
+
+        // Nếu DataTable đã được khởi tạo, cập nhật dữ liệu mới
+        if (dataTable) {
+            dataTable.clear();
+            dataTable.rows.add(rows);
+            dataTable.draw();
+        } else {
+            // Khởi tạo DataTable lần đầu
+            dataTable = $("#productTable").DataTable({
+                data: rows,
+                columns: [
+                    { title: "#" },
+                    { title: "Mã phiếu" },
+                    { title: "Tên phiếu" },
+                    { title: "Giá trị giảm" },
+                    { title: "Số lượt sử dụng" },
+                    { title: "Ngày áp dụng" },
+                    { title: "Trạng thái" },
+                    { title: "Hành động", orderable: false }
+                ],
+                paging: true,
+                lengthMenu: [5, 10, 20],
+                pageLength: 5,
+                autoWidth: false,
+                responsive: true,
+                language: {
+                    sProcessing: "Đang xử lý...",
+                    sLengthMenu: "Hiển thị _MENU_ dòng",
+                    sZeroRecords: "Không tìm thấy dữ liệu",
+                    sInfo: "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+                    sInfoEmpty: "Không có dữ liệu để hiển thị",
+                    sInfoFiltered: "(lọc từ _MAX_ dòng)",
+                    sSearch: "Tìm kiếm:",
+                    oPaginate: {
+                        sFirst: "Đầu",
+                        sPrevious: "Trước",
+                        sNext: "Tiếp",
+                        sLast: "Cuối"
+                    }
+                },
+                initComplete: function () {
+                    $(".dataTables_length select").css({
+                        "font-size": "16px",
+                        "padding": "10px 20px"
+                    });
+                }
+            });
+        }
     }
+
+    // Sự kiện lọc theo trạng thái khi click vào các button có class filter-btn
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const trangThai = this.getAttribute('data-status');
+            fetchPhieuGiamGia(trangThai);  // Gọi hàm để tải dữ liệu theo trạng thái
+        });
+    });
+
+    // Hàm lấy số lượng phiếu theo trạng thái
+    function loadCount() {
+        fetch("/api/phieu-giam-gia/count")
+            .then(response => response.json())
+            .then(counts => {
+                document.getElementById("count-all").innerText = counts["Tất Cả"] || 0;
+                document.getElementById("count-active").innerText = counts["Đang Hoạt Động"] || 0;
+                document.getElementById("count-inactive").innerText = counts["Ngừng Hoạt Động"] || 0;
+                document.getElementById("count-upcoming").innerText = counts["Sắp Diễn Ra"] || 0;
+            })
+            .catch(error => console.error("Lỗi:", error));
+    }
+
+
+    // Đảm bảo rằng phần dưới có sự kiện DOMContentLoaded
+    document.addEventListener("DOMContentLoaded", function() {
+        loadCount();  // Gọi hàm loadCount khi trang đã sẵn sàng
+        // Các sự kiện khác có thể đăng ký ở đây nếu cần
+    });
+
+    // Hàm hiển thị chi tiết phiếu giảm giá qua modal
     function viewDetail(id) {
         fetch(`/api/phieu-giam-gia/detail/${id}`)
             .then(response => response.json())
@@ -61,9 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.error("Lỗi: Không tìm thấy dữ liệu phiếu giảm giá!");
                     return;
                 }
-
                 const pgg = data.phieuGiamGia;
-
                 document.getElementById("phieuGiamGiaId").value = pgg.id;
                 document.getElementById("maPGG").value = pgg.maPhieuGiamGia;
                 document.getElementById("tenPGG").value = pgg.tenPhieuGiamGia;
@@ -75,34 +168,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("trangThai").value = pgg.trangThai;
                 document.getElementById("dieuKien").value = pgg.dieuKien;
 
-                // Lưu lại danh sách khách hàng được chọn để khi mở modal lại không bị mất
-                const selectedKhachHangs = new Set(data.khachHangIds);
-
-                document.querySelectorAll("#khachHangTable input[type='checkbox']").forEach(checkbox => {
-                    let khachHangId = parseInt(checkbox.value);
-                    checkbox.checked = selectedKhachHangs.has(khachHangId);
-                });
-
-                // Đánh dấu modal đang ở chế độ "Sửa"
+                // Chuẩn bị modal cho chế độ "Sửa"
                 let addModal = new bootstrap.Modal(document.getElementById("addModal"));
                 document.getElementById("addModal").setAttribute("data-mode", "edit");
-
-                // Hiển thị lại nút "Sửa" khi ở chế độ sửa
                 document.querySelector("#addModal .btn-primary").style.display = "block";
-                document.getElementById("modalTitle").textContent = "Sửa Phiếu Giảm Giá"; // Đổi tiêu đề modal
+                document.getElementById("modalTitle").textContent = "Sửa Phiếu Giảm Giá";
                 let btnSubmit = document.querySelector("#addModal .btn-primary");
-                btnSubmit.textContent = "Sửa Phiếu Giảm Giá"; // Đổi nút từ "Thêm" thành "Sửa"
-                btnSubmit.setAttribute("data-mode", "edit"); // Gán chế độ sửa
+                btnSubmit.textContent = "Sửa Phiếu Giảm Giá";
+                btnSubmit.setAttribute("data-mode", "edit");
 
                 addModal.show();
             })
             .catch(error => console.error("Lỗi khi lấy dữ liệu chi tiết:", error));
     }
 
+    // Hàm xóa phiếu giảm giá
     function deletePhieuGiamGia(id) {
         Swal.fire({
             title: "Bạn có chắc chắn muốn xóa?",
-            text: "Phiếu giảm giá này sẽ bị xóa !",
+            text: "Phiếu giảm giá này sẽ bị xóa!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Xóa",
@@ -117,7 +201,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     })
                     .then(() => {
                         Swal.fire({ title: "Xóa thành công!", icon: "success" }).then(() => {
-                            fetchPhieuGiamGia(0);
+                            // Sau khi xóa thành công, tải lại trang để cập nhật dữ liệu
+                            location.reload();
                         });
                     })
                     .catch(() => {
@@ -128,51 +213,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function renderPagination(totalPages, currentPage) {
-        const pagination = document.querySelector("#pagination");
-        pagination.innerHTML = Array.from({ length: totalPages }, (_, i) => `
-            <button class="btn ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'} mx-1"
-                    onclick="fetchPhieuGiamGia(${i})">${i + 1}</button>
-        `).join("");
-    }
-    fetchPhieuGiamGia(currentPage);
-    window.fetchPhieuGiamGia = fetchPhieuGiamGia;
+    // Sự kiện thiết lập giá trị min cho ngày
     function setMinDate() {
         const today = new Date().toISOString().split("T")[0];
         document.getElementById("ngayBatDau").setAttribute("min", today);
         document.getElementById("ngayKetThuc").setAttribute("min", today);
     }
 
+    // Cập nhật trạng thái tự động dựa vào ngày bắt đầu
     function updateTrangThai() {
         const ngayBatDauInput = document.getElementById("ngayBatDau");
         const trangThaiSelect = document.getElementById("trangThai");
 
-        if (!ngayBatDauInput.value) return; // Nếu chưa chọn ngày, không làm gì
+        if (!ngayBatDauInput.value) return;
 
         const ngayBatDau = new Date(ngayBatDauInput.value);
         const today = new Date();
-
-        // Chuyển ngày về dạng YYYY-MM-DD để so sánh chính xác hơn
         const ngayBatDauFormatted = ngayBatDau.toISOString().split("T")[0];
         const todayFormatted = today.toISOString().split("T")[0];
 
-        if (ngayBatDauFormatted === todayFormatted) {
-            trangThaiSelect.value = "Đang Hoạt Động";
-        } else if (ngayBatDauFormatted > todayFormatted) {
-            trangThaiSelect.value = "Sắp diễn ra";
-        } else {
-            trangThaiSelect.value = "Ngừng Hoạt Động";
+        if (!trangThaiSelect.value || trangThaiSelect.value === "Sắp Diễn Ra") {
+            if (ngayBatDauFormatted === todayFormatted) {
+                trangThaiSelect.value = "Đang Hoạt Động";
+            } else if (ngayBatDauFormatted > todayFormatted) {
+                trangThaiSelect.value = "Sắp Diễn Ra";
+            } else {
+                trangThaiSelect.value = "Ngừng Hoạt Động";
+            }
         }
     }
 
     document.getElementById("ngayBatDau").addEventListener("change", function () {
         document.getElementById("ngayKetThuc").setAttribute("min", this.value);
-        updateTrangThai(); // Cập nhật trạng thái
+        updateTrangThai();
     });
 
-
-
     setMinDate();
+
+    // Hàm validate form
     function validateForm() {
         let isValid = true;
         document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
@@ -196,127 +274,77 @@ document.addEventListener("DOMContentLoaded", function () {
 
         fields.forEach(({ id, message, validate }) => {
             const value = document.getElementById(id).value.trim();
-            if (!value || (validate && !validate(value))) showError(id, message);
+            if (!value || (validate && !validate(value))) {
+                showError(id, message);
+            }
         });
 
         const ngayBatDau = new Date(document.getElementById("ngayBatDau").value);
         const ngayKetThuc = new Date(document.getElementById("ngayKetThuc").value);
-        if (ngayBatDau > ngayKetThuc) showError("ngayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu.");
+        if (ngayBatDau > ngayKetThuc) {
+            showError("ngayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu.");
+        }
         const giaTriGiam = parseFloat(document.getElementById("giaTriGiam").value);
         const dieuKien = parseFloat(document.getElementById("dieuKien").value) || 0;
-
         if (giaTriGiam > dieuKien) {
             showError("giaTriGiam", "Giá trị giảm không được lớn hơn giá trị tối thiểu.");
         }
         return isValid;
     }
-    document.getElementById("searchKhachHang").addEventListener("input", function () {
-        const keyword = this.value.trim();
-        fetch(`/api/khach-hang/search?keyword=${encodeURIComponent(keyword)}`)
-            .then(response => response.json())
-            .then(data => {
-                const khachHangTable = document.getElementById("khachHangTable");
-                khachHangTable.innerHTML = data.map(kh => `
-                <tr>
-                    <td><input type="checkbox" value="${kh.id}"></td>
-                    <td>${kh.hoTen}</td>
-                    <td>${kh.email}</td>
-                    <td>${kh.soDienThoai}</td>
-                </tr>
-            `).join("");
-            })
-            .catch(error => console.error("Lỗi khi tìm kiếm khách hàng:", error));
-    });
 
-
-    function fetchKhachHang() {
-        fetch("/api/khach-hang")
-            .then(response => response.json())
-            .then(data => {
-                const khachHangTable = document.getElementById("khachHangTable");
-                if (!khachHangTable) return console.error("Lỗi: Không tìm thấy bảng khách hàng!");
-                khachHangTable.innerHTML = data.map(kh => `
-                    <tr>
-                        <td><input type="checkbox" value="${kh.id}"></td>
-                        <td>${kh.hoTen}</td>
-                        <td>${kh.email}</td>
-                        <td>${kh.soDienThoai}</td>
-                    </tr>
-                `).join("");
-                document.querySelectorAll(".kh-checkbox").forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-            })
-            .catch(error => console.error("Lỗi tải khách hàng:", error));
-    }
+    // Ngăn dropdown tự mở khi nhấn vào trang thái
     document.getElementById("trangThai").addEventListener("mousedown", function (event) {
-        event.preventDefault(); // Ngăn không cho mở dropdown
-    });
-    document.getElementById("btnAdd").addEventListener("click", function () {
-        let modal = document.getElementById("addModal");
-        modal.setAttribute("data-mode", "add"); // Đặt mode ngay từ khi bấm mở modal
+        event.preventDefault();
     });
 
+    // Khi nhấn nút "Thêm", đặt modal ở chế độ thêm
+    document.getElementById("btnAdd").addEventListener("click", function () {
+        const modal = document.getElementById("addModal");
+        modal.setAttribute("data-mode", "add");
+    });
+
+    // Hàm tạo mã phiếu giảm giá ngẫu nhiên
     function generateMaPhieuGiamGia() {
         return "PGG" + Math.floor(Math.random() * 10000);
     }
 
+    // Sự kiện khi mở modal
     document.getElementById("addModal").addEventListener("show.bs.modal", function () {
-        let mode = this.getAttribute("data-mode");
-
-        if (!mode) {
-            this.setAttribute("data-mode", "add");
-            mode = "add";
-        }
-
-        let maPhieuInput = document.getElementById("maPGG");
+        let mode = this.getAttribute("data-mode") || "add";
+        this.setAttribute("data-mode", mode);
+        const maPhieuInput = document.getElementById("maPGG");
+        const btnSubmit = document.querySelector("#addModal .btn-primary");
 
         if (mode === "add") {
             if (!maPhieuInput.value) {
                 maPhieuInput.value = generateMaPhieuGiamGia();
             }
-
-            // Reset form nhưng giữ lại mã phiếu
+            // Reset các input khác (giữ mã phiếu)
             document.querySelectorAll("#addPGGForm input, #addPGGForm textarea, #addPGGForm select")
                 .forEach(input => {
                     if (input.id !== "maPGG") input.value = "";
                 });
-
-            // Hiển thị lại nút "Thêm" khi mở modal ở chế độ thêm
             document.querySelector("#addModal .btn-primary").style.display = "block";
-
-            // Reset checkbox khi mở modal
-            document.querySelectorAll("#khachHangTable input[type='checkbox']").forEach(checkbox => {
-                checkbox.checked = false;
-            });
-
-            // Đổi tiêu đề và nút cho chế độ thêm
             document.getElementById("modalTitle").textContent = "Thêm Phiếu Giảm Giá";
             btnSubmit.textContent = "Thêm Phiếu Giảm Giá";
-            btnSubmit.setAttribute("data-mode", "add"); // Gán chế độ thêm
+            btnSubmit.setAttribute("data-mode", "add");
         } else if (mode === "edit") {
-            // Đảm bảo modal được chuẩn bị cho chế độ sửa
             document.getElementById("modalTitle").textContent = "Sửa Phiếu Giảm Giá";
             btnSubmit.textContent = "Sửa Phiếu Giảm Giá";
             btnSubmit.setAttribute("data-mode", "edit");
         }
     });
 
-
-
-
-// Khi đóng modal, reset về trạng thái mặc định
+    // Khi đóng modal, reset trạng thái modal
     document.getElementById("addModal").addEventListener("hidden.bs.modal", function () {
         this.setAttribute("data-mode", "add");
-        document.getElementById("maPGG").value = ""; // Reset mã phiếu khi đóng modal
+        document.getElementById("maPGG").value = "";
     });
 
-
+    // Sự kiện submit khi nhấn nút trong modal
     document.querySelector("#addModal .btn-primary").addEventListener("click", function () {
-        // Kiểm tra chế độ hiện tại (add hoặc edit)
         const mode = document.getElementById("addModal").getAttribute("data-mode");
 
-        // Nếu chế độ là thêm, thực hiện thêm
         if (mode === "add") {
             if (!validateForm()) return;
 
@@ -336,31 +364,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         moTa: document.getElementById("moTa").value,
                         giaTriGiam: parseFloat(document.getElementById("giaTriGiam").value),
                         donViTinh: document.querySelector('input[name="donViTinh"]:checked') ?
-                            document.querySelector('input[name="donViTinh"]:checked').value : "%",
+                            document.querySelector('input[name="donViTinh"]:checked').value : "VND",
                         soLuotSuDung: parseInt(document.getElementById("soLuong").value),
                         dieuKien: parseFloat(document.getElementById("dieuKien").value) || 0,
                         ngayBatDau: document.getElementById("ngayBatDau").value,
                         ngayKetThuc: document.getElementById("ngayKetThuc").value,
                         trangThai: document.getElementById("trangThai").value
                     };
-                    const selectedKhachHangs = Array.from(document.querySelectorAll("#khachHangTable input[type='checkbox']:checked"))
-                        .map(checkbox => parseInt(checkbox.value));
-
-                    if (selectedKhachHangs.length === 0) {
-                        Swal.fire({ title: "Lỗi!", text: "Vui lòng chọn ít nhất một khách hàng!", icon: "error" });
-                        return;
-                    }
-                    document.querySelectorAll('input[name="donViTinh"]').forEach(radio => {
-                        radio.addEventListener("change", function() {
-                            console.log("Radio được chọn:", this);
-                            console.log("Giá trị đơn vị tính:", this.value);
-                        });
-                    });
 
                     fetch("http://localhost:8080/api/phieu-giam-gia/add/multiple", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ phieuGiamGia, khachHangIds: selectedKhachHangs })
+                        body: JSON.stringify({ phieuGiamGia })
                     })
                         .then(response => {
                             if (!response.ok) throw new Error("Có lỗi khi thêm phiếu giảm giá!");
@@ -370,24 +385,18 @@ document.addEventListener("DOMContentLoaded", function () {
                             Swal.fire({ title: "Thành công!", text: "Phiếu giảm giá đã được thêm.", icon: "success" })
                                 .then(() => {
                                     document.getElementById("addPGGForm").reset();
-                                    fetchPhieuGiamGia(0);
+                                    // Sau khi thêm thành công, tải lại trang để cập nhật dữ liệu
+                                    location.reload();
                                     let modal = bootstrap.Modal.getInstance(document.getElementById("addModal"));
                                     modal.hide();
-                                    setTimeout(() => {
-                                        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
-                                        document.body.classList.remove("modal-open");
-                                    }, 300);
                                 });
                         })
-
                         .catch(() => {
                             Swal.fire({ title: "Lỗi!", text: "Đã xảy ra lỗi khi thêm phiếu giảm giá.", icon: "error" });
                         });
                 }
             });
-        }
-        // Nếu chế độ là sửa, thực hiện sửa
-        else if (mode === "edit") {
+        } else if (mode === "edit") {
             if (!validateForm()) return;
 
             Swal.fire({
@@ -413,21 +422,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         trangThai: document.getElementById("trangThai").value
                     };
 
-                    const selectedKhachHangs = Array.from(document.querySelectorAll("#khachHangTable input[type='checkbox']:checked"))
-                        .map(checkbox => parseInt(checkbox.value));
-
-                    if (selectedKhachHangs.length === 0) {
-                        Swal.fire({ title: "Lỗi!", text: "Vui lòng chọn ít nhất một khách hàng!", icon: "error" });
-                        return;
-                    }
-
                     const id = document.getElementById("phieuGiamGiaId").value;
-                    console.log("ID cần cập nhật:", id); // Kiểm tra ID trước khi gửi API
 
                     fetch(`http://localhost:8080/api/phieu-giam-gia/update/${id}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ phieuGiamGia, khachHangIds: selectedKhachHangs })
+                        body: JSON.stringify({ phieuGiamGia })
                     })
                         .then(response => {
                             if (!response.ok) throw new Error("Có lỗi khi cập nhật phiếu giảm giá!");
@@ -436,29 +436,26 @@ document.addEventListener("DOMContentLoaded", function () {
                         .then(() => {
                             Swal.fire({ title: "Thành công!", text: "Phiếu giảm giá đã được cập nhật.", icon: "success" })
                                 .then(() => {
-                                    fetchPhieuGiamGia(0);
+                                    // Sau khi cập nhật thành công, tải lại trang để cập nhật dữ liệu
+                                    location.reload();
                                     let modal = bootstrap.Modal.getInstance(document.getElementById("addModal"));
                                     modal.hide();
-
-                                    setTimeout(() => {
-                                        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
-                                        document.body.classList.remove("modal-open");
-                                    }, 300);
                                 });
                         })
                         .catch(() => {
                             Swal.fire({ title: "Lỗi!", text: "Đã xảy ra lỗi khi cập nhật phiếu giảm giá.", icon: "error" });
                         });
                 }
-
             });
         }
     });
 
-
-    fetchPhieuGiamGia(currentPage);
-    fetchKhachHang();
+    // Expose các hàm viewDetail và deletePhieuGiamGia ra global để gọi từ HTML
     window.viewDetail = viewDetail;
     window.deletePhieuGiamGia = deletePhieuGiamGia;
 
+    // Lần đầu tải trang, gọi hàm fetch để hiển thị dữ liệu
+    fetchPhieuGiamGia();
+    // Cũng expose hàm fetchPhieuGiamGia nếu cần gọi từ ngoài
+    window.fetchPhieuGiamGia = fetchPhieuGiamGia;
 });

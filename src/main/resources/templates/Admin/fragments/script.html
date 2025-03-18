@@ -16,25 +16,14 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Tom Select -->
-    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+    <!-- Thư viện CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tom-select/2.2.2/css/tom-select.bootstrap5.min.css">
 
-    <!-- Custom Scripts -->
-    <script>
-        var timer; // Đảm bảo biến timer được khai báo trước khi sử dụng
+    <!-- Thư viện JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tom-select/2.2.2/js/tom-select.complete.min.js"></script>
 
-        $(document).ready(function() {
-            updateTime(); // Chỉ gọi updateTime() khi DOM đã sẵn sàng
-        });
-
-        function updateTime() {
-            clearInterval(timer); // Xóa interval cũ nếu có
-            timer = setInterval(function() {
-                console.log("Updating time...");
-            }, 1000);
-        }
-    </script>
 
     <script th:src="@{/assets/js/dashboard.js}"></script>
     <script th:src="@{/assets/js/function.js}"></script>
 </div>
+

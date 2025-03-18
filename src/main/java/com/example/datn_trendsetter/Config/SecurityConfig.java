@@ -25,8 +25,8 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
 //        http
 //                .csrf(csrf -> csrf.disable()) // ❌ Tắt CSRF (nếu dùng API REST)
 //                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -59,9 +59,29 @@ public class SecurityConfig {
 //                        .deleteCookies("JSESSIONID")
 //                        .permitAll()
 //                );
+//
+//
+//        return http.build();
+//    }
 
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/**" , "/auth/home", "/auth/login", "/auth/register", "/trang-chu",
+                                "/css/**", "/js/**", "/images/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/auth/home")
+                        .permitAll()
+                );
 
         return http.build();
     }
-
 }
