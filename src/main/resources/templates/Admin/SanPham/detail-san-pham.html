@@ -181,11 +181,12 @@
                                             <label class="form-label fw-semibold">Màu Sắc:</label>
                                             <div class="border rounded p-2 d-flex flex-wrap gap-2">
                                                 <label th:each="ms : ${mauSacSanPham}" class="border rounded px-3 py-1">
-                                                    <span th:text="${ms.maMauSac}"
-                                                          th:style="'background-color:' + ${ms.maMauSac}"
-                                                          style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
-                                                          class="rounded border border-secondary shadow">
-                                                    </span>
+                                                    <span th:text="${ms.tenMauSac}"></span>
+
+<!--                                                    <span th:style="'background-color:' + ${ms.maMauSac}"-->
+<!--                                                          style="width: 30px; height: 30px; flex-shrink: 0;"-->
+<!--                                                          class="rounded border border-secondary shadow">-->
+<!--                                                    </span>-->
                                                 </label>
                                             </div>
                                         </div>
@@ -235,9 +236,10 @@
                                                 <input type="checkbox" name="mauSacIds" class="mau-sac me-2"
                                                        th:value="${ms.id}"
                                                        th:attr="data-mau-sac=${ms.id}">
-                                                <div th:text="${ms.maMauSac}"
-                                                     th:style="'background-color:' + ${ms.maMauSac}"
-                                                     style="width: 30px; height: 30px;" class="rounded border border-secondary shadow">
+                                                <span th:text="${ms.tenMauSac}"></span>
+                                                <div th:style="'background-color:' + ${ms.maMauSac}"
+                                                     style="width: 30px; height: 30px; margin-left: 10px;"
+                                                     class="rounded border border-secondary shadow">
                                                 </div>
                                             </label>
                                         </div>

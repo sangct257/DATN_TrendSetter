@@ -844,7 +844,7 @@
                                         <button type="button" class="btn btn-outline-primary ms-auto"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#paymentModal"
-                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}">
+                                                th:attr="disabled=true">
                                             <i class="bi bi-credit-card"></i>
                                         </button>
                                     </div>
@@ -916,10 +916,9 @@
                                         <button type="button" class="btn btn-outline-primary ms-auto"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#discountModal"
-                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}">
+                                                th:attr="disabled=true">
                                             <i class="fas fa-tag"></i>
                                         </button>
-
 
                                         <!-- Modal mã giảm giá -->
                                         <div class="modal fade" id="discountModal" tabindex="-1"

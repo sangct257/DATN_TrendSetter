@@ -70,7 +70,7 @@ public class PhieuGiamGiaService {
         phieuGiamGia.setMaPhieuGiamGia(dto.getMaPhieuGiamGia());
         phieuGiamGia.setTenPhieuGiamGia(dto.getTenPhieuGiamGia());
         phieuGiamGia.setGiaTriGiam(dto.getGiaTriGiam());
-        phieuGiamGia.setDonViTinh(dto.getDonViTinh());
+        phieuGiamGia.setDonViTinh("VND");
         phieuGiamGia.setDieuKien(dto.getDieuKien());
         phieuGiamGia.setMoTa(dto.getMoTa());
         phieuGiamGia.setTrangThai(dto.getTrangThai());
@@ -107,7 +107,6 @@ public class PhieuGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
 
         Map<String, Object> dto = (Map<String, Object>) requestBody.get("phieuGiamGia");
-        List<Integer> khachHangIds = (List<Integer>) requestBody.get("khachHangIds");
 
         // Cập nhật thông tin phiếu giảm giá
         phieuGiamGia.setMaPhieuGiamGia((String) dto.get("maPhieuGiamGia"));

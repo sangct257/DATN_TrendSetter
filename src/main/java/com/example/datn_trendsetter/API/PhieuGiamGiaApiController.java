@@ -77,11 +77,14 @@ public class PhieuGiamGiaApiController {
     @PostMapping("/add/multiple")
     public ResponseEntity<PhieuGiamGia> addPhieuGiamGiaForMultipleCustomers(
             @RequestBody Map<String, Object> requestBody) {
+        // Chuyển đổi từ map nhận được từ requestBody sang đối tượng DTO
         PhieuGiamGiaDTO dto = new ObjectMapper().convertValue(requestBody.get("phieuGiamGia"), PhieuGiamGiaDTO.class);
 
+        // Thêm phiếu giảm giá
         PhieuGiamGia phieuGiamGia = phieuGiamGiaService.addPhieuGiamGiaForMultipleCustomers(dto);
         return ResponseEntity.ok(phieuGiamGia);
     }
+
     @GetMapping("/detail/{id}")
     public ResponseEntity<Map<String, Object>> getDetail(@PathVariable Integer id) {
         return phieuGiamGiaService.getDetail(id);
