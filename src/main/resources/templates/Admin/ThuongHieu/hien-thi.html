@@ -18,14 +18,13 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Blank page
-                <small>it all starts here</small>
+                Danh Sách Thương Hiệu
             </h1>
             <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
+                <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
+                <li><a href="#">Thương Hiệu</a></li>
             </ol>
+
         </section>
 
         <!-- Main content -->
@@ -34,7 +33,119 @@
             <!-- Default box -->
             <div class="box">
                 <div class="box-body">
-                    <h1>Danh sach thuong hieu</h1>
+                    <!--Thêm Thương Hiệu-->
+                    <div class="d-flex justify-content-end mb-3">
+                        <!-- Nút mở modal Thêm Thương Hiệu -->
+                        <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalAddBrand">
+                            <i class="bi bi-plus-lg"></i> Thêm Thương Hiệu
+                        </button>
+                    </div>
+
+                    <!-- Modal Thêm Thương Hiệu -->
+                    <div class="modal fade" id="modalAddBrand" tabindex="-1" aria-labelledby="addBrandLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addBrandLabel">Thêm Thương Hiệu</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="addBrandForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Tên Thương Hiệu</label>
+                                            <input type="text" class="form-control" id="tenThuongHieu" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Trạng Thái</label>
+                                            <select class="form-select" id="trangThai">
+                                                <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                                <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-success" onclick="saveBrand()">Lưu</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table id="productTable"
+                           class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                        <tr class="text-center">
+                            <th class="text-center">#</th>
+                            <th class="text-center">Mã Thương Hiệu</th>
+                            <th class="text-center">Tên Thương Hiệu</th>
+                            <th class="text-center">Trạng Thái</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="thuongHieu, status : ${thuongHieu}">
+                            <td class="text-center">
+                                <input type="hidden" th:value="${thuongHieu.id}">
+                                <span th:text="${status.index + 1}"></span>
+                            </td>
+                            <td class="text-center" th:text="${thuongHieu.maThuongHieu}"></td>
+                            <td class="text-center" th:text="${thuongHieu.tenThuongHieu}"></td>
+                            <td class="text-center">
+                                <button th:class="${thuongHieu.trangThai == 'Đang Hoạt Động' ? 'badge bg-success' : 'badge bg-danger'}"
+                                        th:text="${thuongHieu.trangThai}">
+                                </button>
+                            </td>
+                            <td class="text-center">
+                                <!-- Nút mở modal Chi Tiết -->
+                                <button class="btn btn-primary btn-sm fw-bold me-2"
+                                        onclick="openBrandDetailModal(this)">
+                                    <i class="bi bi-eye"></i> Chi Tiết
+                                </button>
+
+                                <button class="btn btn-danger btn-sm fw-bold" onclick="deleteBrand(this)">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Modal Chi Tiết Thương Hiệu -->
+                    <div class="modal fade" id="modalBrandDetail" tabindex="-1" aria-labelledby="brandDetailLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="brandDetailLabel">Chi Tiết Thương Hiệu</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="updateBrandForm">
+                                        <input type="hidden" id="modalBrandId">
+                                        <div class="mb-3">
+                                            <label class="form-label">Tên Thương Hiệu</label>
+                                            <input type="text" id="modalBrandName" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Trạng Thái</label>
+                                            <select id="modalBrandStatus" class="form-select">
+                                                <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                                <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-primary" onclick="updateBrand()">Chỉnh Sửa</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- /.box -->
@@ -54,5 +165,169 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
+
+<script>
+    // Hàm thêm thương hiệu
+    async function saveBrand() {
+        let tenThuongHieu = document.getElementById("tenThuongHieu").value;
+        let trangThai = document.getElementById("trangThai").value;
+
+        let data = { tenThuongHieu, trangThai };
+
+        Swal.fire({
+            title: "Đang thêm thương hiệu...",
+            text: "Vui lòng chờ...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            let response = await fetch('/api/thuong-hieu/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            let message = await response.text();
+
+            Swal.fire({
+                icon: "success",
+                title: "Thành công!",
+                text: message,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
+        } catch (error) {
+            Swal.fire("Lỗi!", "Lỗi khi thêm thương hiệu!", "error");
+        }
+    }
+
+    // Hàm xóa thương hiệu
+    async function deleteBrand(button) {
+        let row = button.closest("tr");
+        let hiddenInput = row.querySelector("td input[type='hidden']");
+
+        if (!hiddenInput) {
+            Swal.fire("Lỗi!", "Không tìm thấy ID thương hiệu!", "error");
+            return;
+        }
+
+        let brandId = hiddenInput.value;
+
+        Swal.fire({
+            title: "Bạn có chắc không?",
+            text: "Thao tác này sẽ xóa thương hiệu vĩnh viễn!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Xóa!",
+            cancelButtonText: "Hủy"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    let response = await fetch(`/api/thuong-hieu/delete/${brandId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) throw new Error("Xóa thất bại!");
+
+                    let message = await response.text();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Xóa thành công!",
+                        text: message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => row.remove());
+                } catch (error) {
+                    Swal.fire("Lỗi!", error.message, "error");
+                }
+            }
+        });
+    }
+
+    // Hàm cập nhật thương hiệu
+    async function updateBrand() {
+        let brandId = document.getElementById("modalBrandId").value;
+        let brandName = document.getElementById("modalBrandName").value;
+        let brandStatus = document.getElementById("modalBrandStatus").value;
+
+        let updatedBrand = { id: brandId, tenThuongHieu: brandName, trangThai: brandStatus };
+
+        Swal.fire({
+            title: "Đang cập nhật thương hiệu...",
+            text: "Vui lòng chờ...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            let response = await fetch('/api/thuong-hieu/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedBrand)
+            });
+            let message = await response.text();
+
+            Swal.fire({
+                icon: "success",
+                title: "Cập nhật thành công!",
+                text: message,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
+        } catch (error) {
+            Swal.fire("Lỗi!", "Lỗi cập nhật thương hiệu!", "error");
+        }
+    }
+
+    // Hàm mở modal chỉnh sửa
+    function openBrandDetailModal(button) {
+        let row = button.closest("tr");
+        let brandId = row.querySelector("td input[type='hidden']").value;
+        let brandName = row.cells[2].innerText;
+        let brandStatus = row.cells[3].innerText.trim();
+
+        document.getElementById("modalBrandId").value = brandId;
+        document.getElementById("modalBrandName").value = brandName;
+        document.getElementById("modalBrandStatus").value = brandStatus;
+
+        let modal = new bootstrap.Modal(document.getElementById("modalBrandDetail"));
+        modal.show();
+    }
+
+</script>
+<!--Load table-->
+<script>
+    $(document).ready(function () {
+        $('#productTable').DataTable({
+            "paging": true,
+            "lengthMenu": [5, 10, 20],
+            "pageLength": 5,
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "sProcessing": "Đang xử lý...",
+                "sLengthMenu": "Hiển thị _MENU_ dòng",
+                "sZeroRecords": "Không tìm thấy dữ liệu",
+                "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+                "sInfoEmpty": "Không có dữ liệu để hiển thị",
+                "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+                "sSearch": "Tìm kiếm:",
+                "oPaginate": {
+                    "sFirst": "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext": "Tiếp",
+                    "sLast": "Cuối"
+                }
+            }
+        });
+    });
+</script>
 </body>
 </html>

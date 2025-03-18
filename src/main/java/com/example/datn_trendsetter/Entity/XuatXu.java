@@ -19,6 +19,9 @@ public class XuatXu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ma_xuat_xu",columnDefinition = "NVARCHAR(255)")
+    private String maXuatXu;
+
     @Column(name = "quoc_gia",columnDefinition = "NVARCHAR(255)")
     private String quocGia;
 

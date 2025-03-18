@@ -25,17 +25,20 @@ public class SanPhamChiTiet {
 
     @ManyToOne
     @JoinColumn(name = "id_san_pham", referencedColumnName = "id")
-    @JsonIgnore
+    @JsonBackReference
     private SanPham sanPham;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "id_mau_sac", referencedColumnName = "id")
     private MauSac mauSac;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "id_kich_thuoc", referencedColumnName = "id")
     private KichThuoc kichThuoc;
 
+    @ManyToOne
+    @JoinColumn(name = "id_dot_giam_gia",referencedColumnName = "id")
+    private DotGiamGia dotGiamGia;
 
     @Column(name = "so_luong")
     private Integer soLuong;
@@ -64,4 +67,6 @@ public class SanPhamChiTiet {
     @Column(name = "deleted")
     private Boolean deleted;
 
+    @Transient // Không lưu vào cơ sở dữ liệu
+    private Float giaGiam;
 }

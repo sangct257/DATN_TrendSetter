@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="admin/fragments/head :: head"></head>
+<body class="hold-transition skin-blue sidebar-mini">
+<style>
+    .image-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .image-wrapper:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .image-overlay button {
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        padding: 5px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .image-overlay button:hover {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+</style>
+<!-- Site wrapper -->
+<div class="wrapper">
+
+    <div th:replace="admin/fragments/header :: header"></div>
+    <!-- =============================================== -->
+
+    <!-- Left side column. contains the sidebar -->
+    <div th:replace="admin/fragments/sidebar :: sidebar"></div>
+
+    <!-- =============================================== -->
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <h1>
+                <h5>Thêm Sản Phẩm</h5>
+            </h1>
+            <ol class="breadcrumb">
+                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+                <li><a href="#">Examples</a></li>
+                <li class="active">Blank page</li>
+            </ol>
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+
+            <!-- Default box -->
+            <div class="box">
+                <div class="box-body">
+                    <div class="container mt-5">
+                        <h2 class="text-center fw-bold">Thông Tin Sản Phẩm</h2>
+
+                        <div class="container mt-5 d-flex justify-content-center">
+                            <div class="shadow p-4 rounded bg-light w-100">
+                                <form id="updateForm">
+                                    <input type="hidden" name="id" th:value="${sanPham.id}"/>
+
+                                    <div class="text-center">
+                                        <div class="mb-3 d-flex justify-content-center align-items-center">
+                                            <span class="form-label fw-semibold me-3">Tên sản phẩm:</span>
+                                            <input type="text" class="form-control" name="tenSanPham" id="tenSanPham"
+                                                   style="max-width: 600px;" placeholder="Nhập tên sản phẩm"
+                                                   th:value="${sanPham.tenSanPham}">
+                                        </div>
+                                        <div class="mb-3 d-flex justify-content-center align-items-center">
+                                            <span class="form-label fw-semibold me-3">Mô tả:</span>
+                                            <textarea class="form-control" name="moTa" id="moTa"
+                                                      style="max-width: 600px;" rows="3"
+                                                      placeholder="Nhập mô tả sản phẩm"
+                                                      th:text="${sanPham.moTa}" th:value="${sanPham.moTa}"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="container">
+                                        <div class="row justify-content-center g-4">
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Danh Mục:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="danhMucId" id="danhMuc">
+                                                        <option value="">Chọn danh mục</option>
+                                                        <option th:each="dm :${danhMuc}" th:value="${dm.id}"
+                                                                th:text="${dm.tenDanhMuc}"
+                                                                th:selected="${sanPham.danhMuc != null && sanPham.danhMuc.id == dm.id}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Thương Hiệu:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="thuongHieuId"
+                                                            id="thuongHieu">
+                                                        <option th:value="null">Chọn thương hiệu</option>
+                                                        <option th:each="th :${thuongHieu}" th:value="${th.id}"
+                                                                th:text="${th.tenThuongHieu}"
+                                                                th:selected="${sanPham.thuongHieu != null && sanPham.thuongHieu.id == th.id}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row justify-content-center g-4 mt-1">
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Chất liệu:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="chatLieuId" id="chatLieu">
+                                                        <option value="">Chọn chất liệu</option>
+                                                        <option th:each="cl :${chatLieu}" th:value="${cl.id}"
+                                                                th:text="${cl.tenChatLieu}"
+                                                                th:selected="${sanPham.chatLieu != null && sanPham.chatLieu.id == cl.id}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <span class="form-label fw-semibold d-block mb-1">Xuất Xứ:</span>
+                                                <div class="d-flex">
+                                                    <select class="form-select me-2" name="xuatXuId" id="xuatXu">
+                                                        <option value="">Chọn xuất xứ</option>
+                                                        <option th:each="xx :${xuatXu}" th:value="${xx.id}"
+                                                                th:text="${xx.quocGia}"
+                                                                th:selected="${sanPham.xuatXu != null && sanPham.xuatXu.id == xx.id}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nút cập nhật -->
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-success fw-bold">
+                                            <i class="bi bi-save"></i> Cập nhật
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!--Danh sách màu sắc và kích thước trong sản phẩm-->
+                        <div class="container mt-4 d-flex justify-content-center">
+                            <div class="shadow p-4 rounded bg-light w-100">
+                                <h4 class="text-uppercase fw-bold text-center">Kích cỡ và màu sắc</h4>
+                                <form>
+                                    <div class="row g-3">
+                                        <!-- Chọn Kích Cỡ -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Kích Cỡ:</label>
+                                            <div class="border rounded p-2 d-flex flex-wrap gap-2">
+                                                <label th:each="kt : ${kichThuocSanPham}"
+                                                       class="border rounded px-3 py-1">
+                                                    <span th:text="${kt.tenKichThuoc}"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chọn Màu Sắc -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Màu Sắc:</label>
+                                            <div class="border rounded p-2 d-flex flex-wrap gap-2">
+                                                <label th:each="ms : ${mauSacSanPham}" class="border rounded px-3 py-1">
+                                                    <span th:text="${ms.maMauSac}"
+                                                          th:style="'background-color:' + ${ms.maMauSac}"
+                                                          style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
+                                                          class="rounded border border-secondary shadow">
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nút mở Modal -->
+                                    <div class="text-center mt-3">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                                data-bs-target="#kichThuocMauSacModal">
+                                            Chọn kích cỡ & màu sắc
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+
+                        <!-- Modal chọn kích thước và màu sắc -->
+                        <div class="modal fade" id="kichThuocMauSacModal" tabindex="-1"
+                             aria-labelledby="kichThuocMauSacModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <input type="hidden" id="sanPhamIdHidden" th:value="${sanPham.id}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="kichThuocMauSacModalLabel">Chọn Kích Cỡ & Màu
+                                            Sắc</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Kích Thước -->
+                                        <h6 class="fw-bold">Kích Cỡ</h6>
+                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                            <label th:each="kt : ${kichThuoc}" class="border rounded px-3 py-1">
+                                                <input type="checkbox" name="kichThuocIds" class="kich-thuoc me-1"
+                                                       th:value="${kt.id}"
+                                                       th:attr="data-kich-thuoc=${kt.id}">
+                                                <span th:text="${kt.tenKichThuoc}"></span>
+                                            </label>
+                                        </div>
+
+
+                                        <!-- Màu Sắc -->
+                                        <h6 class="fw-bold">Màu Sắc</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <label th:each="ms : ${mauSac}" class="border rounded px-2 py-1 d-flex align-items-center">
+                                                <input type="checkbox" name="mauSacIds" class="mau-sac me-2"
+                                                       th:value="${ms.id}"
+                                                       th:attr="data-mau-sac=${ms.id}">
+                                                <div th:text="${ms.maMauSac}"
+                                                     th:style="'background-color:' + ${ms.maMauSac}"
+                                                     style="width: 30px; height: 30px;" class="rounded border border-secondary shadow">
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                        </button>
+
+                                        <button id="saveSelection" class="btn btn-primary">
+                                            <input type="hidden" name="sanPhamId" th:value="${sanPham.id}">
+                                            Lưu
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container mt-4 d-flex justify-content-center">
+                            <div class="shadow p-4 rounded bg-light w-100">
+                                <h4 class="text-uppercase fw-bold text-center">Chi tiết sản phẩm</h4>
+                                <table id="productTable"
+                                       class="table table-striped table-bordered text-center">
+                                    <thead class="table-dark">
+                                    <tr>
+                                        <th style="width: 5%" class="text-center">STT</th>
+                                        <th style="width: 15%" class="text-center">Tên Sản Phẩm</th>
+                                        <th style="width: 10%" class="text-center">Số lượng</th>
+                                        <th style="width: 15%" class="text-center">Giá Bán</th>
+                                        <th style="width: 10%" class="text-center">Trạng Thái</th>
+                                        <th style="width: 15%" class="text-center">Hành động</th>
+                                        <th style="width: 40%" class="text-center">Upload Ảnh</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="text-center">
+                                    <tr th:each="chiTiet, iterStat : ${sanPhamChiTiet}">
+                                        <td th:text="${iterStat.count}"></td>
+                                        <td th:text="${chiTiet.sanPham.tenSanPham} + ' [' + ${chiTiet.kichThuoc.tenKichThuoc} + ' - ' + ${chiTiet.mauSac.tenMauSac} + ' ]'"></td>
+                                        <td>
+                                            <input type="hidden" th:value="${chiTiet.id}" class="spct-id">
+                                            <input type="number" class="form-control spct-soLuong"
+                                                   th:value="${chiTiet.soLuong}" oninput="checkForm(this)">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control spct-gia"
+                                                   th:value="${chiTiet.gia != null ? #numbers.formatInteger(chiTiet.gia, 3, 'COMMA') + ' VND' : '0 VND'}"
+                                                   oninput="checkForm(this)">
+                                        </td>
+                                        <td>
+                                            <button th:class="${chiTiet.trangThai == 'Còn Hàng' ? 'badge bg-success' : 'badge bg-danger'}"
+                                                    th:text="${chiTiet.trangThai}">
+                                            </button>
+
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success btn-update" th:attr="data-id=${chiTiet.id}"
+                                                    onclick="updateProduct(this)" disabled>
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <button class="btn btn-danger" th:attr="data-id=${chiTiet.id}"
+                                                    onclick="deleteProduct(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            <button class="btn btn-info" th:attr="data-id=${chiTiet.id}"
+                                                    onclick="viewProductDetail(this)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-2 image-container">
+                                                <th:block th:each="hinhAnh : ${chiTiet.hinhAnh}">
+                                                    <div class="image-wrapper position-relative">
+                                                        <img th:src="${hinhAnh.urlHinhAnh}" class="img-thumbnail"
+                                                             width="60" height="60">
+
+                                                        <!-- Overlay icons -->
+                                                        <div class="image-overlay">
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-outline-light view-image"
+                                                                    th:data-url="${hinhAnh.urlHinhAnh}">
+                                                                <i class="bi bi-eye"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-light delete-image" th:data-id="${hinhAnh.id}">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+
+                                                <label class="btn btn-light btn-sm">
+                                                    <input type="file" class="file-input" hidden multiple> Upload
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Modal hiển thị chi tiết sản phẩm -->
+                                    <div class="modal fade" id="productDetailModal" tabindex="-1" aria-labelledby="productDetailModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-xl"> <!-- Thêm class modal-lg để modal lớn hơn -->
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div id="productDetailContent">Đang tải...</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box -->
+
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+    <div th:replace="admin/fragments/footer :: footer"></div>
+
+
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery 3 -->
+
+<div th:replace="admin/fragments/script :: script"></div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Upload ảnh khi chọn file
+        document.addEventListener("change", function (event) {
+            if (event.target.classList.contains("file-input")) {
+                let input = event.target;
+                let closestRow = input.closest("tr");
+                let spctIdElement = closestRow.querySelector(".spct-id");
+
+                if (!spctIdElement) {
+                    Swal.fire("Lỗi!", "Không tìm thấy ID sản phẩm!", "error");
+                    return;
+                }
+
+                let spctId = spctIdElement.value;
+                let imgContainer = closestRow.querySelector(".d-flex");
+                let files = input.files;
+                if (files.length === 0) return;
+
+                let formData = new FormData();
+                for (let file of files) {
+                    formData.append("files", file);
+                }
+
+                Swal.fire({
+                    title: "Đang tải ảnh lên...",
+                    text: "Vui lòng chờ!",
+                    icon: "info",
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+
+                fetch(`/api/san-pham/upload/${spctId}`, { method: "POST", body: formData })
+                    .then(response => {
+                        if (!response.ok) throw new Error("Lỗi từ server!");
+                        return response.json();
+                    })
+                    .then(imageUrls => {
+                        let uploadButton = imgContainer.querySelector("label.btn-light");
+                        imageUrls.forEach(url => {
+                            let imgWrapper = document.createElement("div");
+                            imgWrapper.classList.add("image-wrapper", "position-relative");
+                            imgWrapper.innerHTML = `
+                            <img src="${url}" class="img-thumbnail" width="60" height="60">
+                            <div class="image-overlay">
+                                <button type="button" class="btn btn-sm btn-outline-light view-image" data-url="${url}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-light delete-image" data-url="${url}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        `;
+
+                            if (uploadButton) {
+                                imgContainer.insertBefore(imgWrapper, uploadButton);
+                            } else {
+                                imgContainer.appendChild(imgWrapper);
+                            }
+                        });
+
+                        Swal.fire("Thành công!", "Upload ảnh thành công!", "success");
+                        setTimeout(() => location.reload(), 1000);
+                    })
+                    .catch(error => {
+                        Swal.fire("Lỗi!", "Upload thất bại!", "error");
+                    });
+            }
+        });
+
+        // Xử lý sự kiện xóa ảnh
+        document.addEventListener("click", function (event) {
+            if (event.target.closest(".delete-image")) {
+                let button = event.target.closest(".delete-image");
+                let imageId = button.getAttribute("data-id");
+
+                if (!imageId) {
+                    Swal.fire("Lỗi!", "Không tìm thấy ID ảnh!", "error");
+                    return;
+                }
+
+                let wrapper = button.closest(".image-wrapper");
+
+                Swal.fire({
+                    title: "Bạn có chắc chắn muốn xóa ảnh này?",
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Có, xóa ngay!",
+                    cancelButtonText: "Hủy",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: "Đang xóa ảnh...",
+                            text: "Vui lòng chờ!",
+                            icon: "info",
+                            showConfirmButton: false,
+                            allowOutsideClick: false
+                        });
+
+                        fetch(`/api/san-pham/xoa/${imageId}`, { method: "DELETE" })
+                            .then(response => {
+                                if (!response.ok) throw new Error("Xóa ảnh thất bại!");
+                                return response.text();
+                            })
+                            .then(() => {
+                                wrapper.remove();
+                                Swal.fire("Thành công!", "Ảnh đã được xóa!", "success");
+                            })
+                            .catch(error => {
+                                console.error("Lỗi xóa ảnh:", error);
+                                Swal.fire("Lỗi!", "Xóa ảnh thất bại!", "error");
+                            });
+                    }
+                });
+            }
+        });
+
+        // Xử lý sự kiện xem ảnh
+        document.addEventListener("click", function (event) {
+            if (event.target.closest(".view-image")) {
+                let button = event.target.closest(".view-image");
+                let imageUrl = button.getAttribute("data-url");
+
+                if (!imageUrl) {
+                    Swal.fire("Lỗi!", "Không tìm thấy ảnh!", "error");
+                    return;
+                }
+
+                Swal.fire({
+                    title: "Xem ảnh",
+                    imageUrl: imageUrl,
+                    imageAlt: "Hình ảnh",
+                    showCloseButton: true
+                });
+            }
+        });
+    });
+</script>
+
+<script>
+    function viewProductDetail(button) {
+        let productId = button.getAttribute("data-id");
+        let url = `/admin/san-pham-chi-tiet?sanPhamChiTietId=` + productId;
+        let modalContent = document.getElementById("productDetailContent");
+
+        // Hiển thị loading trước khi tải dữ liệu
+        modalContent.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-primary" role="status"></div></div>';
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Lỗi khi tải chi tiết sản phẩm:", error);
+                modalContent.innerHTML = "<p class='text-danger'>Không thể tải dữ liệu.</p>";
+            });
+
+        new bootstrap.Modal(document.getElementById("productDetailModal")).show();
+    }
+</script>
+
+<script>
+    document.getElementById("updateForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // Ngăn chặn load lại trang
+
+        let formData = new FormData(this);
+        let requestBody = Object.fromEntries(formData);
+
+        // Xử lý giá tiền nếu có đơn vị VND
+        if (requestBody.gia) {
+            requestBody.gia = requestBody.gia.replace(/\D/g, ""); // Chỉ giữ lại số
+        }
+
+        fetch('/api/san-pham/update-san-pham/' + formData.get("id"), {
+            method: 'PUT',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                if (status === 200) {
+                    Swal.fire({
+                        title: "Thành công!",
+                        text: "Cập nhật sản phẩm thành công!",
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
+                } else {
+                    let errorMessage = body.error || "Có lỗi xảy ra!";
+                    switch (status) {
+                        case 400:
+                            errorMessage = "Lỗi dữ liệu! " + errorMessage;
+                            break;
+                        case 409:
+                            errorMessage = "Xung đột dữ liệu! " + errorMessage;
+                            break;
+                        case 500:
+                            errorMessage = "Lỗi hệ thống! " + errorMessage;
+                            break;
+                    }
+                    throw new Error(errorMessage);
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi cập nhật:", error);
+                Swal.fire({
+                    title: "Thất bại!",
+                    text: error.message,
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
+            });
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let saveBtn = document.getElementById("saveSelection");
+        if (saveBtn) {
+            saveBtn.addEventListener("click", function () {
+                const urlParams = new URLSearchParams(window.location.search);
+                const sanPhamId = urlParams.get("sanPhamId");
+
+                if (!sanPhamId) {
+                    Swal.fire({
+                        title: "Lỗi!",
+                        text: "Không tìm thấy sản phẩm. Vui lòng kiểm tra lại URL.",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                    return;
+                }
+
+                let selectedMauSac = [...document.querySelectorAll("input[name='mauSacIds']:checked")].map(el => el.value);
+                let selectedKichThuoc = [...document.querySelectorAll("input[name='kichThuocIds']:checked")].map(el => el.value);
+
+                if (selectedMauSac.length === 0 || selectedKichThuoc.length === 0) {
+                    Swal.fire({
+                        title: "Cảnh báo!",
+                        text: "Vui lòng chọn ít nhất một kích thước và một màu sắc.",
+                        icon: "warning",
+                        confirmButtonText: "OK"
+                    });
+                    return;
+                }
+
+                fetch("/api/san-pham/add-mau-sac-kich-thuoc", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        sanPhamId: sanPhamId,
+                        mauSacIds: selectedMauSac,
+                        kichThuocIds: selectedKichThuoc
+                    })
+                })
+                    .then(response => response.text().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status === 200) {
+                            Swal.fire({
+                                title: "Thành công!",
+                                text: "Thêm thành công!",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
+                            throw new Error(body || "Có lỗi xảy ra!");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Lỗi:", error);
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: error.message,
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    });
+            });
+        } else {
+            console.error("Không tìm thấy nút #saveSelection");
+        }
+    });
+</script>
+
+<script>
+    function checkForm(input) {
+        let row = input.closest("tr");
+        let soLuong = row.querySelector(".spct-soLuong").value.trim();
+        let gia = row.querySelector(".spct-gia").value.replace(/\D/g, "").trim();
+        let updateButton = row.querySelector(".btn-update");
+
+        if (soLuong !== "" && gia !== "") {
+            updateButton.removeAttribute("disabled");
+        } else {
+            updateButton.setAttribute("disabled", "disabled");
+        }
+    }
+
+    function updateProduct(button) {
+        let row = button.closest("tr");
+        let soLuongInput = row.querySelector(".spct-soLuong");
+        let giaInput = row.querySelector(".spct-gia");
+
+        let soLuong = soLuongInput.value.trim();
+        let gia = giaInput.value.replace(/\D/g, "").trim(); // Loại bỏ ký tự không phải số
+
+        if (soLuong === "" || gia === "") {
+            Swal.fire({
+                title: "Lỗi!",
+                text: "Vui lòng nhập đầy đủ thông tin!",
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+            return;
+        }
+
+        let id = button.getAttribute("data-id");
+
+        fetch("/api/san-pham/update", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: id, soLuong: soLuong, gia: gia })
+        })
+            .then(response => response.text().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                if (status === 200) {
+                    Swal.fire({
+                        title: "Thành công!",
+                        text: "Cập nhật thành công!",
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    throw new Error(body || "Cập nhật thất bại!");
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi cập nhật sản phẩm:", error);
+                Swal.fire({
+                    title: "Lỗi!",
+                    text: error.message,
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
+            });
+    }
+
+    function deleteProduct(button) {
+        let id = button.getAttribute("data-id");
+
+        Swal.fire({
+            title: "Bạn có chắc chắn muốn xóa?",
+            text: "Hành động này không thể hoàn tác!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Có, xóa ngay!",
+            cancelButtonText: "Hủy",
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch("/api/san-pham/delete/" + encodeURIComponent(id), {
+                    method: "DELETE"
+                })
+                    .then(response => response.text().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status === 200) {
+                            Swal.fire({
+                                title: "Đã xóa!",
+                                text: "Sản phẩm đã được xóa thành công.",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            throw new Error(body || "Xóa thất bại!");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Lỗi xóa sản phẩm:", error);
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: error.message,
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    });
+            }
+        });
+    }
+
+
+</script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        let sanPhamChiTietList = /*[[${sanPhamChiTiet}]]*/ [];
+
+        // Tạo danh sách các kích thước theo từng màu
+        let kichThuocTheoMau = {};
+        sanPhamChiTietList.forEach(spct => {
+            let mauId = spct.mauSac.id;
+            let kichThuocId = spct.kichThuoc.id;
+
+            if (!kichThuocTheoMau[kichThuocId]) {
+                kichThuocTheoMau[kichThuocId] = new Set();
+            }
+            kichThuocTheoMau[kichThuocId].add(mauId);
+        });
+
+        // Lấy danh sách tất cả các màu sắc có trong hệ thống
+        let allMauSac = new Set();
+        document.querySelectorAll('.mau-sac').forEach(mau => {
+            allMauSac.add(parseInt(mau.value));
+        });
+
+        // Disable kích thước nếu nó đã tồn tại với tất cả màu
+        function updateDisabledSizes() {
+            document.querySelectorAll('.kich-thuoc').forEach(kichThuoc => {
+                let kichThuocId = parseInt(kichThuoc.value);
+                let colorsOfThisSize = kichThuocTheoMau[kichThuocId] || new Set();
+
+                kichThuoc.disabled = colorsOfThisSize.size === allMauSac.size;
+            });
+        }
+
+        updateDisabledSizes(); // Gọi lần đầu để cập nhật trạng thái
+
+        // Khi chọn kích thước, kiểm tra màu sắc nào đã tồn tại
+        function updateDisabledColors() {
+            let selectedSizes = new Set();
+            document.querySelectorAll('.kich-thuoc:checked').forEach(kichThuoc => {
+                let kichThuocId = parseInt(kichThuoc.value);
+                selectedSizes.add(kichThuocId);
+            });
+
+            // Reset trạng thái tất cả màu
+            document.querySelectorAll('.mau-sac').forEach(mau => {
+                mau.disabled = false;
+            });
+
+            // Nếu có kích thước được chọn, kiểm tra màu sắc cần disable
+            if (selectedSizes.size > 0) {
+                selectedSizes.forEach(kichThuocId => {
+                    let colorsOfThisSize = kichThuocTheoMau[kichThuocId] || new Set();
+                    document.querySelectorAll('.mau-sac').forEach(mau => {
+                        let mauId = parseInt(mau.value);
+                        if (colorsOfThisSize.has(mauId)) {
+                            mau.disabled = true;
+                        }
+                    });
+                });
+            }
+        }
+
+        document.querySelectorAll('.kich-thuoc').forEach(kichThuoc => {
+            kichThuoc.addEventListener("change", function () {
+                updateDisabledColors();
+            });
+        });
+    });
+</script>
+
+<!--Load table-->
+<script>
+    $(document).ready(function () {
+        $('#productTable').DataTable({
+            "paging": true,
+            "lengthMenu": [3, 5, 7, 10, 20],
+            "pageLength": 5,
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "sProcessing": "Đang xử lý...",
+                "sLengthMenu": "Hiển thị _MENU_ dòng",
+                "sZeroRecords": "Không tìm thấy dữ liệu",
+                "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+                "sInfoEmpty": "Không có dữ liệu để hiển thị",
+                "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+                "sSearch": "Tìm kiếm:",
+                "oPaginate": {
+                    "sFirst": "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext": "Tiếp",
+                    "sLast": "Cuối"
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

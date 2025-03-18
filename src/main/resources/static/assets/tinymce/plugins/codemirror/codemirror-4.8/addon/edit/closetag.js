@@ -110,7 +110,7 @@
       // way to go from a mixed mode to its current XML state).
       if (inner.mode.name != "xml") {
         if (cm.getMode().name == "htmlmixed" && inner.mode.name == "javascript")
-          replacements[i] = "/script>";
+          replacements[i] = "/script.html>";
         else if (cm.getMode().name == "htmlmixed" && inner.mode.name == "css")
           replacements[i] = "/style>";
         else
