@@ -27,12 +27,6 @@ public class SanPhamService {
     @Autowired
     private SanPhamRepository sanPhamRepository;
 
-    public List<SanPham> getAllSanPhams() {
-        return sanPhamRepository.findAll();
-    }
-
-}
-
     @Autowired
     private DanhMucRepository danhMucRepository;
 

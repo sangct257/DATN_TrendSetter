@@ -216,6 +216,14 @@ public class HoaDonChiTietService {
         SanPhamChiTiet sanPhamChiTiet = hoaDonChiTiet.getSanPhamChiTiet();
         if (sanPhamChiTiet != null) {
             sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() + hoaDonChiTiet.getSoLuong());
+
+            // Cập nhật trạng thái sản phẩm dựa trên số lượng
+            if (sanPhamChiTiet.getSoLuong() == 0) {
+                sanPhamChiTiet.setTrangThai("Hết Hàng");
+            } else {
+                sanPhamChiTiet.setTrangThai("Còn Hàng");
+            }
+
             sanPhamChiTietRepository.save(sanPhamChiTiet);
             updateStockForProduct(sanPhamChiTiet.getSanPham());
         }
@@ -236,7 +244,6 @@ public class HoaDonChiTietService {
 
         float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
         hoaDon.setTongTien(tongTienFinal);
-
 
         hoaDonRepository.save(hoaDon);
 

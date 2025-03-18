@@ -16,6 +16,7 @@ import java.util.Optional;
 @Repository
 public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, Integer> {
     List<SanPhamChiTiet> findBySanPham(SanPham sanPham);
+    List<SanPhamChiTiet> findAllByIdIn(List<Integer> ids);
 
     // Phương thức tìm các sản phẩm có trạng thái "Còn Hàng"
     List<SanPhamChiTiet> findByTrangThai(String trangThai);
