@@ -91,12 +91,10 @@
                     </section>
                 </div>
             </div>
-            <!-- /.box -->
+        </div>
+</div>
 
-        </section>
-        <!-- /.content -->
-    </div>
-    <!-- /.content-wrapper -->
+        <!-- /.content-wrapper -->
 
     <div th:replace="admin/fragments/footer :: footer"></div>
 
@@ -107,6 +105,58 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
+<script>
+    document.getElementById("addProductForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        let formData = {
+            tenSanPham: document.getElementById("productName").value,
+        };
+
+        fetch("/api/san-pham/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                let newRow = `<tr>
+            <td>#</td>
+            <td>${data.tenSanPham}</td>
+
+            <td><button class="btn btn-primary">Chọn</button></td>
+        </tr>`;
+
+                document.getElementById("productTableBody").insertAdjacentHTML("beforeend", newRow);
+                document.getElementById("addProductForm").reset();
+                new bootstrap.Modal(document.getElementById("addProductModal")).hide();
+            })
+            .catch(error => {
+                console.error("Lỗi khi thêm sản phẩm:", error);
+                alert("Lỗi: " + error.message);
+            });
+    });
+</script>
+
+
+
+<script>
+    $(document).ready(function () {
+        $('#productTable').DataTable({
+            "paging": true,
+            "lengthMenu": [5, 10, 20],
+            "pageLength": 5,
+            "autoWidth": false,
+            "responsive": true
+        });
+    });
+</script>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
