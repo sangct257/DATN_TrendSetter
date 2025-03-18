@@ -371,11 +371,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         ngayKetThuc: document.getElementById("ngayKetThuc").value,
                         trangThai: document.getElementById("trangThai").value
                     };
-
                     fetch("http://localhost:8080/api/phieu-giam-gia/add/multiple", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ phieuGiamGia })
+                        body: JSON.stringify({ phieuGiamGia: phieuGiamGia })  // Chú ý sửa lại chỗ này
                     })
                         .then(response => {
                             if (!response.ok) throw new Error("Có lỗi khi thêm phiếu giảm giá!");
