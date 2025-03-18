@@ -156,19 +156,6 @@ public class ShopService {
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                     .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
 
-            // Hoàn trả số lượt sử dụng của phiếu giảm giá nếu hóa đơn có sử dụng
-            if (hoaDon.getPhieuGiamGia() != null) {
-                PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
-                phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
-
-                // Kiểm tra nếu số lượt sử dụng > 0 thì đặt trạng thái là Đang Hoạt Động
-                if (phieuGiamGia.getSoLuotSuDung() > 0) {
-                    phieuGiamGia.setTrangThai("Đang Hoạt Động");
-                }
-
-                phieuGiamGiaRepository.save(phieuGiamGia);
-            }
-
             // Kiểm tra và khôi phục số lượng sản phẩm trong chi tiết hóa đơn
             if (hoaDon.getHoaDonChiTiet() != null && !hoaDon.getHoaDonChiTiet().isEmpty()) {
                 for (HoaDonChiTiet hoaDonChiTiet : hoaDon.getHoaDonChiTiet()) {
@@ -570,30 +557,9 @@ public class ShopService {
             throw new RuntimeException("Hóa đơn chưa có sản phẩm hợp lệ để áp dụng phiếu giảm giá.");
         }
 
-        // Nếu hóa đơn đã có phiếu giảm giá, hoàn lại số lượt trước khi thay đổi
-        if (hoaDon.getPhieuGiamGia() != null) {
-            PhieuGiamGia phieuGiamGiaCu = hoaDon.getPhieuGiamGia();
-            phieuGiamGiaCu.setSoLuotSuDung(phieuGiamGiaCu.getSoLuotSuDung() + 1);
-
-            // Nếu số lượt sử dụng > 0, giữ trạng thái bình thường, ngược lại đặt thành "Ngừng Hoạt Động"
-            if (phieuGiamGiaCu.getSoLuotSuDung() > 0) {
-                phieuGiamGiaCu.setTrangThai("Đang Hoạt Động");
-            } else {
-                phieuGiamGiaCu.setTrangThai("Ngừng Hoạt Động");
-            }
-
-            phieuGiamGiaRepository.save(phieuGiamGiaCu);
-        }
-
         // Tìm phiếu giảm giá mới
         PhieuGiamGia phieuGiamGiaMoi = phieuGiamGiaRepository.findByTenPhieuGiamGia(tenPhieuGiamGia)
                 .orElseThrow(() -> new RuntimeException("Phiếu giảm giá không hợp lệ"));
-
-        if (phieuGiamGiaMoi.getSoLuotSuDung() <= 0) {
-            phieuGiamGiaMoi.setTrangThai("Ngừng Hoạt Động");
-            phieuGiamGiaRepository.save(phieuGiamGiaMoi);
-            throw new RuntimeException("Phiếu giảm giá đã hết lượt sử dụng và không thể áp dụng.");
-        }
 
         LocalDate now = LocalDate.now();
         if (phieuGiamGiaMoi.getNgayBatDau().isAfter(now)) {
@@ -610,16 +576,6 @@ public class ShopService {
             throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
         }
 
-        // Trừ lượt sử dụng của phiếu giảm giá mới ngay khi áp dụng
-        phieuGiamGiaMoi.setSoLuotSuDung(phieuGiamGiaMoi.getSoLuotSuDung() - 1);
-
-        // Nếu số lượt sử dụng giảm xuống 0, đặt trạng thái thành "Ngừng Hoạt Động"
-        if (phieuGiamGiaMoi.getSoLuotSuDung() == 0) {
-            phieuGiamGiaMoi.setTrangThai("Ngừng Hoạt Động");
-        }
-
-        phieuGiamGiaRepository.save(phieuGiamGiaMoi);
-
         // Gán phiếu giảm giá mới cho hóa đơn
         hoaDon.setPhieuGiamGia(phieuGiamGiaMoi);
 
@@ -630,10 +586,12 @@ public class ShopService {
         hoaDon.setTongTien(tongTienMoi);
         hoaDonRepository.save(hoaDon);
 
-        return "Phiếu giảm giá đã được áp dụng! Lượt sử dụng đã bị trừ.";
+        return "Phiếu giảm giá đã được áp dụng!";
     }
 
 
+
+    @Transactional
     public String confirmPayment(Integer hoaDonId, RedirectAttributes redirectAttributes) {
         try {
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
@@ -656,6 +614,25 @@ public class ShopService {
 
             hoaDon.setTongTien(tongTien);
             hoaDon.setNgaySua(LocalDateTime.now());
+
+            // Xử lý phiếu giảm giá
+            if (hoaDon.getPhieuGiamGia() != null) {
+                PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+                if (phieuGiamGia.getSoLuotSuDung() > 0) {
+                    phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() - 1);
+
+                    // Nếu số lượt sử dụng giảm về 0 -> đổi trạng thái thành "Ngừng Hoạt Động"
+                    if (phieuGiamGia.getSoLuotSuDung() == 0) {
+                        phieuGiamGia.setTrangThai("Ngừng Hoạt Động");
+                    }
+
+                    phieuGiamGiaRepository.save(phieuGiamGia);
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Phiếu giảm giá này đã hết lượt sử dụng!");
+                    return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+                }
+            }
+
             hoaDonRepository.save(hoaDon);
 
             if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
@@ -705,6 +682,7 @@ public class ShopService {
             return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
         }
     }
+
 
     public Map<String, String> addNewCustomer(Integer hoaDonId, String nguoiNhan, String soDienThoai) {
         Map<String, String> response = new HashMap<>();

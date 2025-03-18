@@ -145,9 +145,12 @@ public class HoaDonChiTietService {
         hoaDonChiTietRepository.save(hoaDonChiTiet);
 
         // Cập nhật tồn kho nếu số lượng thay đổi
-        if (chenhLechSoLuong > 0) { // Chỉ giảm khi tăng số lượng
+        if (chenhLechSoLuong > 0) { // Nếu số lượng tăng -> giảm tồn kho
             sanPhamChiTiet.setSoLuong(soLuongTonKho - chenhLechSoLuong);
+        } else if (chenhLechSoLuong < 0) { // Nếu số lượng giảm -> hoàn lại tồn kho
+            sanPhamChiTiet.setSoLuong(soLuongTonKho - chenhLechSoLuong); // Vì chenhLechSoLuong < 0 nên trừ thành cộng
         }
+
 
         sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() == 0 ? "Hết Hàng" : "Còn Hàng");
         sanPhamChiTietRepository.save(sanPhamChiTiet);

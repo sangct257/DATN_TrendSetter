@@ -1,6 +1,6 @@
 //Tạo hóa đơn
 function createHoaDon() {
-    fetch('/admin/create', {
+    fetch('/create', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'}
     })
@@ -84,7 +84,7 @@ function confirmDeleteHoaDon(button, hoaDonId) {
     });
 }
 function deleteHoaDon(button, hoaDonId) {
-    fetch(`/admin/delete/${hoaDonId}`, {
+    fetch(`/delete/${hoaDonId}`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'}
     })

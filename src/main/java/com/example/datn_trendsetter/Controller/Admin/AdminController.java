@@ -13,19 +13,23 @@ public class AdminController {
     public String index() {
         return "redirect:/admin/";
     }
-    @GetMapping("/")
-    public String adminDashboard(HttpSession session, Model model) {
-        String role = (String) session.getAttribute("role");
-
-        if (role == null) {
-            return "redirect:/auth/home";
-
-        }
-
-        System.out.println("✅ Role hiện tại: " + role);
-
-        model.addAttribute("role", role);
+    @RequestMapping("/")
+    public String admin() {
         return "Admin/index";
     }
 
+//    @GetMapping("/")
+//    public String adminDashboard(HttpSession session, Model model) {
+//        String role = (String) session.getAttribute("role");
+//
+//        if (role == null) {
+//            return "redirect:/auth/home";
+//
+//        }
+//
+//        System.out.println("✅ Role hiện tại: " + role);
+//
+//        model.addAttribute("role", role);
+//        return "Admin/index";
+//    }
 }
