@@ -1,6 +1,7 @@
 package com.example.datn_trendsetter.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -33,7 +34,9 @@ public class SanPham {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_thuong_hieu", referencedColumnName = "id")
+    @JsonBackReference
     private ThuongHieu thuongHieu;
+
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_xuat_xu", referencedColumnName = "id")
@@ -65,8 +68,9 @@ public class SanPham {
     @Column(name = "deleted")
     private Boolean deleted;
 
-    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<SanPhamChiTiet> sanPhamChiTiet;
+    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("sanPham") // Tránh vòng lặp JSON
+    private List<SanPhamChiTiet> chiTietSanPhams;
+
 
 }

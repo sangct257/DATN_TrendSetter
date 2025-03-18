@@ -26,67 +26,67 @@
         </section>
 
         <!-- Main content -->
-        <section class="content">
+        <div class="box-body">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fas fa-box"></i> Thêm Sản Phẩm
+            </button>
+        </div>
 
-            <!-- Default box -->
-            <div class="box">
-                <div class="box-body">
-                    <section class="content">
-                        <div class="box-body">
-                            <form method="get" action="/admin/products/search"
-                                  style="border: 2px solid #007bff; padding: 10px; border-radius: 5px; background-color: #e9f5ff; display: inline-block;">
-                                <input type="text" name="query" placeholder="Tìm kiếm sản phẩm..."
-                                       style="padding: 5px; border: 1px solid #007bff; border-radius: 5px;">
-                                <button type="submit"
-                                        style="background: none; border: none; cursor: pointer; color: #007bff;"><i
-                                        class="fa fa-search"></i></button>
-                            </form>
-                            <a href="/admin/products/add"
-                               style="border: 2px solid #28a745; padding: 10px; border-radius: 5px; background-color: #eaffea; margin-left: 20px; cursor: pointer; text-decoration: none; color: #28a745; display: inline-block;">
-                                <i class="fa fa-plus"></i> Thêm sản phẩm
-                            </a>
-                            <table border="1" width="100%"
-                                   style="border-collapse: collapse; background-color: #fff; text-align: left; border: 2px solid #ddd;">
-                                <thead style="background-color: #ffeb99; color: black;">
-                                <tr>
-                                    <th style="padding: 10px; border: 2px solid #ddd;">STT</th>
-                                    <th style="padding: 10px; border: 2px solid #ddd;">Tên sản phẩm</th>
-                                    <th style="padding: 10px; border: 2px solid #ddd;">Số lượng</th>
-                                    <th style="padding: 10px; border: 2px solid #ddd;">Trạng thái</th>
-                                    <th style="padding: 10px; border: 2px solid #ddd;">Mô tả</th>
-                                    <th style="padding: 10px; border: 2px solid #ddd;">Hình ảnh</th>
-                                    <th style="padding: 10px; border: 2px solid #ddd;">Thao tác</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr style="background-color: #f9f9f9;">
-                                    <td style="padding: 10px; border: 2px solid #ddd;">1</td>
-                                    <td style="padding: 10px; border: 2px solid #ddd;">Áo sơ mi nữ trắng</td>
-                                    <td style="padding: 10px; border: 2px solid #ddd;">50</td>
-                                    <td style="padding: 10px; border: 2px solid #ddd; color: green;">Còn hàng</td>
-                                    <td style="padding: 10px; border: 2px solid #ddd;">Áo sơ mi trắng phong cách công
-                                        sở
-                                    </td>
-                                    <td style="padding: 10px; border: 2px solid #ddd;"><img
-                                            src="/images/ao_somi_trang.jpg" alt="Áo sơ mi nữ trắng" width="50"></td>
-                                    <td style="padding: 10px; border: 2px solid #ddd;">
-                                        <a href="/admin/products/edit/1" style="color: #ffc107;">Sửa</a>
-                                        <a href="/admin/products/delete/1" style="color: #dc3545;"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa?')">Xóa</a>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
+        <!-- Bảng hiển thị danh sách sản phẩm -->
+        <div class="box-body mt-3">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Số Lượng</th>
+                    <th>Mô Tả</th>
+                    <th>Thương Hiệu</th>
+                    <th>Xuất Xứ</th>
+                    <th>Chọn</th>
+                </tr>
+                </thead>
+                <tbody id="productTableBody">  <tr th:each="sanPham, status : ${sanPhamList}">
+                    <td th:text="${status.index + 1}"></td>
+                    <td th:text="${sanPham.tenSanPham}"></td>
+                    <td th:text="${sanPham.soLuong}"></td>
+                    <td th:text="${sanPham.moTa ?: 'Không có mô tả'}"></td>
+                    <td th:text="${sanPham.thuongHieu?.tenThuongHieu ?: 'Không có'}"></td>
+                    <td th:text="${sanPham.xuatXu?.tenXuatXu ?: 'Không có'}"></td>
+                    <td>
+                        <form onsubmit="event.preventDefault(); addProductToInvoice(this)">
+                            <input type="hidden" name="sanPhamId" th:value="${sanPham.id}">
+                            <button type="submit" class="btn btn-primary">Chọn</button>
+                        </form>
+                    </td>
+                </tr></tbody>
+            </table>
+        </div>
+
+        <!-- Modal Thêm Sản Phẩm -->
+        <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addProductModalLabel">Thêm Sản Phẩm</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addProductForm" method="post">
+                            <div class="mb-3">
+                                <label for="productName" class="form-label">Tên Sản Phẩm</label>
+                                <input type="text" class="form-control" id="productName" name="tenSanPham" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Lưu</button>
+                        </form>
+
+                    </div>
                 </div>
             </div>
-            <!-- /.box -->
+        </div>
+</div>
 
-        </section>
-        <!-- /.content -->
-    </div>
-    <!-- /.content-wrapper -->
+        <!-- /.content-wrapper -->
 
     <div th:replace="admin/fragments/footer :: footer"></div>
 
@@ -97,6 +97,58 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
+<script>
+    document.getElementById("addProductForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        let formData = {
+            tenSanPham: document.getElementById("productName").value,
+        };
+
+        fetch("/api/san-pham/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                let newRow = `<tr>
+            <td>#</td>
+            <td>${data.tenSanPham}</td>
+
+            <td><button class="btn btn-primary">Chọn</button></td>
+        </tr>`;
+
+                document.getElementById("productTableBody").insertAdjacentHTML("beforeend", newRow);
+                document.getElementById("addProductForm").reset();
+                new bootstrap.Modal(document.getElementById("addProductModal")).hide();
+            })
+            .catch(error => {
+                console.error("Lỗi khi thêm sản phẩm:", error);
+                alert("Lỗi: " + error.message);
+            });
+    });
+</script>
+
+
+
+<script>
+    $(document).ready(function () {
+        $('#productTable').DataTable({
+            "paging": true,
+            "lengthMenu": [5, 10, 20],
+            "pageLength": 5,
+            "autoWidth": false,
+            "responsive": true
+        });
+    });
+</script>
+
 
 </body>
 </html>
