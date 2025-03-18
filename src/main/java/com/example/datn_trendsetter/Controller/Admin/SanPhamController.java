@@ -23,18 +23,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/admin/san-pham")
 public class SanPhamController {
 
     @Autowired
     private SanPhamRepository sanPhamRepository;
 
-    @GetMapping
-    public String getSanPhamPage(Model model) {
-        model.addAttribute("sanPhamList", sanPhamRepository.findAll());
-        return "Admin/SanPham/hien-thi"; // Trả về template HTML
-    }
-
+    @Autowired
     private ThuongHieuRepository thuongHieuRepository;
 
     @Autowired
@@ -43,8 +37,6 @@ public class SanPhamController {
     @Autowired
     private XuatXuRepository xuatSuRepository;
 
-    @Autowired
-    private SanPhamRepository sanPhamRepository;
 
     @Autowired
     private MauSacRepository mauSacRepository;
