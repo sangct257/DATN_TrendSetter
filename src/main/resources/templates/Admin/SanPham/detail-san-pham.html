@@ -181,12 +181,11 @@
                                             <label class="form-label fw-semibold">Màu Sắc:</label>
                                             <div class="border rounded p-2 d-flex flex-wrap gap-2">
                                                 <label th:each="ms : ${mauSacSanPham}" class="border rounded px-3 py-1">
-                                                    <span th:text="${ms.tenMauSac}"></span>
-
-<!--                                                    <span th:style="'background-color:' + ${ms.maMauSac}"-->
-<!--                                                          style="width: 30px; height: 30px; flex-shrink: 0;"-->
-<!--                                                          class="rounded border border-secondary shadow">-->
-<!--                                                    </span>-->
+                                                    <span th:text="${ms.maMauSac}"
+                                                          th:style="'background-color:' + ${ms.maMauSac}"
+                                                          style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
+                                                          class="rounded border border-secondary shadow">
+                                                    </span>
                                                 </label>
                                             </div>
                                         </div>
@@ -236,10 +235,9 @@
                                                 <input type="checkbox" name="mauSacIds" class="mau-sac me-2"
                                                        th:value="${ms.id}"
                                                        th:attr="data-mau-sac=${ms.id}">
-                                                <span th:text="${ms.tenMauSac}"></span>
-                                                <div th:style="'background-color:' + ${ms.maMauSac}"
-                                                     style="width: 30px; height: 30px; margin-left: 10px;"
-                                                     class="rounded border border-secondary shadow">
+                                                <div th:text="${ms.maMauSac}"
+                                                     th:style="'background-color:' + ${ms.maMauSac}"
+                                                     style="width: 30px; height: 30px;" class="rounded border border-secondary shadow">
                                                 </div>
                                             </label>
                                         </div>
@@ -262,10 +260,13 @@
                         <div class="container mt-4 d-flex justify-content-center">
                             <div class="shadow p-4 rounded bg-light w-100">
                                 <h4 class="text-uppercase fw-bold text-center">Chi tiết sản phẩm</h4>
+                                <div class="d-flex flex-row-reverse bd-highlight"> <button id="saveDetailProduct" class="btn btn-primary">Lưu chi tiết sản phẩm</button></div>
+
                                 <table id="productTable"
                                        class="table table-striped table-bordered text-center">
                                     <thead class="table-dark">
                                     <tr>
+                                        <th style="width: 5%" class="text-center">Select</th>
                                         <th style="width: 5%" class="text-center">STT</th>
                                         <th style="width: 15%" class="text-center">Tên Sản Phẩm</th>
                                         <th style="width: 10%" class="text-center">Số lượng</th>
@@ -277,20 +278,21 @@
                                     </thead>
                                     <tbody class="text-center">
                                     <tr th:each="chiTiet, iterStat : ${sanPhamChiTiet}">
+                                        <td>  <input type="checkbox" th:value="${chiTiet.id}"></td>
                                         <td th:text="${iterStat.count}"></td>
                                         <td th:text="${chiTiet.sanPham.tenSanPham} + ' [' + ${chiTiet.kichThuoc.tenKichThuoc} + ' - ' + ${chiTiet.mauSac.tenMauSac} + ' ]'"></td>
                                         <td>
                                             <input type="hidden" th:value="${chiTiet.id}" class="spct-id">
-                                            <input type="number" class="form-control spct-soLuong"
+                                            <input type="number" class="form-control spct-soLuong" name="number"
                                                    th:value="${chiTiet.soLuong}" oninput="checkForm(this)">
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control spct-gia"
+                                            <input type="text" class="form-control spct-gia" name="price"
                                                    th:value="${chiTiet.gia != null ? #numbers.formatInteger(chiTiet.gia, 3, 'COMMA') + ' VND' : '0 VND'}"
                                                    oninput="checkForm(this)">
                                         </td>
                                         <td>
-                                            <button th:class="${chiTiet.trangThai == 'Còn Hàng' ? 'badge bg-success' : 'badge bg-danger'}"
+                                            <button th:value="${chiTiet.id}" th:class=" ${chiTiet.trangThai == 'Còn Hàng' ? 'badge bg-success updateStatusProductDetail' : 'badge bg-danger updateStatusProductDetail'} "
                                                     th:text="${chiTiet.trangThai}">
                                             </button>
 
@@ -341,18 +343,18 @@
                                 </table>
 
                                 <!-- Modal hiển thị chi tiết sản phẩm -->
-                                    <div class="modal fade" id="productDetailModal" tabindex="-1" aria-labelledby="productDetailModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-xl"> <!-- Thêm class modal-lg để modal lớn hơn -->
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div id="productDetailContent">Đang tải...</div>
-                                                </div>
+                                <div class="modal fade" id="productDetailModal" tabindex="-1" aria-labelledby="productDetailModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl"> <!-- Thêm class modal-lg để modal lớn hơn -->
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div id="productDetailContent">Đang tải...</div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
                             </div>
                         </div>
@@ -513,6 +515,122 @@
                     showCloseButton: true
                 });
             }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function(){
+        $("#saveDetailProduct").click(function(){
+            let selectedData = [];
+            $("#productTable tbody tr").each(function () {
+                let $row = $(this);
+                let checkbox = $row.find("td:first-child input[type='checkbox']");
+
+                if (checkbox.is(":checked")) {
+                    let item = {
+                        id: $row.find(".spct-id").val(),
+                        soLuong: $row.find(".spct-soLuong").val(),
+                        gia: $row.find(".spct-gia").val().replace(" VND", "").replace(/,/g, '') // Loại bỏ định dạng tiền tệ
+                    };
+                    selectedData.push(item);
+                }
+            });
+            fetch('/api/san-pham/update-product-details' , {
+                method: 'PUT',
+                body: JSON.stringify(selectedData, null, 2),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                .then(({ status, body }) => {
+                    if (status === 200) {
+                        Swal.fire({
+                            title: "Thành công!",
+                            text: "Cập nhật sản phẩm thành công!",
+                            icon: "success",
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
+                    } else {
+                        let errorMessage = body.error || "Có lỗi xảy ra!";
+                        switch (status) {
+                            case 400:
+                                errorMessage = "Lỗi dữ liệu! " + errorMessage;
+                                break;
+                            case 409:
+                                errorMessage = "Xung đột dữ liệu! " + errorMessage;
+                                break;
+                            case 500:
+                                errorMessage = "Lỗi hệ thống! " + errorMessage;
+                                break;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi cập nhật:", error);
+                    Swal.fire({
+                        title: "Thất bại!",
+                        text: error.message,
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                });
+
+
+        });
+
+        $(".updateStatusProductDetail").click(function(){
+            let id = $(this).val();
+            let item = {
+                id:id
+            };
+
+            fetch('/api/san-pham/update-product-detail-status' , {
+                method: 'PUT',
+                body: JSON.stringify(item, null, 2),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                .then(({ status, body }) => {
+                    if (status === 200) {
+                        Swal.fire({
+                            title: "Thành công!",
+                            text: "Cập nhật sản phẩm thành công!",
+                            icon: "success",
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
+                    } else {
+                        let errorMessage = body.error || "Có lỗi xảy ra!";
+                        switch (status) {
+                            case 400:
+                                errorMessage = "Lỗi dữ liệu! " + errorMessage;
+                                break;
+                            case 409:
+                                errorMessage = "Xung đột dữ liệu! " + errorMessage;
+                                break;
+                            case 500:
+                                errorMessage = "Lỗi hệ thống! " + errorMessage;
+                                break;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi cập nhật:", error);
+                    Swal.fire({
+                        title: "Thất bại!",
+                        text: error.message,
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                });
+
+
         });
     });
 </script>
