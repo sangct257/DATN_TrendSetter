@@ -26,19 +26,19 @@
                 <table class="table">
                     <tr>
                         <th>Thương Hiệu:</th>
-                        <td th:text="${sanPhamChiTiet.sanPham.thuongHieu.tenThuongHieu}"></td>
+                        <td th:text="${#strings.defaultString(sanPhamChiTiet.sanPham.thuongHieu?.tenThuongHieu, 'Không có thương hiệu')}"></td>
                     </tr>
                     <tr>
                         <th>Xuất Xứ:</th>
-                        <td th:text="${sanPhamChiTiet.sanPham.xuatXu.quocGia}"></td>
+                        <td th:text="${#strings.defaultString(sanPhamChiTiet.sanPham.xuatXu?.quocGia, '')}"></td>
                     </tr>
                     <tr>
                         <th>Chất Liệu:</th>
-                        <td th:text="${sanPhamChiTiet.sanPham.chatLieu.tenChatLieu}"></td>
+                        <td th:text="${#strings.defaultString(sanPhamChiTiet.sanPham.chatLieu?.tenChatLieu,'')}"></td>
                     </tr>
                     <tr>
                         <th>Danh Mục:</th>
-                        <td th:text="${sanPhamChiTiet.sanPham.danhMuc.tenDanhMuc}"></td>
+                        <td th:text="${#strings.defaultString(sanPhamChiTiet.sanPham.danhMuc?.tenDanhMuc,'')}"></td>
                     </tr>
                 </table>
             </div>
