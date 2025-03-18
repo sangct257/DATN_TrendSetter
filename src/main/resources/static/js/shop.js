@@ -1,4 +1,4 @@
-//Tạo hóa đơn
+// Tạo hóa đơn
 function createHoaDon() {
     fetch('/create', {
         method: 'POST',
@@ -10,6 +10,11 @@ function createHoaDon() {
         })
         .then(data => {
             if (data && data.id) {
+                // Lưu hóa đơn vào sessionStorage
+                sessionStorage.setItem('selectedHoaDonId', data.id);
+                console.log("Hóa đơn ID đã được lưu vào sessionStorage:", data.id);
+
+                // Hiển thị thông báo thành công
                 Swal.fire({
                     title: "Thành công!",
                     text: "Hóa đơn đã được tạo thành công.",
@@ -18,6 +23,7 @@ function createHoaDon() {
                     showConfirmButton: false
                 });
 
+                // Thêm hóa đơn vào UI sau 1.5 giây
                 setTimeout(() => addHoaDonToUI(data), 1500);
             }
         })
@@ -567,6 +573,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 });
+
 document.addEventListener("DOMContentLoaded", function () {
     const thanhPhoSelect = document.getElementById("thanhPho");
     const huyenSelect = document.getElementById("huyen");
@@ -799,6 +806,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// Lưu hoaDonId vào sessionStorage khi chọn hóa đơn hoặc từ URL
+function saveHoaDonIdFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hoaDonId = urlParams.get('hoaDonId');
+
+    if (hoaDonId && !sessionStorage.getItem('selectedHoaDonId')) {
+        sessionStorage.setItem('selectedHoaDonId', hoaDonId);
+        console.log("HoaDonId từ URL đã lưu:", hoaDonId);
+    }
+}
+
 // Lưu hoaDonId vào sessionStorage khi chọn hóa đơn
 function saveHoaDonId(hoaDonId) {
     sessionStorage.setItem('selectedHoaDonId', hoaDonId);
@@ -815,17 +833,25 @@ function addProductOrder(button) {
 
     const sanPhamChiTietId = parseInt(row.querySelector('td:first-child')?.textContent.trim(), 10);
     const soLuong = parseInt(row.querySelector('input[name="soLuong"]')?.value, 10);
-    const hoaDonId = parseInt(sessionStorage.getItem('selectedHoaDonId'), 10);
+    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
 
+    // Kiểm tra hoaDonId
     if (!hoaDonId || isNaN(hoaDonId)) {
-        Swal.fire({
-            title: "Lỗi!",
-            text: "Không tìm thấy hóa đơn hợp lệ!",
-            icon: "error"
-        });
-        return;
+        // Nếu không có trong sessionStorage, thử lấy từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        hoaDonId = urlParams.get('hoaDonId');
+
+        if (!hoaDonId || isNaN(hoaDonId)) {
+            Swal.fire({
+                title: "Lỗi!",
+                text: "Không tìm thấy hóa đơn hợp lệ! Vui lòng chọn hóa đơn trước.",
+                icon: "error"
+            });
+            return;
+        }
     }
 
+    hoaDonId = parseInt(hoaDonId, 10);
     console.log("Gửi yêu cầu thêm sản phẩm:", {sanPhamChiTietId, hoaDonId, soLuong});
 
     fetch('/add-product-order', {
@@ -846,8 +872,9 @@ function updateQuantityOrder(input) {
     const row = input.closest('tr');
     const hoaDonChiTietId = parseInt(row.querySelector('input[name="hoaDonChiTietId"]').value, 10);
     const soLuong = parseInt(input.value, 10);
-    const hoaDonId = parseInt(sessionStorage.getItem('selectedHoaDonId'), 10);
+    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
 
+    // Kiểm tra hoaDonId
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId) || isNaN(soLuong) || soLuong < 1) {
         Swal.fire({
             title: "Lỗi!",
@@ -856,6 +883,8 @@ function updateQuantityOrder(input) {
         });
         return;
     }
+
+    hoaDonId = parseInt(hoaDonId, 10);
 
     const data = {hoaDonChiTietId, hoaDonId, soLuong};
 
@@ -881,8 +910,9 @@ function updateQuantityOrder(input) {
 function deleteProductOrder(button) {
     const row = button.closest('tr');
     const hoaDonChiTietId = parseInt(row.querySelector('input[name="hoaDonChiTietId"]').value, 10);
-    const hoaDonId = parseInt(sessionStorage.getItem('selectedHoaDonId'), 10);
+    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
 
+    // Kiểm tra hoaDonId
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId)) {
         Swal.fire({
             title: "Lỗi!",
@@ -891,6 +921,8 @@ function deleteProductOrder(button) {
         });
         return;
     }
+
+    hoaDonId = parseInt(hoaDonId, 10);
 
     Swal.fire({
         title: "Xác nhận xóa?",
@@ -972,6 +1004,12 @@ function redirectToAppropriatePage(trangThai, hoaDonId) {
     window.location.href = redirectUrl;
 }
 
+// Đảm bảo khi trang được tải lại, hoaDonId được lấy từ URL nếu chưa có trong sessionStorage
+window.onload = function() {
+    saveHoaDonIdFromURL();
+};
+
+
 <!-- Script xử lý thanh toán -->
 document.addEventListener("DOMContentLoaded", function () {
     const confirmButton = document.getElementById("confirmPayment");
@@ -985,6 +1023,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.warn("Không tìm thấy phần tử 'confirmPayment' hoặc 'paymentForm'");
     }
 });
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1014,6 +1053,7 @@ function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
 }
+
 // Hàm chọn hóa đơn
 function selectHoaDon(card) {
     // Xóa class 'selected-hoa-don' từ tất cả hóa đơn khác
