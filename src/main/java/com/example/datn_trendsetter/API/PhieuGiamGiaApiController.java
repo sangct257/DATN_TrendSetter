@@ -48,20 +48,21 @@ public class PhieuGiamGiaApiController {
 
     @GetMapping("/count")
     public ResponseEntity<Map<String, Long>> countDotGiamGiaByTrangThai() {
-        long hoatDong = phieuGiamGiaRepository.countByTrangThai("Đang Hoạt Động");
-        long ngungHoatDong = phieuGiamGiaRepository.countByTrangThai("Ngừng Hoạt Động");
-        long sapDienRa = phieuGiamGiaRepository.countByTrangThai("Sắp Diễn Ra");
-        long tong = phieuGiamGiaRepository.count();
+        long hoatDong = phieuGiamGiaRepository.countByTrangThaiAndDeletedFalse("Đang Hoạt Động");
+        long ngungHoatDong = phieuGiamGiaRepository.countByTrangThaiAndDeletedFalse("Ngừng Hoạt Động");
+        long sapDienRa = phieuGiamGiaRepository.countByTrangThaiAndDeletedFalse("Sắp Diễn Ra");
+        long tong = phieuGiamGiaRepository.countByDeletedFalse();
 
-        Map<String, Long> coutMap = Map.of(
-                "Đang Hoạt Động",hoatDong,
-                "Ngừng Hoạt Động",ngungHoatDong,
+        Map<String, Long> countMap = Map.of(
+                "Đang Hoạt Động", hoatDong,
+                "Ngừng Hoạt Động", ngungHoatDong,
                 "Sắp Diễn Ra", sapDienRa,
-                "Tất Cả",tong
+                "Tất Cả", tong
         );
 
-        return ResponseEntity.ok().body(coutMap);
+        return ResponseEntity.ok().body(countMap);
     }
+
 
     // API để update trạng thái phiếu giảm giá  (khi nhấn vào trạng thái)
     @PutMapping("/toggle-status/{id}")
