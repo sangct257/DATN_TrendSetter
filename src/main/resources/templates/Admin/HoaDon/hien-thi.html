@@ -131,6 +131,7 @@
                                 <thead class="table-dark">
                                 <tr>
                                     <th>ID</th>
+                                    <th>Mã Hóa Đơn</th>
                                     <th>Khách Hàng</th>
                                     <th>Nhân Viên</th>
                                     <th>Khuyến Mại</th>
@@ -144,6 +145,7 @@
                                 <tbody>
                                 <tr th:each="hoaDon, status : ${hoaDon}">
                                     <td th:text="${status.index + 1}"></td>
+                                    <td th:text="${hoaDon.maHoaDon}"></td>
                                     <td th:text="${hoaDon.khachHang != null ? hoaDon.khachHang.hoTen : 'Khách Lẻ'}"></td>
                                     <td th:text="${hoaDon.nhanVien != null ? hoaDon.nhanVien.hoTen : 'Nhân Viên 1'}"></td>
                                     <td th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenChuongTrinh : 'Nhân Viên 1'}"></td>
