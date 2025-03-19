@@ -25,25 +25,6 @@
                 <li><a href="/admin/san-pham">Danh Sách Sản Phẩm</a></li>
                 <li class="active">Thêm Sản Phẩm</li>
             </ol>
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Đang tạo hóa đơn, vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
-
         </section>
 
         <!-- Main content -->
@@ -78,24 +59,18 @@
                                             <div class="col-md-5">
                                                 <span class="form-label fw-semibold d-block mb-1">Danh Mục:</span>
                                                 <div class="d-flex">
-                                                    <select class="form-select me-2" name="danhMuc" id="danhMuc">
-                                                        <option selected>Chọn danh mục</option>
-                                                        <option th:each="dm :${danhMuc}" th:value="${dm.id}"
-                                                                th:text="${dm.tenDanhMuc}"></option>
+                                                    <select class="form-select tom-select" name="danhMuc" id="danhMuc">
+                                                        <option th:each="dm :${danhMuc}" th:value="${dm.id}" th:text="${dm.tenDanhMuc}"></option>
                                                     </select>
-                                                    <button class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
+
                                             <div class="col-md-5">
                                                 <span class="form-label fw-semibold d-block mb-1">Thương Hiệu:</span>
                                                 <div class="d-flex">
-                                                    <select class="form-select me-2" name="thuongHieu" id="thuongHieu">
-                                                        <option selected>Chọn thương hiệu</option>
-                                                        <option th:each="th :${thuongHieu}" th:value="${th.id}"
-                                                                th:text="${th.tenThuongHieu}">Chọn thương hiệu
-                                                        </option>
+                                                    <select class="form-select tom-select" name="thuongHieu" id="thuongHieu">
+                                                        <option th:each="th :${thuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}"></option>
                                                     </select>
-                                                    <button class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -104,24 +79,20 @@
                                             <div class="col-md-5">
                                                 <span class="form-label fw-semibold d-block mb-1">Chất liệu:</span>
                                                 <div class="d-flex">
-                                                    <select class="form-select me-2" name="chatLieu" id="chatLieu">
-                                                        <option selected>Chọn chất liệu</option>
+                                                    <select class="form-select tom-select" name="chatLieu" id="chatLieu">
                                                         <option th:each="cl :${chatLieu}" th:value="${cl.id}"
                                                                 th:text="${cl.tenChatLieu}"></option>
                                                     </select>
-                                                    <button class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
                                             <div class="col-md-5">
                                                 <span class="form-label fw-semibold d-block mb-1">Xuất Xứ:</span>
                                                 <div class="d-flex">
-                                                    <select class="form-select me-2" name="xuatXu" id="xuatXu">
-                                                        <option selected>Chọn xuất xứ</option>
+                                                    <select class="form-select tom-select" name="xuatXu" id="xuatXu">
                                                         <option th:each="xx :${xuatXu}" th:value="${xx.id}"
                                                                 th:text="${xx.quocGia}">Chọn xuất xứ
                                                         </option>
                                                     </select>
-                                                    <button class="btn btn-primary">+</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -155,7 +126,24 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 <script>
-    document.getElementById("btnAddSanPham").addEventListener("click", function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            document.querySelectorAll('.tom-select').forEach((el) => {
+                console.log("Khởi tạo Tom Select cho:", el.id);
+                new TomSelect(el, {
+                    create: false,
+                    sortField: { field: "text", direction: "asc" },
+                    placeholder: "Chọn một mục...",
+                    allowEmptyOption: true,
+                    searchField: ["value", "text"]
+                });
+            });
+        }, 500); // Chờ 0.5 giây để đảm bảo danh sách đã render
+    });
+
+
+
+    document.getElementById("btnAddSanPham").addEventListener("click", function () {
         let sanPhamData = {
             tenSanPham: document.getElementById("tenSanPham").value,
             moTa: document.getElementById("moTa").value,
@@ -165,22 +153,14 @@
             xuatXuId: document.getElementById("xuatXu").value
         };
 
-        let toast = new bootstrap.Toast(document.getElementById("toast-message"));
-        let toastText = document.getElementById("toast-text");
-        let progressBar = document.querySelector("#toast-loading-bar .progress-bar");
-
-        toastText.innerText = "Đang thêm sản phẩm, vui lòng chờ...";
-        toast.show();
-
-        let progress = 0;
-        let progressInterval = setInterval(() => {
-            progress += 10;
-            progressBar.style.width = progress + "%";
-
-            if (progress >= 100) {
-                clearInterval(progressInterval);
+        Swal.fire({
+            title: "Đang thêm sản phẩm...",
+            text: "Vui lòng chờ!",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
             }
-        }, 200);
+        });
 
         fetch("/api/san-pham/add", {
             method: "POST",
@@ -196,16 +176,22 @@
                     throw new Error(body.message || "Lỗi không xác định hoặc không lấy được ID sản phẩm!");
                 }
 
-                toastText.innerText = "Thêm sản phẩm thành công!";
-                progressBar.classList.replace("bg-light", "bg-success");
-
-                setTimeout(() => {
+                Swal.fire({
+                    icon: "success",
+                    title: "Thành công!",
+                    text: "Thêm sản phẩm thành công!",
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
                     window.location.href = `http://localhost:8080/admin/detail-san-pham?sanPhamId=${body.id}`;
-                }, 1500);
+                });
             })
             .catch(error => {
-                toastText.innerText = error.message;
-                progressBar.classList.replace("bg-light", "bg-danger");
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi!",
+                    text: error.message
+                });
                 console.error("Lỗi:", error);
             });
     });

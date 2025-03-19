@@ -10,4 +10,7 @@ import lombok.Setter;
 public class AuthResponse {
 
     private String token;
+    private String roles;
+    private String redirectUrl;
+
 }

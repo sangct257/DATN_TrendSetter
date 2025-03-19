@@ -1,24 +1,30 @@
 <aside class="main-sidebar" th:fragment="sidebar">
     <br>
     <section class="sidebar">
-        <!-- search form -->
+        <!-- Search Form -->
         <form action="#" method="get" class="sidebar-form">
             <div class="input-group">
                 <input type="text" name="q" class="form-control" placeholder="Search...">
                 <span class="input-group-btn">
-                    <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button>
+                    <button type="submit" name="search" id="search-btn" class="btn btn-flat">
+                        <i class="fa fa-search"></i>
+                    </button>
                 </span>
             </div>
         </form>
 
-        <!-- sidebar menu -->
+        <!-- Sidebar Menu -->
         <ul class="sidebar-menu" data-widget="tree">
-            <!-- Thống Kê -->
+
+            <!-- Thống Kê (Chỉ Admin thấy) -->
+<!--            <li th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
             <li>
                 <a href="/admin/thong-ke">
                     <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
                 </a>
             </li>
+<!--            </li>-->
+
 
             <!-- Bán Hàng Tại Quầy -->
             <li>
@@ -36,7 +42,7 @@
 
             <!-- Trả Hàng -->
             <li>
-                <a href="">
+                <a href="#">
                     <i class="fa fa-undo-alt"></i> <span>Trả Hàng</span>
                 </a>
             </li>
@@ -57,7 +63,8 @@
                 </ul>
             </li>
 
-            <!-- Quản Lý Tài Khoản -->
+            <!-- Quản Lý Tài Khoản (Chỉ Admin thấy) -->
+<!--            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
             <li class="treeview">
                 <a href="#">
                     <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>
@@ -67,23 +74,22 @@
                     <li><a href="/admin/khach-hang"><i class="fa fa-user"></i> Khách Hàng </a></li>
                 </ul>
             </li>
+<!--            </li>-->
 
-            <!-- Giảm Giá -->
+            <!-- Giảm Giá (Chỉ Admin thấy) -->
             <li class="treeview">
+<!--            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
                 <a href="#">
                     <i class="fa fa-percentage"></i> <span>Giảm Giá</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
                 </a>
                 <ul class="treeview-menu">
                     <li><a href="/admin/phieu-giam-gia"><i class="fa fa-ticket-alt"></i> Phiếu Giảm Giá </a></li>
                     <li><a href="/admin/dot-giam-gia"><i class="fa fa-calendar-alt"></i> Đợt Giảm Giá </a></li>
                 </ul>
+<!--            </li>-->
             </li>
-
             <li>
-                <a href="">
+                <a href="#">
                     <i class="fa fa-cogs"></i> <span>Widgets</span>
                 </a>
             </li>

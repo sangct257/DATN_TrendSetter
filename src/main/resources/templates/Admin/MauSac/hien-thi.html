@@ -25,24 +25,6 @@
                 <li><a href="#">Màu Sắc</a></li>
             </ol>
 
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- Main content -->
@@ -203,53 +185,6 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
-<!--Hiển thị Toast Notification-->
-<script>
-    function showToast(message, type) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
-
-        return toastLoadingBar;
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-
-    function animateProgressBar(progressBar, duration = 4000, callback) {
-        let startTime = null;
-
-        function updateProgress(timestamp) {
-            if (!startTime) startTime = timestamp;
-            let progress = ((timestamp - startTime) / duration) * 100;
-
-            if (progress < 100) {
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
-                requestAnimationFrame(updateProgress);
-            } else {
-                progressBar.style.width = "100%";
-                if (callback) callback();
-            }
-        }
-
-        requestAnimationFrame(updateProgress);
-    }
-</script>
-
 <script>
     document.getElementById("maMauSac").addEventListener("input", function () {
         let hexValue = this.value;
@@ -293,48 +228,58 @@
             return text;
         }
     }
+
     function saveMauSac() {
         let data = {
-            tenMauSac: document.getElementById("tenMauSac").value,
-            maMauSac: document.getElementById("maMauSac").value,
-            trangThai: document.getElementById("trangThai").value
+            tenMauSac: document.getElementById("tenMauSac").value.trim(),
+            maMauSac: document.getElementById("maMauSac").value.trim(),
+            trangThai: document.getElementById("trangThai").value.trim()
         };
-        if (!data.tenMauSac.trim()) {
-            showToast("Vui lòng nhập tên màu sắc!", "danger");
+
+        if (!data.tenMauSac) {
+            Swal.fire("Lỗi!", "Vui lòng nhập tên màu sắc!", "error");
             return;
         }
-        fetchData("/api/mau-sac/add", data, "Thêm màu sắc thành công!");
+
+        fetchData("/api/mau-sac/add", data, "Thêm màu sắc thành công!", "POST");
     }
 
     function updateMauSac() {
         let updatedMauSac = {
             id: document.getElementById("modalMauSacId").value,
-            tenMauSac: document.getElementById("modalMauSacName").value,
-            maMauSac: document.getElementById("modalMauSacColor").value,
-            trangThai: document.getElementById("modalMauSacStatus").value
+            tenMauSac: document.getElementById("modalMauSacName").value.trim(),
+            maMauSac: document.getElementById("modalMauSacColor").value.trim(),
+            trangThai: document.getElementById("modalMauSacStatus").value.trim()
         };
-        fetchData("/api/mau-sac/update", updatedMauSac, "Cập nhật màu sắc thành công!");
+
+        fetchData("/api/mau-sac/update", updatedMauSac, "Cập nhật màu sắc thành công!", "PUT");
     }
 
-    function fetchData(url, data, successMessage) {
-        showToast("Đang xử lý...", "primary", 5000);
+    function fetchData(url, data, successMessage, method) {
         fetch(url, {
-            method: "POST",
+            method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch {
+                    return { message: text };
+                }
+            })
             .then(result => {
                 if (result.error) {
-                    showToast("Lỗi: " + result.error, "danger");
+                    Swal.fire("Lỗi!", result.error, "error");
                 } else {
-                    showToast(successMessage, "success");
-                    setTimeout(() => location.reload(), 2000);
+                    Swal.fire("Thành công!", result.message || successMessage, "success")
+                        .then(() => location.reload());
                 }
             })
             .catch(error => {
                 console.error("Lỗi hệ thống:", error);
-                showToast("Lỗi hệ thống, vui lòng thử lại!", "danger");
+                Swal.fire("Lỗi!", "Lỗi hệ thống, vui lòng thử lại!", "error");
             });
     }
 
@@ -347,40 +292,46 @@
         new bootstrap.Modal(document.getElementById("modalMauSacDetail")).show();
     }
 
-</script>
-
-
-<script>
     function deleteMauSac(button) {
         let row = button.closest("tr");
         let hiddenInput = row.querySelector("td input[type='hidden']");
 
         if (!hiddenInput) {
-            showToast("Không tìm thấy ID màu sắc!", "danger");
+            Swal.fire("Lỗi!", "Không tìm thấy ID màu sắc!", "error");
             return;
         }
 
         let mauSacId = hiddenInput.value;
-        if (confirm("Bạn có chắc chắn muốn xóa màu sắc này không?")) {
-            let progressBar = showToast("Đang xóa màu sắc...", "primary");
-            animateProgressBar(progressBar, 3000, () => {
+        Swal.fire({
+            title: "Xác nhận xóa",
+            text: "Bạn có chắc chắn muốn xóa màu sắc này không?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Có, xóa!",
+            cancelButtonText: "Hủy",
+        }).then((result) => {
+            if (result.isConfirmed) {
                 fetch(`/api/mau-sac/delete/${mauSacId}`, {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'}
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" }
                 })
                     .then(response => {
                         if (!response.ok) throw new Error("Xóa thất bại!");
                         return response.text();
                     })
                     .then(message => {
-                        showToast(message, "success");
-                        setTimeout(() => row.remove(), 1500);
+                        Swal.fire("Xóa thành công!", message, "success")
+                            .then(() => row.remove());
                     })
-                    .catch(error => showToast(error.message, "danger"));
-            });
-        }
+                    .catch(error => Swal.fire("Lỗi!", error.message, "error"));
+            }
+        });
     }
+
+
 </script>
+
+
 <!--Load table-->
 <script>
     $(document).ready(function () {

@@ -1,5 +1,13 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.Entity.SanPham;
+import com.example.datn_trendsetter.Repository.SanPhamRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.util.List;
 import com.example.datn_trendsetter.DTO.ProductDetailDTO;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.DTO.SanPhamDTO;
@@ -8,19 +16,19 @@ import com.example.datn_trendsetter.Repository.*;
 import com.example.datn_trendsetter.Service.HinhAnhService;
 import com.example.datn_trendsetter.Service.SanPhamService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/san-pham")
 public class SanPhamAPIController {
+
     @Autowired
     private SanPhamService sanPhamService;
 
@@ -44,6 +52,12 @@ public class SanPhamAPIController {
 
     @Autowired
     private HoaDonChiTietRepository hoaDonChiTietRepository;
+    private ResponseEntity<Map<String, Object>> response(String message, boolean success) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", message);
+        response.put("success", success);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/list")
     public ResponseEntity<List<SanPham>> getSanPhamByTrangThai(@RequestParam(required = false) String trangThai) {
@@ -126,10 +140,60 @@ public class SanPhamAPIController {
                     chiTiet.setMauSac(mauSacRepository.findById(mauSacId).orElse(null));
                     chiTiet.setKichThuoc(kichThuocRepository.findById(kichThuocId).orElse(null));
                     sanPhamChiTietRepository.save(chiTiet);
+                    capNhatSoLuongTonKhoSanPham(chiTiet.getSanPham());
                 }
             }
         }
         return ResponseEntity.ok("Thêm thành công!");
+    }
+
+
+
+    @PutMapping("/update-product-details")
+    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request) {
+        Map<Integer,SanPhamChiTietDTO> idProductAndProduct= request.stream().collect(Collectors.toMap(SanPhamChiTietDTO::getId, Function.identity()));
+        List<Integer> idProductDetails= request.stream().map(SanPhamChiTietDTO::getId).toList();
+
+        List<SanPhamChiTiet> sanPhamChiTiets = sanPhamChiTietRepository.findAllByIdIn(idProductDetails);
+        if (sanPhamChiTiets.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vui lòng chọn sản phẩm chi tiết");
+        }
+
+        sanPhamChiTiets.forEach(sanPhamChiTiet -> {
+            SanPhamChiTietDTO sanPhamChiTietDTO = idProductAndProduct.getOrDefault(sanPhamChiTiet.getId(),null);
+            if (ObjectUtils.isNotEmpty(sanPhamChiTietDTO)){
+                sanPhamChiTiet.setSoLuong(sanPhamChiTietDTO.getSoLuong());
+                sanPhamChiTiet.setGia(sanPhamChiTietDTO.getGia().floatValue());
+                sanPhamChiTiet.setTrangThai(sanPhamChiTietDTO.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+            }
+
+        });
+
+        sanPhamChiTietRepository.saveAll(sanPhamChiTiets);
+        capNhatSoLuongTonKhoSanPham(sanPhamChiTiets.get(0).getSanPham());
+        return response("Cập nhật chi tiết sản phẩm thành công!",true);
+    }
+
+    @PutMapping("/update-product-detail-status")
+    public ResponseEntity<?> updateProductDetails(@RequestBody SanPhamChiTietDTO request) {
+        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
+        if (sanPhamChiTiet == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
+        }
+
+        if ("Còn Hàng".equals(sanPhamChiTiet.getTrangThai())) {
+            sanPhamChiTiet.setTrangThai("Hết Hàng");
+            sanPhamChiTiet.setDeleted(true);
+        }else if ("Hết Hàng".equals(sanPhamChiTiet.getTrangThai())) {
+            sanPhamChiTiet.setTrangThai("Còn Hàng");
+            sanPhamChiTiet.setDeleted(false);
+        }
+
+        sanPhamChiTietRepository.save(sanPhamChiTiet);
+
+
+        capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
+        return response("Cập nhật chi tiết sản phẩm thành công!",true);
     }
 
     @PutMapping("/update")

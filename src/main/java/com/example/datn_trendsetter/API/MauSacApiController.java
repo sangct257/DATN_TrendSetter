@@ -49,21 +49,26 @@ public class MauSacApiController {
 
 
 
-    @PostMapping("update")
-    public ResponseEntity<String> update(@RequestBody MauSac updatedMauSac) {
+    @PutMapping("update")
+    public ResponseEntity<Map<String, String>> update(@RequestBody MauSac updatedMauSac) {
+        Map<String, String> response = new HashMap<>();
+
         if (updatedMauSac.getId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ID không hợp lệ");
+            response.put("error", "ID không hợp lệ");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         MauSac mauSac = mauSacRepository.findById(updatedMauSac.getId()).orElse(null);
         if (mauSac == null || mauSac.getDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy màu sắc hoặc đã bị xóa");
+            response.put("error", "Không tìm thấy màu sắc hoặc đã bị xóa");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
         // Kiểm tra trùng lặp tên màu sắc
         boolean exists = mauSacRepository.existsByTenMauSac(updatedMauSac.getTenMauSac());
         if (exists && !mauSac.getTenMauSac().equalsIgnoreCase(updatedMauSac.getTenMauSac())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên màu sắc đã tồn tại");
+            response.put("error", "Tên màu sắc đã tồn tại");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
         // Cập nhật thông tin màu sắc
@@ -74,8 +79,11 @@ public class MauSacApiController {
         mauSac.setTrangThai(updatedMauSac.getTrangThai());
 
         mauSacRepository.save(mauSac);
-        return ResponseEntity.ok("Cập nhật thành công");
+
+        response.put("message", "Cập nhật thành công");
+        return ResponseEntity.ok(response);
     }
+
 
 
     @DeleteMapping("delete/{id}")

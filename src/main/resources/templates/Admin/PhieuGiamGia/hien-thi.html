@@ -25,31 +25,38 @@
         color: white;
         border-radius: 12px 12px 0 0;
     }
+
     .border-end {
         border-right: 2px solid #dee2e6;
     }
+
     /* Chỉnh input và select */
     .form-control, .form-select {
         border-radius: 8px;
         padding: 10px;
         border: 1px solid #ced4da;
     }
+
     .table-responsive {
         border: 1px solid #dee2e6;
         border-radius: 8px;
         padding: 5px;
     }
+
     .table-hover tbody tr:hover {
         background-color: #f8f9fa !important;
     }
+
     /* Chỉnh badge filter */
     .filter-btn {
         transition: all 0.3s ease-in-out;
     }
+
     .btn-primary {
         border-radius: 8px;
         font-weight: bold;
     }
+
     .filter-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.15);
@@ -106,16 +113,24 @@
             <div class="box">
                 <div class="box-body">
                     <div class="d-flex justify-content-center gap-3 mb-3 p-3 border rounded-3 shadow-sm bg-light">
-                        <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill" data-status="">
+                        <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill"
+                                data-status="">
                             Tất Cả (<span id="count-all">0</span>)
                         </button>
-                        <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill" data-status="Đang Hoạt Động">
+                        <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill"
+                                data-status="Đang Hoạt Động">
                             Đang Hoạt Động (<span id="count-active">0</span>)
                         </button>
-                        <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill" data-status="Ngừng Hoạt Động">
+                        <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill"
+                                data-status="Ngừng Hoạt Động">
                             Ngừng Hoạt Động (<span id="count-inactive">0</span>)
                         </button>
+                        <button class="btn btn-outline-warning filter-btn px-4 py-2 fw-bold border border-warning rounded-pill"
+                                data-status="Sắp Diễn Ra">
+                            Sắp Diễn Ra (<span id="count-upcoming">0</span>)
+                        </button>
                     </div>
+
 
                     <div class="d-flex justify-content-end mb-3">
                         <button type="button" class="btn btn-success d-flex align-items-center gap-2"
@@ -142,8 +157,6 @@
                         <tbody class="text-center"></tbody>
                     </table>
 
-                    <!-- Pagination -->
-                    <div id="pagination" class="d-flex justify-content-center mt-3"></div>
                 </div>
             </div>
         </section>
@@ -156,103 +169,77 @@
                     </div>
                     <div class="modal-body">
                         <div class="row">
-                            <!-- Cột bên trái: Thông tin phiếu giảm giá -->
-                            <div class="col-md-6 border-end">
-                                <h5 class="fw-bold mb-3">Thông Tin Phiếu Giảm Giá</h5>
-                                <input type="hidden" id="phieuGiamGiaId">
-                                <form id="addPGGForm">
-                                    <div class="d-flex gap-3">
-                                        <div class="form-group w-50">
-                                            <label class="fw-bold">Mã Phiếu Giảm Giá</label>
-                                            <input type="text" id="maPGG" class="form-control" readonly/>
-                                        </div>
-                                        <div class="form-group w-50">
-                                            <label class="fw-bold">Tên Phiếu Giảm Giá</label>
-                                            <input type="text" id="tenPGG" class="form-control" required />
-                                        </div>
+                            <h5 class="fw-bold mb-3">Thông Tin Phiếu Giảm Giá</h5>
+                            <input type="hidden" id="phieuGiamGiaId">
+                            <form id="addPGGForm">
+                                <div class="d-flex gap-3">
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Mã Phiếu Giảm Giá</label>
+                                        <input type="text" id="maPGG" class="form-control" readonly/>
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold">Mô Tả</label>
-                                        <textarea id="moTa" class="form-control" rows="3"></textarea>
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Tên Phiếu Giảm Giá</label>
+                                        <input type="text" id="tenPGG" class="form-control" required/>
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold">Mức Giảm</label>
-                                        <div class="input-group">
-                                            <input type="number" id="giaTriGiam" class="form-control" required />
-                                            <div class="btn-group" role="group">
-                                                <input type="radio" class="btn-check" name="donViTinh" id="option-percent" value="%" checked>
-                                                <label class="btn btn-outline-dark" for="option-percent">%</label>
-
-                                                <input type="radio" class="btn-check" name="donViTinh" id="option-vnd" value="VND">
-                                                <label class="btn btn-outline-dark" for="option-vnd">VND</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex gap-3">
-                                        <div class="form-group w-50">
-                                            <label class="fw-bold">Số Lượng</label>
-                                            <input type="number" id="soLuong" class="form-control" required />
-                                        </div>
-                                        <div class="form-group w-50">
-                                            <label class="fw-bold">Điều Kiện Tối Thiểu</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="dieuKien" placeholder="Điều Kiện Tối Thiểu">
-                                                <span class="input-group-text">VND</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex gap-3">
-                                        <div class="form-group w-50">
-                                            <label class="fw-bold">Ngày Bắt Đầu</label>
-                                            <input type="date" id="ngayBatDau" class="form-control" required />
-                                        </div>
-                                        <div class="form-group w-50">
-                                            <label class="fw-bold">Ngày Kết Thúc</label>
-                                            <input type="date" id="ngayKetThuc" class="form-control" required />
-                                        </div>
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold">Trạng Thái</label>
-                                        <select id="trangThai" class="form-select">
-                                            <option value="Sắp diễn ra">Sắp Diễn Ra</option>
-                                            <option value="Đang Hoạt Động">Đang Hoạt Động</option>
-                                            <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
-                                        </select>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <!-- Cột bên phải: Chọn khách hàng -->
-                            <div class="col-md-6">
-                                <h5 class="fw-bold mb-3">Chọn Khách Hàng</h5>
-                                <input type="text" id="searchKhachHang" class="form-control mb-2" placeholder="Tìm kiếm khách hàng..." />
-                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-bordered table-hover">
-                                        <thead class="table-dark">
-                                        <tr>
-                                            <th>Chọn</th>
-                                            <th>Tên</th>
-                                            <th>Email</th>
-                                            <th>SĐT</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody id="khachHangTable">
-                                        <!-- Dữ liệu khách hàng sẽ được load ở đây -->
-                                        </tbody>
-                                    </table>
                                 </div>
+                                <div class="form-group mb-3">
+                                    <label class="fw-bold">Mô Tả</label>
+                                    <textarea id="moTa" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="fw-bold">Mức Giảm</label>
+                                    <div class="input-group">
+                                        <input type="number" id="giaTriGiam" class="form-control" required/>
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" name="donViTinh" id="option-vnd" value="VND" checked>
+                                            <label class="btn btn-outline-dark" for="option-vnd">VND</label>
+                                        </div>
 
-                            </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Số Lượng</label>
+                                        <input type="number" id="soLuong" class="form-control" required/>
+                                    </div>
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Điều Kiện Tối Thiểu</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="dieuKien"
+                                                   placeholder="Điều Kiện Tối Thiểu">
+                                            <span class="input-group-text">VND</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Ngày Bắt Đầu</label>
+                                        <input type="date" id="ngayBatDau" class="form-control" required/>
+                                    </div>
+                                    <div class="form-group w-50">
+                                        <label class="fw-bold">Ngày Kết Thúc</label>
+                                        <input type="date" id="ngayKetThuc" class="form-control" required/>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="fw-bold">Trạng Thái</label>
+                                    <select id="trangThai" class="form-select">
+                                        <option value="Sắp diễn ra">Sắp Diễn Ra</option>
+                                        <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                        <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                    </select>
+                                </div>
+                            </form>
                         </div>
 
                         <div class="d-flex justify-content-end mb-3">
-                            <button type="submit" id="btnSubmit" class="btn btn-primary px-4 py-2">Lưu Phiếu Giảm Giá</button>
+                            <button type="submit" id="btnSubmit" class="btn btn-primary px-4 py-2">Lưu Phiếu Giảm Giá
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
 
 
     </div>

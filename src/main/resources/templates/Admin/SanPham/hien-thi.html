@@ -24,24 +24,6 @@
                 <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
                 <li><a href="#">Danh Sách Sản Phẩm</a></li>
             </ol>
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- Main content -->
@@ -126,52 +108,6 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
-<!--Hiển thị Toast Notification-->
-<script>
-    function showToast(message, type) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
-
-        // Hiệu ứng thanh loading bar
-        setTimeout(() => {
-            toastLoadingBar.style.transition = "width 3s linear";
-            toastLoadingBar.style.width = "100%";
-        }, 100); // Chờ 100ms để tránh lỗi animation
-
-        // Ẩn toast sau 3 giây
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toastLoadingBar.style.transition = "none";
-                toastLoadingBar.style.width = "0%";
-            }, 500); // Chờ 0.5 giây rồi reset trạng thái toast
-        }, 3000);
-
-        return toastLoadingBar;
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-
-</script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let table = $("#productTable").DataTable({
@@ -180,7 +116,7 @@
             "pageLength": 5,
             "autoWidth": false,
             "responsive": true,
-            "destroy": true,  // Cho phép reset DataTables khi load lại dữ liệu
+            "destroy": true,
             "language": {
                 "sProcessing": "Đang xử lý...",
                 "sLengthMenu": "Hiển thị _MENU_ dòng",
@@ -212,7 +148,7 @@
             fetch(`/api/san-pham/list?trangThai=${encodeURIComponent(trangThai)}`)
                 .then(response => response.json())
                 .then(data => {
-                    table.clear().draw(); // Xóa dữ liệu cũ và vẽ lại bảng
+                    table.clear().draw();
 
                     data.forEach((sanPham, index) => {
                         table.row.add([
@@ -221,38 +157,50 @@
                             sanPham.tenSanPham,
                             `<span class="fw-bold text-danger">${sanPham.soLuong != null ? sanPham.soLuong : 0}</span>`,
                             `<button class="badge ${sanPham.trangThai === 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'} btn-status"
-                         data-id="${sanPham.id}">
-                        ${sanPham.trangThai}
-                    </button>`,
+                     data-id="${sanPham.id}">
+                    ${sanPham.trangThai}
+                </button>`,
                             `<a href="/admin/detail-san-pham?sanPhamId=${sanPham.id}" class="btn btn-primary btn-sm fw-bold me-2">
-                        <i class="bi bi-eye"></i> Chi Tiết
-                    </a>`
-                        ]).draw(false); // Thêm dữ liệu mới và vẽ lại bảng
+                    <i class="bi bi-eye"></i> Chi Tiết
+                </a>`
+                        ]).draw(false);
                     });
 
-                    // Gán sự kiện click cho nút cập nhật trạng thái
                     document.querySelectorAll(".btn-status").forEach(button => {
                         button.addEventListener("click", function () {
                             const sanPhamId = this.getAttribute("data-id");
 
-                            fetch(`/api/san-pham/toggle-status/${sanPhamId}`, { method: "PUT" })
-                                .then(response => response.json()
-                                    .then(data => ({
-                                        status: response.status,
-                                        message: data.error || data.message || "Có lỗi xảy ra!"
-                                    })))
-                                .then(({ status, message }) => {
-                                    if (status === 200) {
-                                        showToast("Cập nhật trạng thái thành công!", "success");
-                                        loadSanPham(trangThai);
-                                        loadCount();
-                                    } else {
-                                        showToast("Lỗi: " + message, "danger");
-                                    }
-                                })
-                                .catch(error => {
-                                    showToast("Lỗi hệ thống: " + error.message, "danger");
-                                });
+                            Swal.fire({
+                                title: "Xác nhận thay đổi trạng thái?",
+                                text: "Bạn có chắc muốn cập nhật trạng thái sản phẩm này?",
+                                icon: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#3085d6",
+                                cancelButtonColor: "#d33",
+                                confirmButtonText: "Có, cập nhật!",
+                                cancelButtonText: "Hủy"
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    fetch(`/api/san-pham/toggle-status/${sanPhamId}`, { method: "PUT" })
+                                        .then(response => response.json()
+                                            .then(data => ({
+                                                status: response.status,
+                                                message: data.error || data.message || "Có lỗi xảy ra!"
+                                            })))
+                                        .then(({ status, message }) => {
+                                            if (status === 200) {
+                                                Swal.fire("Thành công!", "Trạng thái sản phẩm đã được cập nhật.", "success");
+                                                loadSanPham(trangThai);
+                                                loadCount();
+                                            } else {
+                                                Swal.fire("Lỗi!", message, "error");
+                                            }
+                                        })
+                                        .catch(error => {
+                                            Swal.fire("Lỗi hệ thống!", error.message, "error");
+                                        });
+                                }
+                            });
                         });
                     });
                 })
@@ -270,7 +218,6 @@
                 .catch(error => console.error("Lỗi:", error));
         }
     });
-
 </script>
 
 </body>

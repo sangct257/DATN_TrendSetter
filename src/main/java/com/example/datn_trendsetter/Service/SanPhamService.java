@@ -1,5 +1,11 @@
 package com.example.datn_trendsetter.Service;
 
+import com.example.datn_trendsetter.Entity.SanPham;
+import com.example.datn_trendsetter.Repository.SanPhamRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.DTO.SanPhamDTO;
 import com.example.datn_trendsetter.Entity.*;

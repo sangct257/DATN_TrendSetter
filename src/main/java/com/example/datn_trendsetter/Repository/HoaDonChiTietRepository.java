@@ -1,6 +1,5 @@
 package com.example.datn_trendsetter.Repository;
 
-import com.example.datn_trendsetter.DTO.ProductInfoDTO;
 import com.example.datn_trendsetter.Entity.HoaDonChiTiet;
 import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
 import org.springframework.data.domain.Page;
@@ -59,4 +58,8 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
     Integer countSanPhamChiTietByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     boolean existsBySanPhamChiTiet(SanPhamChiTiet sanPhamChiTiet);
+
+    @Query("SELECT COALESCE(SUM(hdct.thanhTien), 0) FROM HoaDonChiTiet hdct WHERE hdct.hoaDon.id = :hoaDonId")
+    Float getTongThanhTienByHoaDonId(@Param("hoaDonId") Integer hoaDonId);
+
 }
