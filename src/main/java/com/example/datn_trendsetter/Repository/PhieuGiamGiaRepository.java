@@ -15,17 +15,17 @@ import java.util.Optional;
 @Repository
 public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integer> {
     List<PhieuGiamGia> findByDieuKienLessThanEqualAndTrangThaiAndDeletedFalse(Float tongTien, String trangThai);
-    List<PhieuGiamGia> findAllByTrangThai(@Param("trangThai") String trangThai);
 
     List<PhieuGiamGia> findByTrangThai(String trangThai, Sort sort);
 
     Optional<PhieuGiamGia> findByTenPhieuGiamGia(String tenPhieuGiamGia);
 
-    List<PhieuGiamGia> findByDeletedFalse(String trangThai ,Sort sort);
 
     List<PhieuGiamGia> findByDeletedFalse(Sort sort);
 
-    Integer countByTrangThai(String trangThai);
-
     List<PhieuGiamGia> findByDeletedFalseAndTrangThai(String trangThai, Sort sort);
+
+    Integer countByTrangThaiAndDeletedFalse(String trangThai);
+
+    Integer countByDeletedFalse();
 }
