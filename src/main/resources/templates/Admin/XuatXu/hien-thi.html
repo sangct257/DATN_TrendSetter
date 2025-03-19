@@ -24,25 +24,6 @@
                 <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
                 <li><a href="#">Xuất Xứ</a></li>
             </ol>
-
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- Main content -->
@@ -183,53 +164,6 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
-<!--Hiển thị Toast Notification-->
-<script>
-    function showToast(message, type) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
-
-        return toastLoadingBar;
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-
-    function animateProgressBar(progressBar, duration = 4000, callback) {
-        let startTime = null;
-
-        function updateProgress(timestamp) {
-            if (!startTime) startTime = timestamp;
-            let progress = ((timestamp - startTime) / duration) * 100;
-
-            if (progress < 100) {
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
-                requestAnimationFrame(updateProgress);
-            } else {
-                progressBar.style.width = "100%";
-                if (callback) callback();
-            }
-        }
-
-        requestAnimationFrame(updateProgress);
-    }
-</script>
-
 <script>
     // Hàm thêm xuất xứ
     function saveXuatXu() {
@@ -241,35 +175,58 @@
             trangThai: trangThai
         };
 
-        let progressBar = showToast("Đang thêm xuất xứ...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/xuat-xu/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi khi thêm xuất xứ!", "danger"));
+        Swal.fire({
+            title: "Đang thêm xuất xứ...",
+            text: "Vui lòng chờ!",
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
         });
+
+        fetch('/api/xuat-xu/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.text())
+            .then(message => {
+                Swal.fire({
+                    icon: "success",
+                    title: "Thành công!",
+                    text: message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            })
+            .catch(error => Swal.fire("Lỗi!", "Lỗi khi thêm xuất xứ!", "error"));
     }
 
+    // Hàm xóa xuất xứ
     function deleteXuatXu(button) {
         let row = button.closest("tr");
         let hiddenInput = row.querySelector("td input[type='hidden']");
 
         if (!hiddenInput) {
-            showToast("Không tìm thấy ID xuất xứ!", "danger");
+            Swal.fire("Lỗi!", "Không tìm thấy ID xuất xứ!", "error");
             return;
         }
 
         let xuatXuId = hiddenInput.value;
-        if (confirm("Bạn có chắc chắn muốn xóa xuất xứ này không?")) {
-            let progressBar = showToast("Đang xóa xuất xứ...", "primary");
-            animateProgressBar(progressBar, 3000, () => {
+
+        Swal.fire({
+            title: "Bạn có chắc chắn?",
+            text: "Hành động này không thể hoàn tác!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Đang xóa...",
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
                 fetch(`/api/xuat-xu/delete/${xuatXuId}`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
@@ -279,14 +236,20 @@
                         return response.text();
                     })
                     .then(message => {
-                        showToast(message, "success");
-                        setTimeout(() => row.remove(), 1500);
+                        Swal.fire({
+                            icon: "success",
+                            title: "Xóa thành công!",
+                            text: message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => row.remove());
                     })
-                    .catch(error => showToast(error.message, "danger"));
-            });
-        }
+                    .catch(error => Swal.fire("Lỗi!", error.message, "error"));
+            }
+        });
     }
 
+    // Hàm cập nhật xuất xứ
     function updateXuatXu() {
         let xuatXuId = document.getElementById("modalXuatXuId").value;
         let xuatXuName = document.getElementById("modalXuatXuName").value;
@@ -298,34 +261,41 @@
             trangThai: xuatXuStatus
         };
 
-        let progressBar = showToast("Đang cập nhật màu sắc...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/xuat-xu/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedXuatXu)
-            })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi cập nhật!", "danger"));
+        Swal.fire({
+            title: "Đang cập nhật xuất xứ...",
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
         });
+
+        fetch('/api/xuat-xu/update', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedXuatXu)
+        })
+            .then(response => response.text())
+            .then(message => {
+                Swal.fire({
+                    icon: "success",
+                    title: "Cập nhật thành công!",
+                    text: message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            })
+            .catch(error => Swal.fire("Lỗi!", "Lỗi cập nhật!", "error"));
     }
 
+    // Hiển thị modal chi tiết xuất xứ
     function openXuatXuDetailModal(button) {
         let row = button.closest("tr");
         let xuatXuId = row.querySelector("td input[type='hidden']").value;
         let xuatXuName = row.cells[2].innerText;
         let xuatXuStatus = row.cells[3].innerText.trim();
 
-        // Gán giá trị vào modal
         document.getElementById("modalXuatXuId").value = xuatXuId;
         document.getElementById("modalXuatXuName").value = xuatXuName;
         document.getElementById("modalXuatXuStatus").value = xuatXuStatus;
 
-        // Hiển thị modal
         let modal = new bootstrap.Modal(document.getElementById("modalXuatXuDetail"));
         modal.show();
     }

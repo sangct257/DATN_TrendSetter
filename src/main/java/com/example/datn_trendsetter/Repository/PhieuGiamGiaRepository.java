@@ -1,6 +1,9 @@
 package com.example.datn_trendsetter.Repository;
 
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +14,18 @@ import java.util.Optional;
 
 @Repository
 public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integer> {
-    Optional<PhieuGiamGia> findByTenChuongTrinh(String tenChuongTrinh);
-    List<PhieuGiamGia> findByDieuKienLessThanEqual(Float tongTien);
-    List<PhieuGiamGia> findAllByTrangThai(@Param("trangThai") String trangThai);
+    List<PhieuGiamGia> findByDieuKienLessThanEqualAndTrangThaiAndDeletedFalse(Float tongTien, String trangThai);
+
+    List<PhieuGiamGia> findByTrangThai(String trangThai, Sort sort);
+
+    Optional<PhieuGiamGia> findByTenPhieuGiamGia(String tenPhieuGiamGia);
+
+
+    List<PhieuGiamGia> findByDeletedFalse(Sort sort);
+
+    List<PhieuGiamGia> findByDeletedFalseAndTrangThai(String trangThai, Sort sort);
+
+    Integer countByTrangThaiAndDeletedFalse(String trangThai);
+
+    Integer countByDeletedFalse();
 }

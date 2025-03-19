@@ -1,6 +1,5 @@
 package com.example.datn_trendsetter.Service;
 
-import com.example.datn_trendsetter.DTO.ProductInfoDTO;
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.*;
 import jakarta.transaction.Transactional;
@@ -13,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
@@ -30,9 +30,8 @@ public class HoaDonChiTietService {
     private HoaDonRepository hoaDonRepository;
     @Autowired
     private SanPhamRepository sanPhamRepository;
-    @Autowired
-    private PhieuGiamGiaRepository phieuGiamGiaRepository;
 
+    @Transactional
     public ResponseEntity<Map<String, String>> addProductDetailToHoaDon(Integer sanPhamChiTietId, Integer hoaDonId, Integer soLuong) {
         Map<String, String> response = new HashMap<>();
 
@@ -66,8 +65,8 @@ public class HoaDonChiTietService {
         HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonIdAndSanPhamChiTietId(hoaDonId, sanPhamChiTietId)
                 .orElse(new HoaDonChiTiet());
 
-        // Cập nhật hoặc thêm mới sản phẩm vào hóa đơn chi tiết
-        int soLuongMoi = (hoaDonChiTiet.getSoLuong() != null ? hoaDonChiTiet.getSoLuong() : 0) + soLuong;
+        int soLuongHienTai = hoaDonChiTiet.getId() != null ? hoaDonChiTiet.getSoLuong() : 0;
+        int soLuongMoi = soLuongHienTai + soLuong;
         hoaDonChiTiet.setHoaDon(hoaDon);
         hoaDonChiTiet.setSanPhamChiTiet(sanPhamChiTiet);
         hoaDonChiTiet.setSoLuong(soLuongMoi);
@@ -79,21 +78,25 @@ public class HoaDonChiTietService {
         // Giảm số lượng tồn kho của sản phẩm chi tiết
         sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() - soLuong);
 
-        // Chỉ cập nhật trạng thái nếu sản phẩm đang là "Còn Hàng"
-        if (sanPhamChiTiet.getSoLuong() == 0 && "Còn Hàng".equals(sanPhamChiTiet.getTrangThai())) {
-            sanPhamChiTiet.setTrangThai("Hết Hàng");
-        }
-
+        // Cập nhật trạng thái sản phẩm
+        sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() == 0 ? "Hết Hàng" : "Còn Hàng");
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 
         // Cập nhật số lượng tồn kho của sản phẩm chính
         updateStockForProduct(sanPhamChiTiet.getSanPham());
 
-        // Cập nhật tổng tiền hóa đơn
-        updateInvoiceTotal(hoaDonId);
+        // Tính tổng tiền hóa đơn
+        float tongTienSanPham = (float) hoaDonChiTietRepository.findByHoaDonId(hoaDonId).stream()
+                .mapToDouble(HoaDonChiTiet::getThanhTien)
+                .sum();
 
-        // 🔥 LẤY LẠI hóa đơn từ DB để đảm bảo tổng tiền mới nhất
-        hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
+        float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0;
+        PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+        float giaTriGiam = (phieuGiamGia != null && phieuGiamGia.getGiaTriGiam() != null) ? phieuGiamGia.getGiaTriGiam() : 0;
+
+        float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
+        hoaDon.setTongTien(tongTienFinal);
+        hoaDonRepository.save(hoaDon);
 
         // Trả về thông tin cập nhật
         response.put("successMessage", "Thêm sản phẩm vào hóa đơn thành công!");
@@ -102,6 +105,7 @@ public class HoaDonChiTietService {
         return ResponseEntity.ok(response);
     }
 
+    @Transactional
     public ResponseEntity<Map<String, String>> updateQuantityOrder(Integer hoaDonChiTietId, Integer soLuong, Integer hoaDonId) {
         Map<String, String> response = new HashMap<>();
 
@@ -141,7 +145,13 @@ public class HoaDonChiTietService {
         hoaDonChiTietRepository.save(hoaDonChiTiet);
 
         // Cập nhật tồn kho nếu số lượng thay đổi
-        sanPhamChiTiet.setSoLuong(soLuongTonKho - chenhLechSoLuong);
+        if (chenhLechSoLuong > 0) { // Nếu số lượng tăng -> giảm tồn kho
+            sanPhamChiTiet.setSoLuong(soLuongTonKho - chenhLechSoLuong);
+        } else if (chenhLechSoLuong < 0) { // Nếu số lượng giảm -> hoàn lại tồn kho
+            sanPhamChiTiet.setSoLuong(soLuongTonKho - chenhLechSoLuong); // Vì chenhLechSoLuong < 0 nên trừ thành cộng
+        }
+
+
         sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() == 0 ? "Hết Hàng" : "Còn Hàng");
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 
@@ -165,12 +175,14 @@ public class HoaDonChiTietService {
 
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0;
 
+        PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+
         // Tìm và áp dụng phiếu giảm giá tốt nhất
-        PhieuGiamGia bestVoucher = findBestVoucherForInvoice(tongTienSanPham);
-        hoaDon.setPhieuGiamGia(bestVoucher);
 
         // Tính giá trị giảm giá từ phiếu (nếu có)
-        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTri() != null) ? bestVoucher.getGiaTri() : 0;
+        float giaTriGiam = (phieuGiamGia != null && phieuGiamGia.getGiaTriGiam() != null)
+                ? phieuGiamGia.getGiaTriGiam()
+                : 0;
 
         // Đảm bảo tổng tiền không bị âm
         float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
@@ -184,70 +196,64 @@ public class HoaDonChiTietService {
         return ResponseEntity.ok(response);
     }
 
+    @Transactional
     public ResponseEntity<Map<String, String>> deleteProductOrder(Integer hoaDonChiTietId, Integer hoaDonId) {
         Map<String, String> response = new HashMap<>();
 
-        // Tìm hóa đơn chi tiết cần xóa
         HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(hoaDonChiTietId).orElse(null);
         if (hoaDonChiTiet == null) {
             response.put("errorMessage", "Hóa đơn chi tiết không tồn tại!");
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Kiểm tra hóa đơn có tồn tại không
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
         if (hoaDon == null) {
             response.put("errorMessage", "Hóa đơn không tồn tại.");
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Lấy thông tin sản phẩm chi tiết
+        // Hoàn trả lại số lượng sản phẩm
         SanPhamChiTiet sanPhamChiTiet = hoaDonChiTiet.getSanPhamChiTiet();
         if (sanPhamChiTiet != null) {
-            // Hoàn trả lại số lượng sản phẩm về kho
             sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() + hoaDonChiTiet.getSoLuong());
-            sanPhamChiTietRepository.save(sanPhamChiTiet);
 
-            // Cập nhật số lượng tồn kho cho sản phẩm chính
+            // Cập nhật trạng thái sản phẩm dựa trên số lượng
+            if (sanPhamChiTiet.getSoLuong() == 0) {
+                sanPhamChiTiet.setTrangThai("Hết Hàng");
+            } else {
+                sanPhamChiTiet.setTrangThai("Còn Hàng");
+            }
+
+            sanPhamChiTietRepository.save(sanPhamChiTiet);
             updateStockForProduct(sanPhamChiTiet.getSanPham());
         }
 
-        // Xóa sản phẩm khỏi hóa đơn
+        // Xóa sản phẩm khỏi danh sách hóa đơn
+        hoaDon.getHoaDonChiTiet().removeIf(chiTiet -> chiTiet.getId().equals(hoaDonChiTietId));
         hoaDonChiTietRepository.delete(hoaDonChiTiet);
 
-        // Cập nhật lại tổng tiền hóa đơn sau khi xóa sản phẩm
-        float tongTienSanPham = hoaDon.getHoaDonChiTiet()
-                .stream()
-                .map(chiTiet -> chiTiet.getThanhTien())
-                .reduce(0f, Float::sum);
+        // Cập nhật tổng tiền
+        float tongTienSanPham = (hoaDon.getHoaDonChiTiet() != null)
+                ? hoaDon.getHoaDonChiTiet().stream().map(HoaDonChiTiet::getThanhTien).reduce(0f, Float::sum)
+                : 0f;
 
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0;
+        float giaTriGiam = (hoaDon.getPhieuGiamGia() != null && hoaDon.getPhieuGiamGia().getGiaTriGiam() != null)
+                ? hoaDon.getPhieuGiamGia().getGiaTriGiam()
+                : 0;
 
-        // Kiểm tra phiếu giảm giá tốt nhất dựa trên tổng tiền mới
-        PhieuGiamGia bestVoucher = findBestVoucherForInvoice(tongTienSanPham);
-        hoaDon.setPhieuGiamGia(bestVoucher);
-
-        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTri() != null) ? bestVoucher.getGiaTri() : 0;
-
-        // Đảm bảo tổng tiền không bị âm
         float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
         hoaDon.setTongTien(tongTienFinal);
 
-        // Kiểm tra nếu hóa đơn không còn sản phẩm nào -> cập nhật trạng thái "Đã hủy"
-        if (hoaDon.getHoaDonChiTiet().isEmpty()) {
-            hoaDon.setTrangThai("Đang Xử Lý");
-        }
-
         hoaDonRepository.save(hoaDon);
 
-        // Trả về phản hồi thành công
         response.put("successMessage", "Xóa sản phẩm khỏi hóa đơn thành công!");
-        response.put("trangThai", hoaDon.getTrangThai());
+        response.put("trangThai", (hoaDon.getTrangThai() != null) ? hoaDon.getTrangThai() : "Không xác định");
         return ResponseEntity.ok(response);
     }
 
     // Phương thức cập nhật tồn kho cho sản phẩm chính
-    private void updateStockForProduct(SanPham sanPham) {
+    public void updateStockForProduct(SanPham sanPham) {
         List<SanPhamChiTiet> listSanPhamChiTiet = sanPhamChiTietRepository.findBySanPham(sanPham);
         int tongSoLuong = listSanPhamChiTiet.stream()
                 .filter(spct -> spct.getSoLuong() != null)
@@ -271,12 +277,10 @@ public class HoaDonChiTietService {
         // Lấy phí ship và kiểm tra null
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0;
 
-        // Tìm phiếu giảm giá tốt nhất
-        PhieuGiamGia bestVoucher = findBestVoucherForInvoice(tongTienSanPham);
-        hoaDon.setPhieuGiamGia(bestVoucher);
 
         // Giá trị giảm giá từ phiếu (nếu có)
-        float giaTriGiam = (bestVoucher != null && bestVoucher.getGiaTri() != null) ? bestVoucher.getGiaTri() : 0;
+        PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+        float giaTriGiam = (phieuGiamGia != null && phieuGiamGia.getGiaTriGiam() != null) ? phieuGiamGia.getGiaTriGiam() : 0;
 
         // Đảm bảo tổng tiền không âm
         float tongTienFinal = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
@@ -287,27 +291,24 @@ public class HoaDonChiTietService {
     }
 
 
-    public PhieuGiamGia findBestVoucherForInvoice(Float tongTien) {
-        // Lấy danh sách các phiếu giảm giá còn hiệu lực và đang hoạt động
-        List<PhieuGiamGia> availableVouchers = phieuGiamGiaRepository.findAllByTrangThai("Đang Hoạt Động");
-
-        // Lọc các phiếu giảm giá có điều kiện phù hợp với tổng tiền hóa đơn
-        List<PhieuGiamGia> validVouchers = availableVouchers.stream()
-                .filter(voucher -> tongTien >= voucher.getDieuKien())  // Điều kiện tổng tiền >= điều kiện phiếu giảm giá
-                .filter(voucher -> voucher.getNgayBatDau().isBefore(LocalDateTime.now()) &&  // Phiếu giảm giá còn hiệu lực
-                        voucher.getNgayKetThuc().isAfter(LocalDateTime.now()))
-                .sorted(Comparator.comparing(PhieuGiamGia::getGiaTri).reversed())  // Sắp xếp giảm dần theo giá trị phiếu
-                .toList();
-
-        // Trả về phiếu giảm giá có giá trị cao nhất nếu có, nếu không trả về null
-        return validVouchers.isEmpty() ? null : validVouchers.get(0);
-    }
 
     public int getTongSanPhamBanTrongThang() {
         return hoaDonChiTietRepository.getTongSanPhamBanTrongThang("Đã Hoàn Thành");
     }
     public List<Object[]> getTotalSoldByProductInMonthWithImages() {
         return hoaDonChiTietRepository.getTotalSoldByProductInMonth("Đã Hoàn Thành"); // Trả về danh sách sản phẩm
+    }
+
+    float tinhTongTienHoaDon(HoaDon hoaDon) {
+        float tongTienSanPham = (float) hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId()).stream()
+                .mapToDouble(HoaDonChiTiet::getThanhTien)
+                .sum();
+
+        float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0;
+        PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+        float giaTriGiam = (phieuGiamGia != null && phieuGiamGia.getGiaTriGiam() != null) ? phieuGiamGia.getGiaTriGiam() : 0;
+
+        return Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
     }
 
 }

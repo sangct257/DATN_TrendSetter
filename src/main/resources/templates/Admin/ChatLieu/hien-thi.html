@@ -24,24 +24,6 @@
                 <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
                 <li><a href="#">Chất Liệu</a></li>
             </ol>
-            <!-- Toast Notification -->
-            <!-- Toast Thông Báo -->
-            <div class="toast-container position-fixed top-0 end-0 p-3">
-                <div id="toast-message" class="toast align-items-center text-bg-primary border-0 fade hide" role="alert"
-                     aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <span id="toast-text">Vui lòng chờ...</span>
-                            <div id="toast-loading-bar" class="progress mt-2">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-light"
-                                     style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                                aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- Main content -->
@@ -176,155 +158,146 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
-<!--Hiển thị Toast Notification-->
 <script>
-    function showToast(message, type, autoHide = true, duration = 3000) {
-        const toast = document.getElementById("toast-message");
-        const toastText = document.getElementById("toast-text");
-        const toastLoadingBar = document.getElementById("toast-loading-bar").querySelector(".progress-bar");
-
-        // Reset trạng thái
-        toast.classList.remove("text-bg-primary", "text-bg-success", "text-bg-danger", "hide");
-        toast.classList.add(`text-bg-${type}`);
-        toast.style.opacity = "1";
-        toast.classList.add("show");
-        toastText.textContent = message;
-        toastLoadingBar.style.width = "0%";
-
-        if (autoHide) {
-            animateProgressBar(toastLoadingBar, duration, () => {
-                hideToast();
-            });
-        }
-
-        return toastLoadingBar;
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast-message");
-        toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hide");
-        }, 300);
-    }
-
-    function animateProgressBar(progressBar, duration = 4000, callback) {
-        let startTime = null;
-
-        function updateProgress(timestamp) {
-            if (!startTime) startTime = timestamp;
-            let progress = ((timestamp - startTime) / duration) * 100;
-
-            if (progress < 100) {
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
-                requestAnimationFrame(updateProgress);
-            } else {
-                progressBar.style.width = "100%";
-                if (callback) callback();
-            }
-        }
-
-        requestAnimationFrame(updateProgress);
-    }
-</script>
-
-<script>
-    // Hàm thêm thương hiệu
-    function saveChatLieu() {
+    // Hàm thêm chất liệu
+    async function saveChatLieu() {
         let tenChatLieu = document.getElementById("tenChatLieu").value;
         let trangThai = document.getElementById("trangThai").value;
 
-        let data = {
-            tenChatLieu: tenChatLieu,
-            trangThai: trangThai
-        };
+        let data = { tenChatLieu, trangThai };
 
-        let progressBar = showToast("Đang thêm chất liệu ...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/chat-lieu/add', {
+        Swal.fire({
+            title: "Đang thêm chất liệu...",
+            text: "Vui lòng chờ...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            let response = await fetch('/api/chat-lieu/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
-            })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi khi thêm chất liệu!", "danger"));
-        });
+            });
+            let message = await response.text();
+
+            Swal.fire({
+                icon: "success",
+                title: "Thêm thành công!",
+                text: message,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
+        } catch (error) {
+            Swal.fire("Lỗi!", "Lỗi khi thêm chất liệu!", "error");
+        }
     }
 
-    function deleteChatLieu(button) {
+    // Hàm xóa chất liệu
+    async function deleteChatLieu(button) {
         let row = button.closest("tr");
         let hiddenInput = row.querySelector("td input[type='hidden']");
 
         if (!hiddenInput) {
-            showToast("Không tìm thấy ID chất liệu!", "danger");
+            Swal.fire("Lỗi!", "Không tìm thấy ID chất liệu!", "error");
             return;
         }
 
         let chatLieuId = hiddenInput.value;
-        if (confirm("Bạn có chắc chắn muốn xóa chất liệu này không?")) {
-            let progressBar = showToast("Đang xóa chất liệu...", "primary");
-            animateProgressBar(progressBar, 3000, () => {
-                fetch(`/api/chat-lieu/delete/${chatLieuId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                    .then(response => {
-                        if (!response.ok) throw new Error("Xóa thất bại!");
-                        return response.text();
-                    })
-                    .then(message => {
-                        showToast(message, "success");
-                        setTimeout(() => location.reload(), 1500);
-                    })
-                    .catch(error => showToast(error.message, "danger"));
-            });
-        }
+
+        Swal.fire({
+            title: "Bạn có chắc chắn?",
+            text: "Thao tác này không thể hoàn tác!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Xóa!",
+            cancelButtonText: "Hủy"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    let response = await fetch(`/api/chat-lieu/delete/${chatLieuId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) throw new Error("Xóa thất bại!");
+
+                    let message = await response.text();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Xóa thành công!",
+                        text: message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => row.remove());
+                } catch (error) {
+                    Swal.fire("Lỗi!", error.message, "error");
+                }
+            }
+        });
     }
 
-    function updateChatLieu() {
+    // Hàm cập nhật chất liệu
+    async function updateChatLieu() {
         let chatLieuId = document.getElementById("modalChatLieuId").value;
         let chatLieuName = document.getElementById("modalChatLieuName").value;
         let chatLieuStatus = document.getElementById("modalChatLieuStatus").value;
 
-        let updatedChatLieu = {
-            id: chatLieuId,
-            tenChatLieu: chatLieuName,
-            trangThai: chatLieuStatus
-        };
+        let updatedChatLieu = { id: chatLieuId, tenChatLieu: chatLieuName, trangThai: chatLieuStatus };
 
-        let progressBar = showToast("Đang cập nhật chất liệu...", "primary");
-        animateProgressBar(progressBar, 3000, () => {
-            fetch('/api/chat-lieu/update', {
-                method: 'POST',
+        Swal.fire({
+            title: "Đang cập nhật chất liệu...",
+            text: "Vui lòng chờ...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            let response = await fetch('/api/chat-lieu/update', {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedChatLieu)
-            })
-                .then(response => response.text())
-                .then(message => {
-                    showToast(message, "success");
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => showToast("Lỗi cập nhật!", "danger"));
-        });
+            });
+
+            let text = await response.text();
+
+            try {
+                let json = JSON.parse(text);
+                if (json.error) throw new Error(json.error);
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Cập nhật thành công!",
+                    text: json.message || "Cập nhật thành công",
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+
+            } catch (error) {
+                Swal.fire("Lỗi!", text || "Lỗi không xác định!", "error");
+            }
+        } catch (error) {
+            Swal.fire("Lỗi!", "Lỗi hệ thống!", "error");
+        }
     }
 
+    // Hàm mở modal chỉnh sửa chất liệu
     function openChatLieuDetailModal(button) {
         let row = button.closest("tr");
         let chatLieuId = row.querySelector("td input[type='hidden']").value;
         let chatLieuName = row.cells[2].innerText;
         let chatLieuStatus = row.cells[3].innerText.trim();
 
-        // Gán giá trị vào modal
         document.getElementById("modalChatLieuId").value = chatLieuId;
         document.getElementById("modalChatLieuName").value = chatLieuName;
         document.getElementById("modalChatLieuStatus").value = chatLieuStatus;
 
-        // Hiển thị modal
         let modal = new bootstrap.Modal(document.getElementById("modalChatLieuDetail"));
         modal.show();
     }

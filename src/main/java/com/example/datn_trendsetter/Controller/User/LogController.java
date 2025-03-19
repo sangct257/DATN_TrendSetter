@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/") // Định nghĩa URL gốc
-public class HomeController {
+public class LogController {
 
     @GetMapping("auth/home") // Khi truy cập /auth/home sẽ trả về trang login
     public String showLoginPage(Model model) {

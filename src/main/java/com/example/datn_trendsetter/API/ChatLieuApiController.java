@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,23 +46,40 @@ public class ChatLieuApiController {
     }
 
 
-    @PostMapping("update")
-    public ResponseEntity<String> update(@RequestBody ChatLieu updatedChatLieu) {
-        ChatLieu chatLieu = chatLieuRepository.findById(updatedChatLieu.getId()).orElse(null);
-        if (chatLieu != null) {
-            chatLieu.setMaChatLieu(chatLieu.getMaChatLieu());
-            chatLieu.setTenChatLieu(chatLieu.getTenChatLieu());
-            chatLieu.setNgayTao(chatLieu.getNgayTao());
-            chatLieu.setNgaySua(LocalDate.now());
-            chatLieu.setNguoiTao(chatLieu.getNguoiTao());
-            chatLieu.setNguoiSua(chatLieu.getNguoiSua());
-            chatLieu.setTrangThai(chatLieu.getTrangThai());
-            chatLieu.setDeleted(chatLieu.getDeleted());
-            chatLieuRepository.save(chatLieu);
-            return ResponseEntity.ok("Cập nhật thành công");
+    @PutMapping("update")
+    public ResponseEntity<Map<String, String>> update(@RequestBody ChatLieu updatedChatLieu) {
+        Map<String, String> response = new HashMap<>();
+
+        if (updatedChatLieu.getId() == null) {
+            response.put("error", "ID không hợp lệ");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy chất liệu");
+
+        ChatLieu chatLieu = chatLieuRepository.findById(updatedChatLieu.getId()).orElse(null);
+        if (chatLieu == null || chatLieu.getDeleted()) {
+            response.put("error", "Không tìm thấy chất liệu hoặc đã bị xóa");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        // Kiểm tra trùng lặp tên chất liệu
+        boolean exists = chatLieuRepository.existsByTenChatLieu(updatedChatLieu.getTenChatLieu());
+        if (exists && !chatLieu.getTenChatLieu().equalsIgnoreCase(updatedChatLieu.getTenChatLieu())) {
+            response.put("error", "Tên chất liệu đã tồn tại");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        }
+
+        // Cập nhật thông tin chất liệu
+        chatLieu.setTenChatLieu(updatedChatLieu.getTenChatLieu());
+        chatLieu.setNgaySua(LocalDate.now());
+        chatLieu.setNguoiSua(updatedChatLieu.getNguoiSua() != null ? updatedChatLieu.getNguoiSua() : "admin");
+        chatLieu.setTrangThai(updatedChatLieu.getTrangThai());
+
+        chatLieuRepository.save(chatLieu);
+
+        response.put("message", "Cập nhật thành công");
+        return ResponseEntity.ok(response);
     }
+
 
     @DeleteMapping("delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Integer id) {

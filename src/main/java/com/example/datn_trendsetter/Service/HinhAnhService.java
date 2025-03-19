@@ -5,8 +5,6 @@ import com.cloudinary.utils.ObjectUtils;
 import com.example.datn_trendsetter.Entity.HinhAnh;
 import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
 import com.example.datn_trendsetter.Repository.HinhAnhRepository;
-import lombok.AllArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

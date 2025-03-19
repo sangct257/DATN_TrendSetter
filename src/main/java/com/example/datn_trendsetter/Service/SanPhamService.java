@@ -1,5 +1,11 @@
 package com.example.datn_trendsetter.Service;
 
+import com.example.datn_trendsetter.Entity.SanPham;
+import com.example.datn_trendsetter.Repository.SanPhamRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.DTO.SanPhamDTO;
 import com.example.datn_trendsetter.Entity.*;
@@ -41,10 +47,8 @@ public class SanPhamService {
     @Transactional
     public synchronized ResponseEntity<?> addSanPham(SanPhamDTO sanPhamDTO) {
         try {
-            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPhamAndDanhMucIdAndThuongHieuId(
-                    sanPhamDTO.getTenSanPham(),
-                    sanPhamDTO.getDanhMucId(),
-                    sanPhamDTO.getThuongHieuId()
+            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPham(
+                    sanPhamDTO.getTenSanPham()
             );
 
             if (existingSanPhamOpt.isPresent()) {
@@ -58,7 +62,7 @@ public class SanPhamService {
             sanPham.setTenSanPham(sanPhamDTO.getTenSanPham());
             sanPham.setSoLuong(sanPhamDTO.getSoLuong());
             sanPham.setMoTa(sanPhamDTO.getMoTa());
-            sanPham.setTrangThai("Đang Hoạt Động");
+            sanPham.setTrangThai("Ngừng Hoạt Động");
             sanPham.setNgayTao(LocalDate.now());
             sanPham.setNgaySua(LocalDate.now());
             sanPham.setNguoiTao(sanPhamDTO.getNguoiTao());
@@ -75,8 +79,14 @@ public class SanPhamService {
             sanPham.setXuatXu(xuatXuRepository.findById(sanPhamDTO.getXuatXuId()).orElseThrow(
                     () -> new RuntimeException("Xuất xứ không tồn tại!")));
 
+            // Lưu sản phẩm vào database
             SanPham savedSanPham = sanPhamRepository.save(sanPham);
-            return ResponseEntity.ok(Map.of("message", "Thêm sản phẩm thành công!", "sanPham", savedSanPham));
+
+            // Trả về ID của sản phẩm mới tạo
+            return ResponseEntity.ok(Map.of(
+                    "message", "Thêm sản phẩm thành công!",
+                    "id", savedSanPham.getId()
+            ));
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity
@@ -93,7 +103,6 @@ public class SanPhamService {
         }
     }
 
-
     @Transactional
     public synchronized SanPham updateSanPham(Integer id, SanPhamDTO sanPhamDTO) {
         try {
@@ -101,10 +110,8 @@ public class SanPhamService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sản phẩm không tồn tại!"));
 
             // Kiểm tra trùng lặp sản phẩm
-            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPhamAndDanhMucIdAndThuongHieuId(
-                    sanPhamDTO.getTenSanPham(),
-                    sanPhamDTO.getDanhMucId(),
-                    sanPhamDTO.getThuongHieuId()
+            Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPham(
+                    sanPhamDTO.getTenSanPham()
             );
 
             if (existingSanPhamOpt.isPresent() && !existingSanPhamOpt.get().getId().equals(id)) {
@@ -117,7 +124,7 @@ public class SanPhamService {
 
             if (sanPhamDTO.getSoLuong() != null) {
                 sanPham.setSoLuong(sanPhamDTO.getSoLuong());
-                sanPham.setTrangThai(sanPhamDTO.getSoLuong() > 0 ? "Đang Hoạt Động" : "Không Hoạt Động");
+                sanPham.setTrangThai(sanPhamDTO.getSoLuong() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
             }
 
             sanPham.setNgaySua(LocalDate.now());
@@ -144,4 +151,24 @@ public class SanPhamService {
         }
     }
 
+
+    public boolean toggleSanPhamStatus(Integer id) {
+        Optional<SanPham> optionalSanPham = sanPhamRepository.findById(id);
+        if (optionalSanPham.isPresent()) {
+            SanPham sanPham = optionalSanPham.get();
+
+            // Thay đổi trạng thái và đánh dấu xóa mềm
+            if ("Đang Hoạt Động".equals(sanPham.getTrangThai())) {
+                sanPham.setTrangThai("Ngừng Hoạt Động");
+                sanPham.setDeleted(true);
+            } else {
+                sanPham.setTrangThai("Đang Hoạt Động");
+                sanPham.setDeleted(false);
+            }
+
+            sanPhamRepository.save(sanPham);
+            return true;
+        }
+        return false;
+    }
 }

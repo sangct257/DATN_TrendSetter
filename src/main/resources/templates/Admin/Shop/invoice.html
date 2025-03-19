@@ -114,15 +114,15 @@
             <tr>
                 <th>Giá Ban Đầu</th>
                 <td th:text="${#numbers.formatDecimal(hoaDon.tongTien
-    + (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTri : 0 ) - hoaDon.phiShip, 0, 'COMMA', 0, 'POINT')
+    + (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0 ) - hoaDon.phiShip, 0, 'COMMA', 0, 'POINT')
     } + ' VND'"></td>
             </tr>
 
 
-            <!-- Hiển thị giá giảm nếu có mã giảm giá -->
-            <tr th:if="${hoaDon.phieuGiamGia != null and hoaDon.phieuGiamGia.giaTri > 0}">
+            <!-- Hiển thị giá giảm nếu có phiếu giảm giá -->
+            <tr th:if="${hoaDon.phieuGiamGia != null and hoaDon.phieuGiamGia.giaTriGiam > 0}">
                 <th>Giá Giảm</th>
-                <td th:text="'-' + ${#numbers.formatDecimal(hoaDon.phieuGiamGia.giaTri, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+                <td th:text="'-' + ${#numbers.formatDecimal(hoaDon.phieuGiamGia.giaTriGiam, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
             </tr>
 
             <!-- Hiển thị phí ship nếu có -->

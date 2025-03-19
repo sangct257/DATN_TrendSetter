@@ -18,8 +18,7 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Blank page
-                <small>it all starts here</small>
+                Danh sách hóa đơn
             </h1>
             <ol class="breadcrumb">
                 <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
@@ -30,149 +29,105 @@
 
         <!-- Main content -->
         <section class="content">
+
+            <!-- Default box -->
             <div class="box">
-                <div class="border p-3">
-                    <h1 class="text-center mb-3">Quản lý Hóa Đơn</h1>
-                    <a href="/home">Home</a> > <a>Hóa Đơn</a> >
-
-                    <div class="container mt-5">
-                        <div class="p-4 shadow rounded" style="background-color: #f8f9fa;">
-                            <div class="d-flex align-items-center mb-4">
-                                <i class="bi bi-funnel me-2 text-primary" style="font-size: 1.5rem;"></i>
-                                <h5 class="text-primary mb-0">Bộ lọc</h5>
-                            </div>
-
-                            <form id="filterForm" action="/san-pham-chi-tiet/hien-thi" method="get">
-                                <div class="row align-items-center">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="searchInput" class="form-label">Tìm kiếm:</label>
-                                        <input type="text" name="tenSanPham" id="searchInput" class="form-control" placeholder="Tìm kiếm"
-                                               th:value="${param.tenSanPham}">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="statusSelect" class="form-label">Trạng thái:</label>
-                                        <select name="trangThai" id="statusSelect" class="form-select">
-                                            <option value="all" th:selected="${param.trangThai == 'all'}">Tất cả</option>
-                                            <option value="Đang Hoạt Động" th:selected="${param.trangThai == 'Đang Hoạt Động'}">Hoạt động</option>
-                                            <option value="Không Hoạt Động" th:selected="${param.trangThai == 'Không Hoạt Động'}">Không hoạt động</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">Thương Hiệu</label>
-                                        <select class="form-select" name="tenThuongHieu">
-                                            <option value="all" th:selected="${param.tenThuongHieu == 'all'}">Tất cả</option>
-                                            <th:block th:each="thuongHieu : ${listThuongHieu}">
-                                                <option th:value="${thuongHieu.id}" th:selected="${thuongHieu.id == param.tenThuongHieu}" th:text="${thuongHieu.tenThuongHieu}"></option>
-                                            </th:block>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="text-center">
-                                    <button type="submit" class="btn btn-primary me-2">
-                                        <i class="bi bi-search"></i> Tìm kiếm
+                <div class="box-body">
+                    <section class="content">
+                        <div class="box-body">
+                            <div class="container">
+                                <div class="d-flex flex-nowrap overflow-x-auto justify-content-center gap-1 mb-2 p-2 border rounded-3 shadow-sm bg-light">
+                                    <button class="btn btn-outline-primary filter-btn px-2 py-1 fw-bold border border-primary rounded-pill"
+                                            data-status="">
+                                        Tất Cả (<span id="count-all">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Đang Xử Lý">
+                                        Đang Xử Lý (<span id="count-processing">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Chờ Xác Nhận">
+                                        Chờ Xác Nhận (<span id="count-waiting">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Đã Xác Nhận">
+                                        Đã Xác Nhận (<span id="count-confirmed">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Chờ Vận Chuyển">
+                                        Chờ Vận Chuyển (<span id="count-shipping">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Đã Thanh Toán">
+                                        Đã Thanh Toán (<span id="count-paid">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-success filter-btn px-2 py-1 fw-bold border border-success rounded-pill"
+                                            data-status="Đã Hoàn Thành">
+                                        Đã Hoàn Thành (<span id="count-completed">0</span>)
+                                    </button>
+                                    <button class="btn btn-outline-danger filter-btn px-2 py-1 fw-bold border border-danger rounded-pill"
+                                            data-status="Đã Hủy">
+                                        Đã Hủy (<span id="count-canceled">0</span>)
                                     </button>
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-
-<!--                    <div class="container mt-5 text-center">-->
-<!--                        <div class="row">-->
-<!--                            <div class="col mb-3">-->
-<!--                                <div class="border p-3 rounded" onclick="loadAllHoaDon()">-->
-<!--                                    <label class="label-status"><strong>Tất Cả</strong></label>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                            <th:block th:each="item : ${countByTrangThai}">-->
-<!--                                <div class="col mb-3">-->
-<!--                                    <div class="border p-3 rounded" th:attr="onclick='loadHoaDon(' + ${item[0]} + ')'"><label class="label-status"><strong th:text="${item[0]}"></strong><span class="text-danger" th:text="${item[1]}"></span></label></div>-->
-<!--                                </div>-->
-<!--                            </th:block>-->
-<!--                        </div>-->
-<!--                    </div>-->
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label for="statusFilter" class="form-label">Lọc theo trạng thái:</label>
-                            <select id="statusFilter" class="form-select">
-                                <option value="">Tất cả</option>
-                                <option value="Đang Xử Lý">Đang Xử Lý</option>
-                                <option value="Chờ Xác Nhận">Chờ Xác Nhận</option>
-                                <option value="Đã Xác Nhận">Đã Xác Nhận</option>
-                                <option value="Chờ Vận Chuyển">Chờ Vận Chuyển</option>
-                                <option value="Đang Giao Hàng">Đang Giao Hàng</option>
-                                <option value="Đã Giao Hàng">Đã Giao Hàng</option>
-                                <option value="Đã Thanh Toán">Đã Thanh Toán</option>
-                                <option value="Đã Hoàn Thành">Đã Hoàn Thành</option>
-                            </select>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label for="customerSearch" class="form-label">Tìm kiếm khách hàng:</label>
-                                <input type="text" id="customerSearch" class="form-control" placeholder="Nhập tên khách hàng...">
                             </div>
-                        </div>
-                    </div>
 
 
-
-                    <br>
-                    <div class="border p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5>Danh sách hóa đơn</h5>
-                            <form action="/hoa-don/add" method="post">
-                                <button type="submit" class="btn btn-primary btn-sm mb-3">
-                                    <i class="bi bi-plus-circle"></i> Tạo hóa đơn
-                                </button>
-                            </form>
-                        </div>
-
-                        <div class="table-responsive">
                             <table id="productTable" class="table table-striped table-bordered">
+                                <button>
+                                    <a th:href="@{/admin/sell-counter}">
+                                        Tạo Hóa Đơn
+                                    </a>
+                                </button>
+
                                 <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Mã Hóa Đơn</th>
-                                    <th>Khách Hàng</th>
-                                    <th>Nhân Viên</th>
-                                    <th>Khuyến Mại</th>
-                                    <th>Tổng Tiền</th>
-                                    <th>Ngày</th>
-                                    <th>Phương Thức</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Chức Năng</th>
+                                <tr class="text-center">
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Mã Hóa Đơn</th>
+                                    <th class="text-center">Tên Khách Hàng</th>
+                                    <th class="text-center">Tên Nhân Viên</th>
+                                    <th class="text-center">Loại Hóa Đơn</th>
+                                    <th class="text-center">Ngày Tạo</th>
+                                    <th class="text-center">Tiền Giảm</th>
+                                    <th class="text-center">Tổng Tiền</th>
+                                    <th class="text-center">Action</th>
                                 </tr>
                                 </thead>
-                                <tbody>
-                                <tr th:each="hoaDon, status : ${hoaDon}">
-                                    <td th:text="${status.index + 1}"></td>
+                                <tbody class="text-center">
+                                <tr th:each="hoaDon, i : ${hoaDon}" class="text-center">
+                                    <td th:text="${i.index + 1}"></td>
                                     <td th:text="${hoaDon.maHoaDon}"></td>
-                                    <td th:text="${hoaDon.khachHang != null ? hoaDon.khachHang.hoTen : 'Khách Lẻ'}"></td>
-                                    <td th:text="${hoaDon.nhanVien != null ? hoaDon.nhanVien.hoTen : 'Nhân Viên 1'}"></td>
-                                    <td th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.tenChuongTrinh : 'Nhân Viên 1'}"></td>
-                                    <td th:text="${hoaDon.tongTien}"></td>
-                                    <td>Ngày Tạo : <span th:text="${hoaDon.ngayTao}"></span><br>Ngày Sửa : <span th:text="${hoaDon.ngaySua}"></span></td>
-                                    <td th:text="${hoaDon.phuongThucThanhToan != null ? hoaDon.phuongThucThanhToan.tenPhuongThuc : 'Nhân Viên 1'}"></td>
                                     <td>
-                                        <button class="btn" th:classappend="${hoaDon.trangThai == 'Đang Xử Lý' ? 'btn-danger' : hoaDon.trangThai == 'Thành Công' ? 'btn-success' : hoaDon.trangThai == 'Xác Nhận' ? 'btn-warning' : hoaDon.trangThai == 'Vận Chuyển' ? 'btn-secondary' : hoaDon.trangThai == 'Hủy' ? 'btn-primary' : 'btn-info'}" th:text="${hoaDon.trangThai}"></button>
+                                        <span th:text="${hoaDon.nguoiNhan == null ? 'Khách lẻ' : hoaDon.nguoiNhan}"></span>
                                     </td>
+                                    <td th:text="${hoaDon.nguoiTao != null ? hoaDon.nguoiTao : ''}"></td>
                                     <td>
-                                        <a th:href="@{'/hoa-don/detail/' + ${hoaDon.id}}" class="btn btn-warning btn-sm">
+                                        <button class="btn border border-dark"
+                                                th:text="${hoaDon.loaiHoaDon ?: 'Không có dữ liệu'}"
+                                                th:classappend="${hoaDon.loaiHoaDon == 'Tại Quầy' ? 'btn-success'
+                            : (hoaDon.loaiHoaDon == 'Giao Hàng' ? 'btn-primary'
+                            : (hoaDon.loaiHoaDon == 'Online' ? 'btn-warning' : 'btn-secondary'))}">
+                                        </button>
+                                    </td>
+
+
+                                    <td th:text="${hoaDon.ngayTao != null ? #temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm:ss') : 'Không rõ ngày'}"></td>
+                                    <td th:text="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam + ' VND' : '0 VND'}"></td>
+                                    <td th:text="${hoaDon.tongTien != null ? hoaDon.tongTien + ' VND' : '0 VND'}"></td>
+                                    <td>
+                                        <a th:href="@{/admin/order-details(hoaDonId=${hoaDon.id})}" class="btn btn-primary btn-sm fw-bold me-2">
                                             <i class="bi bi-pencil-square"></i> Chi Tiết
                                         </a>
-                                        <form th:action="@{/hoa-don/delete/{id}(id=${hoaDon.id})}" method="post"
-                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa?');" style="display:inline;">
-                                            <button class="btn btn-danger btn-sm">
-                                                <i class="bi bi-trash"></i> Xóa
-                                            </button>
-                                        </form>
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
+            <!-- /.box -->
+
         </section>
         <!-- /.content -->
     </div>
@@ -188,86 +143,14 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 <script>
-    function loadHoaDon(trangThai) {
-        // Gửi yêu cầu AJAX để lấy danh sách hóa đơn theo trạng thái
-        $.ajax({
-            url: '/hoa-don/hien-thi',  // Địa chỉ URL cho controller xử lý
-            type: 'GET',
-            data: {trangThai: trangThai},
-            success: function (response) {
-                // Cập nhật nội dung danh sách hóa đơn
-                $('#hoaDonList').html($(response).find('#hoaDonList').html());
-            },
-            error: function (xhr, status, error) {
-                console.error("Lỗi khi tải dữ liệu: " + error);
-            }
-        });
-    }
-
-    function loadAllHoaDon() {
-        // Gửi yêu cầu đến server để hiển thị tất cả hóa đơn
-        window.location.href = "/hoa-don/hien-thi?showAll=true"; // Thêm tham số showAll để lấy tất cả
-    }
-</script>
-<!--     lọc trạng thái-->
-<script>
-    document.getElementById("statusFilter").addEventListener("change", function () {
-        let selectedStatus = this.value.trim(); // Không đổi thành lowercase
-        let rows = document.querySelectorAll("table tbody tr");
-
-        rows.forEach(row => {
-            let statusCell = row.querySelector("td:nth-child(8)"); // Cột trạng thái
-            if (statusCell) {
-                let statusText = statusCell.textContent.trim(); // Không đổi lowercase
-                if (selectedStatus === "" || statusText === selectedStatus) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-                console.log("Trạng thái trong bảng:", statusText);
-                console.log("Trạng thái được chọn:", selectedStatus);
-            }
-        });
-    });
-
-</script>
-
-<!--    //tk theo ten kh-->
-<script>
-
-    function filterTable() {
-        let searchQuery = document.getElementById("customerSearch").value.trim().toLowerCase();
-
-        let rows = document.querySelectorAll("table tbody tr");
-
-        rows.forEach(row => {
-            let customerCell = row.querySelector("td:nth-child(2)"); // Cột tên khách hàng
-            if (customerCell) {
-                let customerName = customerCell.textContent.trim().replace(/\s+/g, " ").toLowerCase();
-
-                if (searchQuery === "" || customerName.includes(searchQuery)) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            }
-        });
-    }
-
-    // Gắn sự kiện cho ô tìm kiếm khách hàng
-    document.getElementById("customerSearch").addEventListener("input", filterTable);
-
-
-</script>
-<!--Load table-->
-<script>
-    $(document).ready(function () {
-        $('#productTable').DataTable({
+    document.addEventListener("DOMContentLoaded", function () {
+        let table = $("#productTable").DataTable({
             "paging": true,
             "lengthMenu": [5, 10, 20],
             "pageLength": 5,
             "autoWidth": false,
             "responsive": true,
+            "destroy": true,  // Cho phép reset DataTables khi load lại dữ liệu
             "language": {
                 "sProcessing": "Đang xử lý...",
                 "sLengthMenu": "Hiển thị _MENU_ dòng",
@@ -284,8 +167,79 @@
                 }
             }
         });
-    });
-</script>
 
+        loadTable(""); // Load tất cả sản phẩm ban đầu
+        loadCount();
+
+        document.querySelectorAll(".filter-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let trangThai = this.getAttribute("data-status");
+                loadTable(trangThai);
+            });
+        });
+
+        function loadTable(trangThai) {
+            fetch(`/api/hoa-don/list?trangThai=${encodeURIComponent(trangThai)}`)
+                .then(response => response.text()) // Lấy dữ liệu dạng text để debug
+                .then(text => {
+                    console.log("Dữ liệu nhận được:", text);
+                    return JSON.parse(text); // Chuyển sang JSON
+                })
+                .then(data => {
+                    console.log("Dữ liệu JSON hợp lệ:", data);
+                    table.clear().draw();
+                    data.forEach((hoaDon, index) => {
+                        // Xác định màu sắc cho button theo loại hóa đơn
+                        let loaiHoaDon = hoaDon.loaiHoaDon || 'Không có dữ liệu';
+                        let btnClass = 'btn-secondary'; // Mặc định
+
+                        if (loaiHoaDon === 'Tại Quầy') {
+                            btnClass = 'btn-success';
+                        } else if (loaiHoaDon === 'Giao Hàng') {
+                            btnClass = 'btn-primary';
+                        } else if (loaiHoaDon === 'Online') {
+                            btnClass = 'btn-warning';
+                        }
+
+                        table.row.add([
+                            index + 1,
+                            hoaDon.maHoaDon || 'Không có dữ liệu',
+                            hoaDon.nguoiNhan ? hoaDon.nguoiNhan : 'Khách lẻ',
+                            hoaDon.nguoiTao ? hoaDon.nguoiTao : 'Không có dữ liệu',
+                            `<button class="btn ${btnClass} border border-dark">${loaiHoaDon}</button>`,
+                            hoaDon.ngayTao || 'Không rõ ngày',
+                            hoaDon.phieuGiamGia && hoaDon.phieuGiamGia.giaTriGiam
+                                ? hoaDon.phieuGiamGia.giaTriGiam.toLocaleString('vi-VN') + ' VND'
+                                : '0 VND',
+                            hoaDon.tongTien
+                                ? hoaDon.tongTien.toLocaleString('vi-VN') + ' VND'
+                                : '0 VND',
+                            `<a href="/admin/order-details?hoaDonId=${hoaDon.id}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-pencil-square"></i> Chi Tiết
+                    </a>`
+                        ]).draw(false);
+                    });
+                })
+                .catch(error => console.error("Lỗi JSON:", error));
+        }
+
+        function loadCount() {
+            fetch("/api/hoa-don/count")
+                .then(response => response.json())
+                .then(counts => {
+                    document.getElementById("count-all").innerText = counts["Tất Cả"] || 0;
+                    document.getElementById("count-processing").innerText = counts["Đang Xử Lý"] || 0;
+                    document.getElementById("count-waiting").innerText = counts["Chờ Xác Nhận"] || 0;
+                    document.getElementById("count-confirmed").innerText = counts["Đã Xác Nhận"] || 0;
+                    document.getElementById("count-shipping").innerText = counts["Chờ Vận Chuyển"] || 0;
+                    document.getElementById("count-paid").innerText = counts["Đã Thanh Toán"] || 0;
+                    document.getElementById("count-completed").innerText = counts["Đã Hoàn Thành"] || 0;
+                    document.getElementById("count-canceled").innerText = counts["Đã Hủy"] || 0;
+                })
+                .catch(error => console.error("Lỗi:", error));
+        }
+    });
+
+</script>
 </body>
 </html>

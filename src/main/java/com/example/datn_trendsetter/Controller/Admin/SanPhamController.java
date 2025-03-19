@@ -80,6 +80,11 @@ public class SanPhamController {
         // Lấy danh sách sản phẩm chi tiết theo ID sản phẩm
         List<SanPhamChiTiet> sanPhamChiTiet = sanPhamChiTietRepository.findBySanPhamId(sanPhamId);
 
+        Map<MauSac, List<SanPhamChiTiet>> sanPhamChiTietGroupedByMauSac = sanPhamChiTiet.stream()
+                .collect(Collectors.groupingBy(SanPhamChiTiet::getMauSac));
+
+        model.addAttribute("sanPhamChiTietGroupedByMauSac", sanPhamChiTietGroupedByMauSac);
+
         // Lọc danh sách màu sắc và kích thước có trong sản phẩm chi tiết
         List<MauSac> mauSacSanPham = sanPhamChiTiet.stream()
                 .map(SanPhamChiTiet::getMauSac)
@@ -91,9 +96,13 @@ public class SanPhamController {
                 .distinct()
                 .toList();
 
-        // Nhóm sản phẩm theo màu sắc
-        Map<MauSac, List<SanPhamChiTiet>> sanPhamTheoMauSac = sanPhamChiTiet.stream()
-                .collect(Collectors.groupingBy(SanPhamChiTiet::getMauSac));
+        // Lọc danh sách cặp Kích Thước - Màu Sắc đã tồn tại
+        Set<String> kichThuocMauSacSet = sanPhamChiTiet.stream()
+                .map(spct -> spct.getKichThuoc().getId() + "-" + spct.getMauSac().getId())
+                .collect(Collectors.toSet());
+
+        model.addAttribute("kichThuocMauSacSet", kichThuocMauSacSet);
+
 
         // Lấy danh sách các thuộc tính liên quan
         List<ChatLieu> chatLieu = chatLieuRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
@@ -114,7 +123,6 @@ public class SanPhamController {
         model.addAttribute("danhMuc", danhMuc);
         model.addAttribute("mauSacSanPham", mauSacSanPham);
         model.addAttribute("kichThuocSanPham", kichThuocSanPham);
-        model.addAttribute("sanPhamTheoMauSac", sanPhamTheoMauSac);
         return "Admin/SanPham/detail-san-pham";
     }
 }
