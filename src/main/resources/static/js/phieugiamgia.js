@@ -456,6 +456,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
+
     fetchPhieuGiamGia(currentPage);
     fetchKhachHang();
     window.viewDetail = viewDetail;
