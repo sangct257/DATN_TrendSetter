@@ -4,7 +4,6 @@ import com.example.datn_trendsetter.DTO.AuthResponse;
 import com.example.datn_trendsetter.DTO.LoginRequest;
 import com.example.datn_trendsetter.DTO.RegisterRequest;
 import com.example.datn_trendsetter.Service.AuthService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -26,23 +25,38 @@ public class LogRestController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    // Đăng ký Nhân viên
+    @PostMapping("/nhanvien/register")
+    public ResponseEntity<?> registerNhanVien(@RequestBody RegisterRequest request) {
         try {
+            request.setLoaiTaiKhoan("NHANVIEN"); // Xác định loại tài khoản là Nhân viên
             AuthResponse response = authService.register(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("{\"message\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    // Đăng ký Khách hàng
+    @PostMapping("/khachhang/register")
+    public ResponseEntity<?> registerKhachHang(@RequestBody RegisterRequest request) {
         try {
-            AuthResponse response = authService.login(request);
+            request.setLoaiTaiKhoan("KHACHHANG"); // Xác định loại tài khoản là Khách hàng
+            AuthResponse response = authService.register(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 
+    // Đăng nhập Nhân viên
+    @PostMapping("/nhanvien/login")
+    public ResponseEntity<?> loginNhanVien(@RequestBody LoginRequest request) {
+        try {
+            request.setLoaiTaiKhoan("NHANVIEN");
+            AuthResponse response = authService.login(request);
             return ResponseEntity.ok()
-                    .header("Authorization", "Bearer " + response.getToken())  // Thêm Authorization header
+                    .header("Authorization", "Bearer " + response.getToken())
                     .body(Map.of(
                             "redirect", response.getRedirectUrl(),
                             "token", response.getToken(),
@@ -53,13 +67,32 @@ public class LogRestController {
         }
     }
 
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
-        return ResponseEntity.ok().body("{\"message\": \"Logged out successfully\"}");
+    // Đăng nhập Khách hàng
+    @PostMapping("/khachhang/login")
+    public ResponseEntity<?> loginKhachHang(@RequestBody LoginRequest request) {
+        try {
+            request.setLoaiTaiKhoan("KHACHHANG");
+            AuthResponse response = authService.login(request);
+            return ResponseEntity.ok()
+                    .header("Authorization", "Bearer " + response.getToken())
+                    .body(Map.of(
+                            "redirect", response.getRedirectUrl(),
+                            "token", response.getToken(),
+                            "roles", response.getRoles()
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
-    @GetMapping("/api/user-info")
+    // Đăng xuất
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok().body(Map.of("message", "Đăng xuất thành công"));
+    }
+
+    // Lấy thông tin người dùng từ token
+    @GetMapping("/user-info")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_NHANVIEN', 'ROLE_KHACHHANG')")
     public ResponseEntity<?> getUserInfo(Authentication authentication) {
         String username = authentication.getName();
@@ -74,5 +107,4 @@ public class LogRestController {
                 "roles", roles
         ));
     }
-
 }
