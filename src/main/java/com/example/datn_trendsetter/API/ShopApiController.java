@@ -108,21 +108,23 @@ public class ShopApiController {
     @PostMapping("/apply-phieu-giam-gia")
     public ResponseEntity<Map<String, Object>> applyPhieuGiamGia(
             @RequestParam("hoaDonId") Integer hoaDonId,
-            @RequestParam("tenPhieuGiamGia") String tenPhieuGiamGia) {
+            @RequestParam(value = "tenPhieuGiamGia", required = false) String tenPhieuGiamGia) {
+
         Map<String, Object> response = new HashMap<>();
         try {
-            if (hoaDonId == null || tenPhieuGiamGia == null || tenPhieuGiamGia.isEmpty()) {
-                throw new IllegalArgumentException("Dữ liệu không hợp lệ");
+            if (hoaDonId == null) {
+                throw new IllegalArgumentException("ID hóa đơn không hợp lệ.");
             }
 
-            String message = shopService.applyPhieuGiamGia(hoaDonId, tenPhieuGiamGia);
+            // Gửi xuống service, chấp nhận cả trường hợp tenPhieuGiamGia rỗng (bỏ giảm giá)
+            String message = shopService.applyPhieuGiamGia(hoaDonId, (tenPhieuGiamGia != null) ? tenPhieuGiamGia.trim() : "");
 
             response.put("success", true);
             response.put("message", message);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             response.put("success", false);
-            response.put("error", "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
+            response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         } catch (RuntimeException e) {
             response.put("success", false);
@@ -130,6 +132,7 @@ public class ShopApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
 
     @PutMapping("/update-shipping")

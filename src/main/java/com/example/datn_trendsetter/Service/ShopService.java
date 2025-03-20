@@ -547,14 +547,17 @@ public class ShopService {
             throw new RuntimeException("Không thể thay đổi phiếu giảm giá sau khi thanh toán.");
         }
 
-        // Kiểm tra tổng thành tiền của hóa đơn chi tiết
-        float tongTienSanPham = hoaDon.getHoaDonChiTiet().stream()
-                .map(HoaDonChiTiet::getThanhTien)
-                .filter(Objects::nonNull)
-                .reduce(0F, Float::sum);
-
-        if (tongTienSanPham <= 0) {
-            throw new RuntimeException("Hóa đơn chưa có sản phẩm hợp lệ để áp dụng phiếu giảm giá.");
+        // Nếu không chọn phiếu giảm giá, xóa phiếu giảm giá hiện tại
+        if (tenPhieuGiamGia == null || tenPhieuGiamGia.trim().isEmpty()) {
+            hoaDon.setPhieuGiamGia(null);
+            float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0F;
+            float tongTienMoi = hoaDon.getHoaDonChiTiet().stream()
+                    .map(HoaDonChiTiet::getThanhTien)
+                    .filter(Objects::nonNull)
+                    .reduce(0F, Float::sum) + phiShip;
+            hoaDon.setTongTien(Math.max(tongTienMoi, 0));
+            hoaDonRepository.save(hoaDon);
+            return "Phiếu giảm giá đã được gỡ bỏ!";
         }
 
         // Tìm phiếu giảm giá mới
@@ -568,9 +571,16 @@ public class ShopService {
         if (phieuGiamGiaMoi.getNgayKetThuc().isBefore(now)) {
             throw new RuntimeException("Phiếu giảm giá đã hết hạn.");
         }
+
+        // Kiểm tra tổng tiền sản phẩm
+        float tongTienSanPham = hoaDon.getHoaDonChiTiet().stream()
+                .map(HoaDonChiTiet::getThanhTien)
+                .filter(Objects::nonNull)
+                .reduce(0F, Float::sum);
         if (tongTienSanPham < phieuGiamGiaMoi.getDieuKien()) {
             throw new RuntimeException("Điều kiện phiếu giảm giá không thỏa mãn.");
         }
+
         if ("Giao Hàng".equalsIgnoreCase(phieuGiamGiaMoi.getLoaiApDung()) &&
                 !"Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
             throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
@@ -578,18 +588,13 @@ public class ShopService {
 
         // Gán phiếu giảm giá mới cho hóa đơn
         hoaDon.setPhieuGiamGia(phieuGiamGiaMoi);
-
-        // Tính tổng tiền mới sau khi áp dụng phiếu giảm giá
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0F;
         float tongTienMoi = Math.max(tongTienSanPham + phiShip - phieuGiamGiaMoi.getGiaTriGiam(), 0);
-
         hoaDon.setTongTien(tongTienMoi);
         hoaDonRepository.save(hoaDon);
 
         return "Phiếu giảm giá đã được áp dụng!";
     }
-
-
 
     @Transactional
     public String confirmPayment(Integer hoaDonId, RedirectAttributes redirectAttributes) {

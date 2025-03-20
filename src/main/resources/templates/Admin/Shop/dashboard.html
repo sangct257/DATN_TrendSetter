@@ -181,7 +181,9 @@
                                                                         (<span
                                                                             th:text="${sanPhamChiTiet.mauSac.tenMauSac}"></span>
                                                                         -
-                                                                        <span th:text="${sanPhamChiTiet.kichThuoc.tenKichThuoc}"></span>)
+                                                                        <span th:text="${sanPhamChiTiet.kichThuoc.tenKichThuoc}"></span>)<br>
+                                                                        <small class="text-muted"
+                                                                               th:text="'Tồn Kho: ' + ${sanPhamChiTiet.soLuong}"></small>
                                                                     </td>
                                                                     <td class="text-center">
                                                                         <input type="number" name="soLuong" value="1"
@@ -650,10 +652,8 @@
                                                             <label for="tenPhieuGiamGia" class="form-label">
                                                                 <i class="fas fa-tag"></i> Phiếu giảm giá:
                                                             </label>
-                                                            <select id="tenPhieuGiamGia" name="tenPhieuGiamGia"
-                                                                    class="form-select">
-                                                                <option value="" disabled selected>Chọn phiếu giảm giá
-                                                                </option>
+                                                            <select id="tenPhieuGiamGia" name="tenPhieuGiamGia" class="form-select">
+                                                                <option value="">Không áp dụng phiếu giảm giá</option>
                                                                 <th:block th:if="${listPhieuGiamGia != null and not #lists.isEmpty(listPhieuGiamGia)}">
                                                                     <th:block th:each="phieuGiamGia : ${listPhieuGiamGia}">
                                                                         <option th:value="${phieuGiamGia.tenPhieuGiamGia}"
