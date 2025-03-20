@@ -14,5 +14,9 @@ public class RegisterRequest {
     private String soDienThoai;
     private Date ngaySinh;
     private String role;
+    private String loaiTaiKhoan;
+    private String hoTen;
+    private String hinhAnh;
+
 }
 
