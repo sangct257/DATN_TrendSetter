@@ -11,7 +11,6 @@ import com.example.datn_trendsetter.security.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,36 +30,33 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest request) {
-        String role = (request.getRole() != null && !request.getRole().isEmpty()) ? request.getRole().toUpperCase() : "KHACHHANG";
         String encodedPassword = passwordEncoder.encode(request.getPassword());
+        String loaiTaiKhoan = request.getLoaiTaiKhoan();
 
-        if (role.equals("ADMIN") || role.equals("NHANVIEN")) {
+        if ("NHANVIEN".equalsIgnoreCase(loaiTaiKhoan)) {
             if (nhanVienRepository.findByEmail(request.getEmail()).isPresent()) {
-                throw new RuntimeException("Email already exists in NhanVien");
+                throw new RuntimeException("Email đã tồn tại trong hệ thống nhân viên");
             }
-
             NhanVien nhanVien = new NhanVien();
             nhanVien.setEmail(request.getEmail());
             nhanVien.setPassword(encodedPassword);
-            nhanVien.setVaiTro(NhanVien.Role.valueOf(role));
-
+            nhanVien.setVaiTro(NhanVien.Role.NHANVIEN);
             nhanVienRepository.save(nhanVien);
+
+            String token = jwtUtil.generateToken(nhanVien.getUsername(), nhanVien.getEmail(), "Nhân viên", "", "NHANVIEN");
+            return new AuthResponse(token, "ROLE_NHANVIEN", "/admin/sell-counter");
         } else {
             if (khachHangRepository.findByEmail(request.getEmail()).isPresent()) {
-                throw new RuntimeException("Email already exists in KhachHang");
+                throw new RuntimeException("Email đã tồn tại trong hệ thống khách hàng");
             }
-
             KhachHang khachHang = new KhachHang();
             khachHang.setEmail(request.getEmail());
             khachHang.setPassword(encodedPassword);
-
             khachHangRepository.save(khachHang);
+
+            String token = jwtUtil.generateToken(khachHang.getUsername(), khachHang.getEmail(), "Khách hàng", "", "KHACHHANG");
+            return new AuthResponse(token, "ROLE_KHACHHANG", "/trang-chu");
         }
-
-        List<String> jwtRoles = (role.equals("KHACHHANG")) ? List.of("ROLE_KHACHHANG") : List.of("ROLE_" + role);
-        String token = jwtUtil.generateToken(request.getEmail(), jwtRoles);
-
-        return new AuthResponse(token, jwtRoles.get(0), getRedirectUrlByRole(jwtRoles.get(0)));
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -70,11 +66,8 @@ public class AuthService {
             if (!passwordEncoder.matches(request.getPassword(), nhanVien.getPassword())) {
                 throw new RuntimeException("Thông tin không hợp lệ");
             }
-
-            List<String> roles = List.of("ROLE_" + nhanVien.getVaiTro().name());
-            String token = jwtUtil.generateToken(nhanVien.getEmail(), roles);
-
-            return new AuthResponse(token, roles.get(0), getRedirectUrlByRole(roles.get(0)));
+            String token = jwtUtil.generateToken(nhanVien.getUsername(), nhanVien.getEmail(), "Nhân viên", "", "NHANVIEN");
+            return new AuthResponse(token, "ROLE_NHANVIEN", "/admin/sell-counter");
         }
 
         Optional<KhachHang> optionalKhachHang = khachHangRepository.findByEmail(request.getEmail());
@@ -83,22 +76,10 @@ public class AuthService {
             if (!passwordEncoder.matches(request.getPassword(), khachHang.getPassword())) {
                 throw new RuntimeException("Thông tin không hợp lệ");
             }
-
-            List<String> roles = List.of("ROLE_KHACHHANG");
-            String token = jwtUtil.generateToken(khachHang.getEmail(), roles);
-
-            return new AuthResponse(token, "ROLE_KHACHHANG", getRedirectUrlByRole("ROLE_KHACHHANG"));
+            String token = jwtUtil.generateToken(khachHang.getUsername(), khachHang.getEmail(), "Khách hàng", "", "KHACHHANG");
+            return new AuthResponse(token, "ROLE_KHACHHANG", "/trang-chu");
         }
 
-        throw new RuntimeException("User not found");
-    }
-
-    private String getRedirectUrlByRole(String role) {
-        return switch (role) {
-            case "ROLE_ADMIN" -> "/admin/sell-counter";
-            case "ROLE_NHANVIEN" -> "/admin/sell-counter";
-            case "ROLE_KHACHHANG" -> "/trang-chu";
-            default -> "/";
-        };
+        throw new RuntimeException("Tài khoản không tồn tại");
     }
 }
