@@ -24,18 +24,18 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     boolean existsByMaHoaDon(String maHoaDon);
 
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
+    @Query("SELECT COALESCE(SUM(h.tongTien - COALESCE(h.phiShip, 0)), 0) FROM HoaDon h WHERE YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
     Float getDoanhThuNamNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
+    @Query("SELECT COALESCE(SUM(h.tongTien - COALESCE(h.phiShip, 0)), 0) FROM HoaDon h WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
     Float getDoanhThuThangNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
+
 
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
     int countHoaDonThangNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE DAY(h.ngayTao) = DAY(:now) AND MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
+    @Query("SELECT COALESCE(SUM(h.tongTien - COALESCE(h.phiShip, 0)), 0) FROM HoaDon h WHERE DAY(h.ngayTao) = DAY(:now) AND MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
     Float getDoanhThuNgayNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
-
 
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE DAY(h.ngayTao) = DAY(:now) AND MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
     int countHoaDonNgayNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);

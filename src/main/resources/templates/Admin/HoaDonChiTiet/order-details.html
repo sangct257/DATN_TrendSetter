@@ -281,8 +281,7 @@
 
                                     <button type="submit" class="btn btn-warning"
                                             th:if="${!listLichSuHoaDon.isEmpty()
-               and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'
-               and hoaDon.loaiGiaoDich != 'Đã Thanh Toán'}"
+               and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan-thanh-toan'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Xác Nhận Thanh Toán
@@ -466,11 +465,12 @@
                                 </div>
                                 <div class="col-md-6 text-end">
                                     <button class="btn btn-white border-dark"
-                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận'}"
+                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán'}"
                                             data-bs-toggle="modal"
                                             data-bs-target="#changeOrderModal">
                                         Thay Đổi
                                     </button>
+
                                 </div>
                                 <!-- Modal -->
                                 <div class="modal fade" id="changeOrderModal" tabindex="-1"
@@ -666,7 +666,7 @@
                                     </div>
                                     <div class="col-md-6 text-end">
                                         <button class="btn btn-light"
-                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}">
+                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán' ? 'disabled' : null}">
                                             <a class="btn btn-light" data-bs-toggle="modal"
                                                data-bs-target="#addProductModal">
                                                 <i class="fas fa-cart-plus"></i> Thêm sản phẩm
@@ -683,8 +683,7 @@
                                                     </div>
                                                     <div class="modal-body">
                                                         <form id="orderForm">
-                                                            <input type="hidden" name="hoaDonId"
-                                                                   th:value="${hoaDon.id}">
+                                                            <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                                             <div class="product-list"
                                                                  style="border-top: 2px solid; padding-top: 20px;">
                                                                 <!-- Bảng sản phẩm căn chỉnh đẹp hơn -->
@@ -695,8 +694,7 @@
                                                                         <tr class="text-center">
                                                                             <th class="text-center">#</th>
                                                                             <th class="text-center">Hình Ảnh</th>
-                                                                            <th class="text-center">Thông Tin Sản Phẩm
-                                                                            </th>
+                                                                            <th class="text-center">Thông Tin Sản Phẩm</th>
                                                                             <th class="text-center">Số Lượng</th>
                                                                             <th class="text-center">Giá</th>
                                                                             <th class="text-center">Trạng Thái</th>
@@ -704,11 +702,15 @@
                                                                         </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                        <tr th:each="sanPhamChiTiet, status : ${sanPhamChiTiet}">
-                                                                            <td th:text="${status.index + 1}"
-                                                                                class="text-center"></td>
+                                                                        <tr th:each="sanPhamChiTiet, status : ${sanPhamChiTiet}"
+                                                                            th:if="${sanPhamChiTiet.soLuong != null and sanPhamChiTiet.gia != null and sanPhamChiTiet.hinhAnh != null and #lists.size(sanPhamChiTiet.hinhAnh) > 0}">
+                                                                            <td th:text="${sanPhamChiTiet.id}"
+                                                                                class="text-center">
+                                                                                <input type="hidden"
+                                                                                       th:value="${sanPhamChiTiet.id}">
+                                                                            </td>
                                                                             <td class="text-center">
-                                                                                <img th:src="${sanPhamChiTiet.hinhAnh[0].urlHinhAnh}"
+                                                                                <img th:src="@{${sanPhamChiTiet.hinhAnh[0].urlHinhAnh}}"
                                                                                      class="rounded border shadow-sm"
                                                                                      style="width: 70px; height: 70px; object-fit: cover;">
                                                                             </td>
@@ -718,11 +720,13 @@
                                                                                 (<span
                                                                                     th:text="${sanPhamChiTiet.mauSac.tenMauSac}"></span>
                                                                                 -
-                                                                                <span th:text="${sanPhamChiTiet.kichThuoc.tenKichThuoc}"></span>)
+                                                                                <span th:text="${sanPhamChiTiet.kichThuoc.tenKichThuoc}"></span>)<br>
+                                                                                <small class="text-muted"
+                                                                                       th:text="'Tồn Kho: ' + ${sanPhamChiTiet.soLuong}"></small>
                                                                             </td>
                                                                             <td class="text-center">
-                                                                                <input type="number" name="soLuong"
-                                                                                       value="1" min="1"
+                                                                                <input type="number" name="soLuong" value="1"
+                                                                                       min="1"
                                                                                        th:max="${sanPhamChiTiet.soLuong}"
                                                                                        class="form-control form-control-sm text-center">
                                                                             </td>
@@ -787,7 +791,7 @@
                                             <td class="text-center">
                                                 <input type="number" name="soLuong" th:value="${hoaDonChiTiet.soLuong}"
                                                        min="1" class="form-control"
-                                                       th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}"
+                                                       th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán' ? 'disabled' : null}"
                                                        required onchange="updateQuantityOrder(this)">
                                                 <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                                 <input type="hidden" name="hoaDonChiTietId"
@@ -807,7 +811,7 @@
                                                        th:value="${hoaDonChiTiet.id}">
                                                 <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                                 <button type="button" class="btn btn-danger"
-                                                        th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' ? 'disabled' : null}"
+                                                        th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán' ?  'disabled' : null}"
                                                         onclick="deleteProductOrder(this)">
                                                     <i class="fas fa-trash"></i> Xóa
                                                 </button>
