@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.DTO.ResponseMessage;
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.*;
 import com.example.datn_trendsetter.Service.HoaDonChiTietService;
@@ -7,16 +8,11 @@ import com.example.datn_trendsetter.Service.LichSuHoaDonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v2")
@@ -38,7 +34,13 @@ public class LichSuHoaDonApiController {
 
     @Autowired
     private PhieuGiamGiaRepository phieuGiamGiaRepository;
-    
+
+    @Autowired
+    private LichSuThanhToanRepository lichSuThanhToanRepository;
+
+    @Autowired
+    private PhuongThucThanhToanRepository phuongThucThanhToanRepository;
+
     private ResponseEntity<Map<String, Object>> response(String message, boolean success) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", message);
@@ -71,7 +73,11 @@ public class LichSuHoaDonApiController {
 
     @PostMapping("/xac-nhan")
     public ResponseEntity<?> xacNhan(@RequestParam("hoaDonId") Integer hoaDonId) {
-        return thayDoiTrangThaiHoaDon(hoaDonId,"Đã Xác Nhận" , "Hoá đơn đã xác nhận");
+        try {
+            return thayDoiTrangThaiHoaDon(hoaDonId,"Đã Xác Nhận" , "Hoá đơn đã xác nhận");
+        } catch (Exception e) {
+            return response("Lỗi khi xác nhận hóa đơn: " + e.getMessage(), false);
+        }
     }
 
     @PostMapping("/van-chuyen")
@@ -79,24 +85,106 @@ public class LichSuHoaDonApiController {
         return thayDoiTrangThaiHoaDon(hoaDonId, "Chờ Vận Chuyển", "Hóa đơn đang vận chuyển");
     }
 
+    @PostMapping("/giao-hang")
+    public ResponseEntity<?> giaoHang(@RequestParam("hoaDonId") Integer hoaDonId) {
+        return thayDoiTrangThaiHoaDon(hoaDonId, "Đang Giao Hàng", "Hóa đơn đang giao hàng");
+    }
+
     @PostMapping("/xac-nhan-thanh-toan")
-    public ResponseEntity<?> xacNhanThanhToan(@RequestParam("hoaDonId") Integer hoaDonId) {
+    public ResponseEntity<?> xacNhanThanhToan(
+            @RequestParam("hoaDonId") Integer hoaDonId,
+            @RequestParam("phuongThucThanhToan") Integer phuongThucId) {
+
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
             HoaDon hoaDon = optionalHoaDon.get();
-            hoaDon.setLoaiGiaoDich("Đã Thanh Toán");
+            float tongTienHoaDon = hoaDon.getTongTien();
+            float tongTienDaThanhToan = lichSuThanhToanRepository.sumSoTienThanhToanByHoaDon(hoaDonId);
+
+            // Nếu đã thanh toán đủ, chỉ set trạng thái hóa đơn và không làm gì thêm
+            if (tongTienDaThanhToan >= tongTienHoaDon) {
+                hoaDon.setTrangThai("Đã Thanh Toán");
+                hoaDonRepository.save(hoaDon);
+                return response("Hóa đơn đã thanh toán đầy đủ, không cần thay đổi gì thêm.", true);
+            }
+
+            // Nếu chưa thanh toán đủ, xử lý thanh toán phần còn thiếu
+            float soTienConThieu = tongTienHoaDon - tongTienDaThanhToan;
+            LichSuThanhToan lichSuThanhToan = new LichSuThanhToan();
+            lichSuThanhToan.setHoaDon(hoaDon);
+            lichSuThanhToan.setSoTienThanhToan(soTienConThieu);
+            lichSuThanhToan.setThoiGianThanhToan(LocalDateTime.now());
+            lichSuThanhToan.setTrangThai("Đã Thanh Toán");
+            lichSuThanhToan.setGhiChu("Thanh toán số tiền còn lại " + hoaDon.getMaHoaDon());
+
+            // Lấy phương thức thanh toán
+            Optional<PhuongThucThanhToan> optionalPTTT = phuongThucThanhToanRepository.findById(phuongThucId);
+            if (optionalPTTT.isPresent()) {
+                PhuongThucThanhToan phuongThucThanhToan = optionalPTTT.get();
+                lichSuThanhToan.setPhuongThucThanhToan(phuongThucThanhToan);
+
+                // Kiểm tra nếu phương thức thanh toán là "Tiền Mặt"
+                if (!"Tiền Mặt".equals(phuongThucThanhToan.getTenPhuongThuc())) {
+                    lichSuThanhToan.setMaGiaoDich(generateTransactionCode());
+                }
+            } else {
+                return response("Phương thức thanh toán không hợp lệ!", false);
+            }
+
+            lichSuThanhToanRepository.save(lichSuThanhToan);
+
+            // Cập nhật trạng thái hóa đơn và loại giao dịch
+            hoaDon.setLoaiGiaoDich(hoaDon.getLoaiGiaoDich());
             hoaDon.setTrangThai("Đã Thanh Toán");
             hoaDonRepository.save(hoaDon);
             luuLichSuHoaDon(hoaDon, "Đã Thanh Toán", "Hóa đơn đã thanh toán");
+
             return response("Hóa đơn đã được xác nhận thanh toán!", true);
         }
         return response("Hóa đơn không tồn tại!", false);
     }
 
+
+    private String generateTransactionCode() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String timePart = LocalDateTime.now().format(formatter);
+        int randomPart = new Random().nextInt(900000) + 100000; // Số ngẫu nhiên 6 chữ số
+        return "GD" + timePart + randomPart; // VD: GD20240321123045123456
+    }
+
+
     @PostMapping("/xac-nhan-hoan-thanh")
     public ResponseEntity<?> xacNhanHoanThanh(@RequestParam("hoaDonId") Integer hoaDonId) {
+        // Lấy hóa đơn từ cơ sở dữ liệu
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
+
+        if (hoaDon == null) {
+            return ResponseEntity.badRequest().body(new ResponseMessage("error", "Hóa đơn không tồn tại."));
+        }
+
+        // Tính tổng số tiền thanh toán từ lịch sử thanh toán
+        double tongTienThanhToan = tinhTongTienThanhToan(hoaDonId);
+
+        // Kiểm tra nếu tổng số tiền thanh toán không bằng tổng tiền hóa đơn
+        if (tongTienThanhToan != hoaDon.getTongTien()) {
+            return ResponseEntity.badRequest().body(new ResponseMessage("error", "Vui lòng xác nhận thanh toán."));
+        }
+
+        // Xác nhận hóa đơn đã hoàn thành
         return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Hoàn Thành", "Hóa đơn đã hoàn thành");
     }
+
+
+    // Thêm phương thức tính tổng số tiền thanh toán từ lịch sử thanh toán
+    private double tinhTongTienThanhToan(Integer hoaDonId) {
+        List<LichSuThanhToan> lichSuThanhToanList = lichSuThanhToanRepository.findByHoaDonId(hoaDonId);
+
+        // Tính tổng tiền thanh toán từ lịch sử thanh toán và trả về kiểu double
+        return lichSuThanhToanList.stream()
+                .mapToDouble(LichSuThanhToan::getSoTienThanhToan)
+                .sum();
+    }
+
 
     @PostMapping("/quay-lai")
     public ResponseEntity<?> quayLai(@RequestParam("hoaDonId") Integer hoaDonId) {

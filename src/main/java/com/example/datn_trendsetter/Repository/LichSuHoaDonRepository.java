@@ -10,7 +10,5 @@ import java.util.List;
 
 @Repository
 public interface LichSuHoaDonRepository extends JpaRepository<LichSuHoaDon,Integer> {
-    List<LichSuHoaDon> findByHoaDon_Id(Integer hoaDonId);
-
-    List<LichSuHoaDon> findByHoaDonId(Integer id);
+    List<LichSuHoaDon> findByHoaDonId(Integer hoaDonId);
 }

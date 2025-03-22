@@ -65,7 +65,7 @@
 
             <!-- Quản Lý Tài Khoản (Chỉ Admin thấy) -->
             <li class="treeview">
-            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">
+            <!--<li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
             <a href="#">
                     <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>
                 </a>
@@ -78,7 +78,7 @@
 
             <!-- Giảm Giá (Chỉ Admin thấy) -->
             <li class="treeview">
-            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">
+<!--            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
                 <a href="#">
                     <i class="fa fa-percentage"></i> <span>Giảm Giá</span>
                 </a>

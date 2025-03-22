@@ -69,4 +69,6 @@ public class SanPhamChiTiet {
 
     @Transient // Không lưu vào cơ sở dữ liệu
     private Float giaGiam;
+
+
 }

@@ -1093,7 +1093,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 $(document).ready(function () {
-    $('#productTable').DataTable({
+    var table1 = $('#productTable').DataTable({
         "paging": true,
         "lengthMenu": [5, 10, 20],
         "pageLength": 5,
@@ -1115,4 +1115,51 @@ $(document).ready(function () {
             }
         }
     });
+
+    var table2 = $('#productTable1').DataTable({
+        "paging": true,
+        "lengthMenu": [5, 10, 20],
+        "pageLength": 5,
+        "autoWidth": false,
+        "responsive": true,
+        "language": {
+            "sProcessing": "Đang xử lý...",
+            "sLengthMenu": "Hiển thị _MENU_ dòng",
+            "sZeroRecords": "Không tìm thấy dữ liệu",
+            "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+            "sInfoEmpty": "Không có dữ liệu để hiển thị",
+            "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+            "sSearch": "Tìm kiếm:",
+            "oPaginate": {
+                "sFirst": "Đầu",
+                "sPrevious": "Trước",
+                "sNext": "Tiếp",
+                "sLast": "Cuối"
+            }
+        }
+    });
+
+    // Lọc theo kích thước
+    $('#filterKichThuoc').on('change', function () {
+        var value = $(this).val();
+        table1.column(2).search(value).draw();
+    });
+
+    // Lọc theo màu sắc
+    $('#filterMauSac').on('change', function () {
+        var value = $(this).val();
+        table1.column(2).search(value).draw(); // Cột màu sắc có thể ở vị trí khác, kiểm tra lại index
+    });
+
+
+    // Giữ modal mở khi lọc
+    $('#addProductModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            if ($('.modal-backdrop').length) {
+                $('body').addClass('modal-open');
+            }
+        }, 100);
+    });
+
 });
+

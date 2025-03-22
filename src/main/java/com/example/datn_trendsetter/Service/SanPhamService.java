@@ -1,8 +1,12 @@
 package com.example.datn_trendsetter.Service;
 
+import com.example.datn_trendsetter.DTO.SanPhamViewDTO;
 import com.example.datn_trendsetter.Entity.SanPham;
 import com.example.datn_trendsetter.Repository.SanPhamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,6 +42,9 @@ public class SanPhamService {
 
     @Autowired
     private XuatXuRepository xuatXuRepository;
+
+    @Autowired
+    private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     // Tạo mã sản phẩm ngẫu nhiên: SP + 6 số
     private String generateMaSanPham() {
@@ -170,5 +177,10 @@ public class SanPhamService {
             return true;
         }
         return false;
+    }
+
+    public Page<SanPhamViewDTO> getSanPhams(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
     }
 }
