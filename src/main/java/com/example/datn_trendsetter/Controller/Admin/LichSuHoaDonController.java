@@ -22,21 +22,14 @@ public class LichSuHoaDonController {
     @Autowired
     private LichSuHoaDonService lichSuHoaDonService;
 
-    @Autowired
-    private HoaDonRepository hoaDonRepository;
-
-    @Autowired
-    private LichSuHoaDonRepository lichSuHoaDonRepository;
-
     @GetMapping("admin/order-details")
     public String orderDetails(@RequestParam(value = "hoaDonId") Integer hoaDonId,
-                               Model model,
-                               @RequestParam(value = "page", defaultValue = "0") Integer page) {
+                               Model model) {
         if (hoaDonId == null) {
             throw new IllegalArgumentException("hoaDonId không được để trống.");
         }
 
-        lichSuHoaDonService.getOrderDetails(hoaDonId, model, page);
+        lichSuHoaDonService.getOrderDetails(hoaDonId, model);
         return "Admin/HoaDonChiTiet/order-details";
     }
 

@@ -1,9 +1,7 @@
 package com.example.datn_trendsetter.API;
 
-import com.example.datn_trendsetter.Entity.DotGiamGia;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
-import com.example.datn_trendsetter.Service.HoaDonService;
 import com.example.datn_trendsetter.Service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -12,14 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/hoa-don")
 public class HoaDonApiController {
-
-    @Autowired
-    private HoaDonService hoaDonService;
 
     @Autowired
     private HoaDonRepository hoaDonRepository;

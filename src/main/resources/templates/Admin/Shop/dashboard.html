@@ -2,32 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{admin/fragments/head :: head}"></head>
 <style>
-    #custom-toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 15px;
-        border-radius: 5px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: opacity 0.5s ease-in-out;
-    }
-
-    #custom-toast.hidden {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    #custom-toast.show {
-        opacity: 1;
-        visibility: visible;
-    }
     .selected-hoa-don {
         box-shadow: 0 0 10px 3px rgba(0, 123, 255, 0.7) !important; /* Viền sáng xanh */
         border: 2px solid #007bff !important; /* Đường viền xanh */
     }
-
 </style>
 <body class="hold-transition skin-blue sidebar-mini">
 <!-- Site wrapper -->
@@ -72,9 +50,11 @@
                                 <h5 class="text-primary">
                                     <i class="fas fa-file-invoice"></i> Danh sách Hóa Đơn
                                 </h5>
-                                <button type="button" class="btn btn-primary" onclick="createHoaDon()">
+                                <button type="button" class="btn btn-primary fw-bold shadow-lg transition-transform
+                                scale-100 hover-scale-110 focus-scale-110" onclick="createHoaDon()">
                                     <i class="fas fa-plus"></i> Tạo hóa đơn
                                 </button>
+
                             </form>
                         </div>
 
@@ -152,6 +132,18 @@
                                                             <table id="productTable"
                                                                    class="table table-striped table-bordered">
                                                                 <thead class="table-dark">
+                                                                <div class="d-flex mb-3 align-items-center">
+                                                                    <select id="filterKichThuoc" class="form-select">
+                                                                        <option value="">-- Lọc theo kích thước --</option>
+                                                                        <option th:each="kichThuoc : ${danhSachKichThuoc}" th:value="${kichThuoc.tenKichThuoc}" th:text="${kichThuoc.tenKichThuoc}"></option>
+                                                                    </select>
+
+                                                                    <select id="filterMauSac" class="form-select">
+                                                                        <option value="">-- Lọc theo màu sắc --</option>
+                                                                        <option th:each="mauSac : ${danhSachMauSac}" th:value="${mauSac.tenMauSac}" th:text="${mauSac.tenMauSac}"></option>
+                                                                    </select>
+                                                                </div>
+
                                                                 <tr class="text-center">
                                                                     <th class="text-center">#</th>
                                                                     <th class="text-center">Hình Ảnh</th>
@@ -305,37 +297,33 @@
                                                     aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <!-- Thanh tìm kiếm và nút thêm khách hàng -->
+                                            <!-- Nút thêm khách hàng -->
                                             <div class="d-flex justify-content-between mb-3">
-                                                <!-- Thanh tìm kiếm -->
-                                                <input type="text" class="form-control me-3" id="searchCustomer"
-                                                       placeholder="Tìm kiếm khách hàng...">
-
                                                 <!-- Nút thêm khách hàng với icon -->
-                                                <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                                <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal"
                                                         data-bs-target="#addCustomerModal">
-                                                    <i class="fas fa-plus"></i>
+                                                    <i class="fas fa-plus"></i> Thêm Khách Hàng Mới
                                                 </button>
                                             </div>
 
                                             <!-- Bảng danh sách khách hàng -->
-                                            <table class="table">
+                                            <table class="table" id="productTable1">
                                                 <thead>
                                                 <tr>
-                                                    <th>STT</th>
-                                                    <th>Tên Khách Hàng</th>
-                                                    <th>Số Điện Thoại</th>
-                                                    <th>Email</th>
-                                                    <th>Chọn</th>
+                                                    <th  class="text-center">STT</th>
+                                                    <th class="text-center">Tên Khách Hàng</th>
+                                                    <th class="text-center">Số Điện Thoại</th>
+                                                    <th class="text-center">Email</th>
+                                                    <th class="text-center">Chọn</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody id="customerTableBody">
                                                 <tr th:each="khachHang,status : ${khachHangs}">
-                                                    <td th:text="${status.index + 1}"></td>
-                                                    <td th:text="${khachHang.hoTen}"></td>
-                                                    <td th:text="${khachHang.soDienThoai}"></td>
-                                                    <td th:text="${khachHang.email}"></td>
-                                                    <td>
+                                                    <td th:text="${status.index + 1}" class="text-center"></td>
+                                                    <td th:text="${khachHang.hoTen}" class="text-center"></td>
+                                                    <td th:text="${khachHang.soDienThoai}" class="text-center"></td>
+                                                    <td th:text="${khachHang.email}" class="text-center"></td>
+                                                    <td class="text-center">
                                                         <form onsubmit="event.preventDefault(); addCustomerToInvoice(this)">
                                                             <input type="hidden" name="hoaDonId"
                                                                    th:value="${hoaDon.id}">
@@ -349,12 +337,11 @@
                                             </table>
 
                                         </div>
-
                                     </div>
+
                                 </div>
                             </div>
                         </div>
-
                         <!-- Modal thêm khách hàng mới -->
                         <div class="modal fade" id="addCustomerModal" tabindex="-1"
                              aria-labelledby="addCustomerModalLabel" aria-hidden="true">

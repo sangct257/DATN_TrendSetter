@@ -136,19 +136,6 @@
     .btn-primary:hover {
         background-color: #0056b3;
     }
-
-    .btn-success {
-        background-color: #28a745;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s;
-    }
-
-    .btn-success:hover {
-        background-color: #1e7e34;
-    }
-
     .btn-danger {
         background-color: #9f191f;
         border: none;
@@ -159,48 +146,6 @@
 
     .btn-danger:hover {
         background-color: #9f191f;
-    }
-
-</style>
-<style>
-    #toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-    }
-
-    .toast {
-        background-color: #333;
-        color: #fff;
-        padding: 10px 15px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-width: 250px;
-        max-width: 400px;
-    }
-
-    .toast.success {
-        background-color: #28a745;
-    }
-
-    .toast.danger {
-        background-color: #dc3545;
-    }
-
-    .toast.primary {
-        background-color: #007bff;
-    }
-
-    .toast .close-btn {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
     }
 
 </style>
@@ -230,8 +175,6 @@
                 <li><a href="#">Examples</a></li>
                 <li class="active">Blank page</li>
             </ol>
-            <div id="toast-container"></div>
-
         </section>
 
         <!-- Main content -->
@@ -249,10 +192,11 @@
                    (lichSu.hanhDong == 'Chờ Xác Nhận' ? '⏳' :
                    (lichSu.hanhDong == 'Đã Xác Nhận' ? '✅' :
                    (lichSu.hanhDong == 'Chờ Vận Chuyển' ? '📦' :
+                   (lichSu.hanhDong == 'Đang Giao Hàng' ? '🚚' :
                    (lichSu.hanhDong == 'Đã Thanh Toán' ? '💳' :
                    (lichSu.hanhDong == 'Đã Hoàn Thành' ? '🎉' :
                    (lichSu.hanhDong == 'Đã Hủy' ? '❌' :
-                   (lichSu.hanhDong == 'Hoàn Trả/Hoàn Tiền' ? '🔄' : '❓')))))))}">
+                   (lichSu.hanhDong == 'Hoàn Trả/Hoàn Tiền' ? '🔄' : '❓'))))))))}">
                                         </div>
                                         <p th:text="${lichSu.hanhDong}"></p>
                                         <small th:text="${#temporals.format(lichSu.ngayTao, 'HH:mm:ss dd-MM-yyyy')}"></small>
@@ -279,21 +223,38 @@
                                         Vận Chuyển
                                     </button>
 
+                                    <!-- Nút Giao Hàng -->
                                     <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty()
-               and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
-                                            th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan-thanh-toan'"
+                                            th:if="${not #lists.isEmpty(listLichSuHoaDon)
+        and listLichSuHoaDon[__${#lists.size(listLichSuHoaDon) - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
+                                            th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/giao-hang'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
+                                        Giao Hàng
+                                    </button>
+
+
+                                    <!-- Nút Xác Nhận Thanh Toán (Chỉ xuất hiện khi Đang Giao Hàng) -->
+                                    <button type="button" class="btn btn-warning"
+                                            th:if="${not #lists.isEmpty(listLichSuHoaDon)
+        and listLichSuHoaDon[__${#lists.size(listLichSuHoaDon) - 1}__].hanhDong == 'Đang Giao Hàng'}"
+                                            th:data-hoaDonId="${hoaDon.id}"
+                                            th:data-apiEndpoint="'/api/v2/xac-nhan-thanh-toan'"
+                                            onclick="moModalXacNhan(this)"
+                                            data-bs-toggle="modal" data-bs-target="#xacNhanThanhToanModal">
                                         Xác Nhận Thanh Toán
                                     </button>
 
+
+                                    <!-- Nút Xác Nhận Hoàn Thành (Chỉ xuất hiện khi Đang Giao Hàng hoặc Đã Thanh Toán) -->
                                     <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty()
-               and listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Thanh Toán'}"
+                                            th:if="${not #lists.isEmpty(listLichSuHoaDon)
+        and (listLichSuHoaDon[__${#lists.size(listLichSuHoaDon) - 1}__].hanhDong == 'Đang Giao Hàng'
+        or listLichSuHoaDon[__${#lists.size(listLichSuHoaDon) - 1}__].hanhDong == 'Đã Thanh Toán')}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan-hoan-thanh'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Xác Nhận Hoàn Thành
                                     </button>
+
 
 
                                     <button type="submit" class="btn btn-warning"
@@ -338,6 +299,40 @@
                                                         Xác Nhận
                                                     </button>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Modal Xác Nhận Thanh Toán -->
+                                <div id="xacNhanThanhToanModal" class="modal fade" tabindex="-1" role="dialog">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Chọn Phương Thức Thanh Toán</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <label>Chọn phương thức thanh toán:</label>
+                                                <div id="listPhuongThucThanhToan" class="d-flex flex-wrap gap-2 justify-content-between"
+                                                     th:if="${hoaDon.tongTien - hoaDon.soTienDaThanhToan > 0}">
+                                                    <input type="hidden" id="paymentMethod" />
+                                                    <button type="button" class="btn btn-outline-primary"
+                                                            th:each="phuongThuc : ${listPhuongThucThanhToan}"
+                                                            th:text="${phuongThuc.tenPhuongThuc}"
+                                                            th:attr="data-value=${phuongThuc.id}"
+                                                            onclick="chonPhuongThuc(this)">
+                                                    </button>
+                                                </div>
+
+                                                <div th:if="${hoaDon.tongTien - hoaDon.soTienDaThanhToan == 0}">
+                                                    <p>Hóa đơn đã được thanh toán đầy đủ.</p>
+                                                </div>
+                                                <p><strong>Còn lại:</strong> <span id="conLai" th:text="${hoaDon.tongTien - hoaDon.soTienDaThanhToan}"></span> VND</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                <button type="button" class="btn btn-primary" onclick="xacNhanThanhToan()">Xác Nhận</button>
                                             </div>
                                         </div>
                                     </div>
@@ -409,49 +404,52 @@
                         <section class="mt-4">
                             <div class="payment-history">
                                 <h3 class="mb-3">Lịch sử thanh toán</h3>
-                                <table class="table table-bordered text-center">
-                                    <thead>
-                                    <tr>
-                                        <th>STT</th>
-                                        <th>Mã giao dịch</th>
-                                        <th>Số tiền</th>
-                                        <th>Thời gian</th>
-                                        <th>Loại giao dịch</th>
-                                        <th>Phương thức thanh toán</th>
-                                        <th>Ghi chú</th>
-                                        <th>Người xác nhận</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <th:block th:each="hoaDon,status : ${hoaDon}">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered text-center align-middle">
+                                        <thead class="table-light">
                                         <tr>
-                                            <td th:text="${status.index+1}"></td>
-                                            <td th:text="${hoaDon.maHoaDon}"></td>
-                                            <td>
-                                                <small class="text-danger font-weight-bold fs-5"
-                                                       th:text="${#numbers.formatInteger(hoaDon.tongTien, 3, 'COMMA') + ' VND'}"></small>
-                                            </td>
-                                            <td th:text="${#temporals.format(hoaDon.ngayTao, 'HH:mm:ss dd-MM-yyyy')}"></td>
-                                            <td>
-                                                <button th:classappend="${hoaDon.loaiGiaoDich == 'Trả Sau' ? 'btn-secondary' : 'btn-success'}"
-                                                        class="btn">
-                                                    <span th:text="${hoaDon.loaiGiaoDich}"></span>
-                                                </button>
-
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-success"
-                                                        th:if="${hoaDon.phuongThucThanhToan != null}">
-                                                    <span th:text="${hoaDon.phuongThucThanhToan.tenPhuongThuc}"></span>
-                                                </button>
-
-                                            </td>
-                                            <td th:text="${hoaDon.ghiChu}"></td>
-                                            <td th:text="${hoaDon.nhanVien != null ? hoaDon.nhanVien.hoTen : ''}"></td>
+                                            <th>#</th>
+                                            <th>Mã GD</th>
+                                            <th>Số tiền</th>
+                                            <th>Thời gian</th>
+                                            <th>Trạng thái</th>
+                                            <th>Loại Giao Dịch</th>
+                                            <th>Phương thức</th>
+                                            <th>Ghi chú</th>
+                                            <th>Người xác nhận</th>
                                         </tr>
-                                    </th:block>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                        <th:block th:each="lichSuThanhToan, status : ${listLichSuThanhToan}">
+                                            <tr>
+                                                <td th:text="${status.index + 1}"></td>
+                                                <td th:text="${lichSuThanhToan.maGiaoDich}" class="text-truncate"></td>
+                                                <td>
+                                                    <small class="text-danger font-weight-bold"
+                                                           th:text="${#numbers.formatDecimal(lichSuThanhToan.soTienThanhToan, 0, 'COMMA', 0, 'POINT') + ' VND'}">
+                                                    </small>
+                                                </td>
+                                                <td th:text="${#temporals.format(lichSuThanhToan.thoiGianThanhToan, 'HH:mm:ss dd-MM-yyyy')}"></td>
+                                                <td>
+                                <span th:classappend="${lichSuThanhToan.trangThai == 'Đã Thanh Toán' ? 'badge bg-success' : 'badge bg-warning'}"
+                                      class="badge">
+                                    <span th:text="${lichSuThanhToan.trangThai}"></span>
+                                </span>
+                                                </td>
+                                                <td>
+                                <span th:classappend="${lichSuThanhToan.hoaDon.loaiGiaoDich == 'Trả Trước' ? 'badge bg-success' : 'badge bg-warning'}"
+                                      class="badge">
+                                    <span th:text="${lichSuThanhToan.hoaDon.loaiGiaoDich}"></span>
+                                </span>
+                                                </td>
+                                                <td th:text="${lichSuThanhToan.phuongThucThanhToan?.tenPhuongThuc ?: 'N/A'}"></td>
+                                                <td th:text="${lichSuThanhToan.ghiChu}" class="text-truncate"></td>
+                                                <td th:text="${lichSuThanhToan.nhanVien?.hoTen ?: 'Chưa xác nhận'}"></td>
+                                            </tr>
+                                        </th:block>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </section>
 
@@ -1064,14 +1062,39 @@
 <script>
     // Hàm hiển thị thông báo với SweetAlert
     function showAlert(message, type = "info", duration = 3000) {
+        // Đặt màu sắc tùy chỉnh cho các loại thông báo
+        let customClass = "";
+        if (type === "success") {
+            customClass = "swal-success";
+        } else if (type === "error") {
+            customClass = "swal-error";
+        }
+
         Swal.fire({
             title: type === "success" ? "Thành công!" : type === "error" ? "Lỗi!" : "Thông báo",
             text: message,
             icon: type,
             timer: duration,
-            showConfirmButton: false
+            showConfirmButton: false,
+            customClass: customClass // Thêm class tùy chỉnh
         });
     }
+
+    // Thêm CSS để tùy chỉnh màu sắc của thông báo lỗi
+    const style = document.createElement('style');
+    style.innerHTML = `
+    .swal-error .swal2-title {
+        color: red !important;
+    }
+    .swal-error .swal2-popup {
+        border-color: red !important;
+    }
+    .swal-error .swal2-icon {
+        border-color: red !important;
+        color: red !important;
+    }
+`;
+    document.head.appendChild(style);
 
     window.addEventListener("load", function () {
         let message = localStorage.getItem("toastMessage");
@@ -1104,6 +1127,7 @@
         // Hiển thị thông báo đang xử lý
         showAlert("Đang xử lý, vui lòng chờ...", "info");
 
+        // Cập nhật phần xử lý thành công và lỗi trong phần fetch()
         fetch(apiEndpoint, {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
@@ -1111,9 +1135,13 @@
         })
             .then(response => response.json())
             .then(data => {
-                // Thông báo thành công
-                showAlert(data.message || "Thao tác thành công!", "success");
-                setTimeout(() => location.reload(), 1500); // Chờ 1.5 giây để hiển thị thông báo trước khi tải lại trang
+                if (data.success) {  // Chỉ thông báo thành công nếu success = true
+                    showAlert(data.message || "Thao tác thành công!", "success");
+                    setTimeout(() => location.reload(), 1500); // Chờ 1.5 giây để hiển thị thông báo trước khi tải lại trang
+                } else {
+                    showAlert(data.message || "Có lỗi xảy ra, vui lòng thử lại.", "error");
+                    setTimeout(() => location.reload(), 1500); // Chờ 1.5 giây để hiển thị thông báo trước khi tải lại trang
+                }
             })
             .catch(error => {
                 console.error("Lỗi:", error);
@@ -1122,8 +1150,109 @@
                 setTimeout(() => location.reload(), 1500); // Chờ 1.5 giây để hiển thị thông báo trước khi tải lại trang
             });
     });
+
 </script>
 
+<script>
+    function moModalXacNhan(button) {
+        let hoaDonId = button.getAttribute("data-hoaDonId");
+        let apiEndpoint = button.getAttribute("data-apiEndpoint");
+
+        let modal = document.getElementById("xacNhanThanhToanModal");
+        modal.setAttribute("data-hoaDonId", hoaDonId);
+        modal.setAttribute("data-apiEndpoint", apiEndpoint);
+    }
+
+    function chonPhuongThuc(button) {
+        let paymentMethod = button.getAttribute('data-value');
+        document.getElementById('paymentMethod').value = paymentMethod;
+
+        // Bỏ chọn tất cả các nút khác
+        document.querySelectorAll("#listPhuongThucThanhToan button").forEach(btn => {
+            btn.classList.remove("btn-primary");
+            btn.classList.add("btn-outline-primary");
+        });
+
+        // Đánh dấu nút được chọn
+        button.classList.remove("btn-outline-primary");
+        button.classList.add("btn-primary");
+    }
+
+    function xacNhanThanhToan() {
+        let modal = $('#xacNhanThanhToanModal');
+        let hoaDonId = modal.attr('data-hoaDonId');
+        let apiEndpoint = modal.attr('data-apiEndpoint');
+        let paymentMethodElement = document.getElementById('paymentMethod');
+
+        // Kiểm tra nếu không có phần tử chọn phương thức thanh toán
+        if (!paymentMethodElement) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Phương thức thanh toán không hợp lệ.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            return;
+        }
+
+        let paymentMethod = paymentMethodElement.value;
+
+        // Kiểm tra nếu người dùng chưa chọn phương thức thanh toán
+        if (!paymentMethod) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Vui lòng chọn phương thức thanh toán.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            return;
+        }
+
+        if (!hoaDonId) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Dữ liệu hóa đơn không hợp lệ.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            return;
+        }
+
+        fetch(apiEndpoint + "?hoaDonId=" + hoaDonId + "&phuongThucThanhToan=" + paymentMethod, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        location.reload(); // Reload lại trang sau khi thanh toán thành công
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Có lỗi xảy ra khi xác nhận thanh toán.',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            });
+    }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- JavaScript -->

@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.DTO.ProductOrderRequest;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
+import com.example.datn_trendsetter.Entity.DiaChi;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
@@ -16,20 +17,10 @@ import java.util.*;
 @RestController
 public class ShopApiController {
     @Autowired
-    private SanPhamChiTietRepository sanPhamChiTietRepository;
-
-    @Autowired
     private HoaDonRepository hoaDonRepository;
 
     @Autowired
     private ShopService shopService;
-
-    @GetMapping("/suggest-products")
-    @ResponseBody
-    public ResponseEntity<List<SanPhamChiTietDTO>> suggestProducts(@RequestParam("search") String search) {
-        List<SanPhamChiTietDTO> suggestions = sanPhamChiTietRepository.suggestSanPhamAndMauSacAndKichThuoc(search);
-        return ResponseEntity.ok(suggestions);
-    }
 
     @PostMapping("/create")
     public ResponseEntity<?> createHoaDon() {
@@ -209,16 +200,19 @@ public class ShopApiController {
             if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
                 hoaDon.setPhiShip(null); // Tại quầy thì phí ship null
             } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
-                // Nếu là giao hàng, tự động tính phí ship
-                float phiShip = shopService.tinhPhiShip(hoaDon.getThanhPho(), hoaDon.getHuyen());
-                hoaDon.setPhiShip(phiShip);
+                // Kiểm tra nếu có người nhận & số điện thoại thì set phí ship = 30,000
+                if (hoaDon.getNguoiNhan() != null && hoaDon.getSoDienThoai() != null) {
+                    hoaDon.setPhiShip(30000F);
+                } else {
+                    hoaDon.setPhiShip(0F);
+                }
             } else {
                 response.put("errorMessage", "Loại hóa đơn không hợp lệ!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
             // Chuyển đổi trạng thái loại giao dịch
-            hoaDon.setLoaiGiaoDich("Trả Sau".equals(hoaDon.getLoaiGiaoDich()) ? "Đã Thanh Toán" : "Trả Sau");
+            hoaDon.setLoaiGiaoDich("Trả Sau".equals(hoaDon.getLoaiGiaoDich()) ? "Trả Trước" : "Trả Sau");
 
             hoaDonRepository.save(hoaDon);
             response.put("successMessage", "Cập nhật loại giao dịch thành công!");
@@ -231,6 +225,8 @@ public class ShopApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+
 
 
 

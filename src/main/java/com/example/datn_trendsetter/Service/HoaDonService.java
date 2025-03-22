@@ -58,14 +58,16 @@ public class HoaDonService {
         return hoaDonRepository.getDoanhThuThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
-    public int countHoaDonThangNay() {
-        return hoaDonRepository.countHoaDonThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
-    }
-
 
     public Float getDoanhThuNgayNay() {
         return hoaDonRepository.getDoanhThuNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
+
+
+    public int countHoaDonThangNay() {
+        return hoaDonRepository.countHoaDonThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
 
     public int countHoaDonNgayNay() {
         return hoaDonRepository.countHoaDonNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");

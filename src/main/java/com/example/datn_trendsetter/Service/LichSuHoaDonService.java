@@ -34,11 +34,14 @@ public class LichSuHoaDonService {
     @Autowired
     private PhieuGiamGiaRepository phieuGiamGiaRepository;
 
+    @Autowired
+    private LichSuThanhToanRepository lichSuThanhToanRepository;
+
     public List<LichSuHoaDon> getAll() {
         return lichSuHoaDonRepository.findAll();
     }
 
-    public void getOrderDetails(Integer hoaDonId, Model model, Integer page) {
+    public void getOrderDetails(Integer hoaDonId, Model model) {
         // Kiểm tra nếu hoaDonId không phải null
         if (hoaDonId != null) {
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
@@ -69,6 +72,13 @@ public class LichSuHoaDonService {
             // Trộn danh sách để có thứ tự ngẫu nhiên
             Collections.shuffle(uniqueSanPhamChiTiet);
 
+            // Tính tổng tiền đã thanh toán
+            float soTienDaThanhToan = lichSuThanhToanRepository
+                    .sumSoTienThanhToanByHoaDonId(hoaDon.getId())
+                    .orElse(0F);
+
+            hoaDon.setSoTienDaThanhToan(soTienDaThanhToan);
+
             // Gán vào model
             model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
@@ -88,9 +98,11 @@ public class LichSuHoaDonService {
             } else {
                 model.addAttribute("listPhieuGiamGia", new ArrayList<>()); // Không có phiếu giảm giá nào
             }
-            List<LichSuHoaDon> listLichSuHoaDon = lichSuHoaDonRepository.findByHoaDon_Id(hoaDonId);
+            List<LichSuHoaDon> listLichSuHoaDon = lichSuHoaDonRepository.findByHoaDonId(hoaDonId);
+            List<LichSuThanhToan> listLichSuThanhToan = lichSuThanhToanRepository.findByHoaDonId(hoaDonId);
             // Lọc danh sách phiếu giảm giá dựa trên tổng tiền
             model.addAttribute("hoaDon", hoaDon);
+            model.addAttribute("listLichSuThanhToan",listLichSuThanhToan);
             model.addAttribute("listLichSuHoaDon", listLichSuHoaDon);
             model.addAttribute("danhSachHoaDonChiTiet", hoaDonChiTiet);
             model.addAttribute("hoaDon", hoaDon);
