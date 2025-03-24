@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.Service;
 
+import com.example.datn_trendsetter.DTO.UserDetails;
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,10 +18,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 @Service
 public class ShopService {
-
+    private static final Set<String> ALLOWED_ROLES = Set.of("ADMIN", "NHANVIEN");
+    private static final Map<Long, Lock> USER_LOCKS = new ConcurrentHashMap<>();
+    private static final long SESSION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(30);
     @Autowired
     private HoaDonChiTietService hoaDonChiTietService;
 
@@ -66,81 +72,70 @@ public class ShopService {
     private KichThuocRepository kichThuocRepository;
 
     @Transactional
-    public HoaDon createHoaDon(HoaDon hoaDon, HttpSession session) throws Exception {
+    public HoaDon createHoaDon(HoaDon hoaDon, Integer nhanVienId) throws Exception {
         if (hoaDon == null) {
             throw new Exception("Dữ liệu hóa đơn không được để trống.");
         }
 
-        // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
-        if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(nhanVienId);
+        if (nhanVienOpt.isEmpty()) {
+            throw new Exception("Không tìm thấy thông tin nhân viên");
         }
 
-        // Gán nhân viên từ session vào hóa đơn
-        hoaDon.setNhanVien(nhanVienSession);
+        NhanVien nhanVien = nhanVienOpt.get();
+
+        hoaDon.setNhanVien(nhanVien);
+        hoaDon.setNguoiTao(nhanVien.getHoTen());
+        hoaDon.setNguoiSua(nhanVien.getHoTen());
 
         if (hoaDon.getKhachHang() != null && hoaDon.getKhachHang().getId() == null) {
             KhachHang khachHang = khachHangRepository.save(hoaDon.getKhachHang());
             hoaDon.setKhachHang(khachHang);
         }
 
-        // Kiểm tra và tạo phương thức thanh toán nếu chưa tồn tại
-        createDefaultPaymentMethods(session);
-
-        // Kiểm tra số lượng hóa đơn đang xử lý
         long countDangXuLy = hoaDonRepository.countByTrangThai("Đang xử lý");
         if (countDangXuLy >= 3) {
-            throw new Exception("Đã đạt giới hạn 3 hóa đơn đang xử lý. Không thể tạo thêm.");
+            throw new Exception("Đã đạt giới hạn 3 hóa đơn đang xử lý");
         }
 
-        // Lấy phương thức thanh toán đầu tiên (nếu có)
-        Optional<PhuongThucThanhToan> optionalPaymentMethod = phuongThucThanhToanRepository.findFirstByOrderByIdAsc();
-        optionalPaymentMethod.ifPresent(hoaDon::setPhuongThucThanhToan);
-
-        // Thiết lập thông tin hóa đơn
-        hoaDon.setTongTien(null);
-        hoaDon.setPhiShip(null);
         hoaDon.setLoaiHoaDon("Tại Quầy");
         hoaDon.setTrangThai("Đang Xử Lý");
-        hoaDon.setNguoiTao(hoaDon.getNhanVien().getHoTen());
-        hoaDon.setNguoiSua(hoaDon.getNhanVien().getHoTen());
         hoaDon.setNgayTao(LocalDateTime.now());
 
-        // Lưu hóa đơn lần đầu để lấy ID
         hoaDon = hoaDonRepository.save(hoaDon);
 
-        // Tạo mã hóa đơn ngẫu nhiên và cập nhật lại hóa đơn
         hoaDon.setMaHoaDon(generateUniqueMaHoaDon());
-        hoaDonRepository.save(hoaDon);
 
-        // Lưu lịch sử hóa đơn
-        saveLichSuHoaDon(hoaDon,session);
-
-        return hoaDon;
+        return hoaDonRepository.save(hoaDon);
     }
 
 
-
     private void createDefaultPaymentMethods(HttpSession session) throws Exception {
-
         List<String> existingMethods = phuongThucThanhToanRepository.findAll().stream()
                 .map(PhuongThucThanhToan::getTenPhuongThuc)
                 .toList();
 
         List<PhuongThucThanhToan> newMethods = new ArrayList<>();
 
-        // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
-        if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+        // Lấy nhân viên từ session (đã sửa)
+        UserDetails userDetails = (UserDetails) session.getAttribute("user");
+        if (userDetails == null || !"NHANVIEN".equals(userDetails.getUserType())) {
+            throw new Exception("Bạn cần đăng nhập với tư cách nhân viên để tạo phương thức thanh toán");
         }
 
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(userDetails.getId());
+        if (nhanVienOpt.isEmpty()) {
+            throw new Exception("Không tìm thấy thông tin nhân viên");
+        }
+        NhanVien nhanVienSession = nhanVienOpt.get();
+
         if (!existingMethods.contains("Tiền Mặt")) {
-            newMethods.add(new PhuongThucThanhToan("Tiền Mặt", "Thành Công", LocalDate.now(), LocalDate.now(), nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
+            newMethods.add(new PhuongThucThanhToan("Tiền Mặt", "Thành Công", LocalDate.now(), LocalDate.now(),
+                    nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
         }
         if (!existingMethods.contains("Chuyển Khoản")) {
-            newMethods.add(new PhuongThucThanhToan("Chuyển Khoản", "Thành Công", LocalDate.now(), LocalDate.now(), nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
+            newMethods.add(new PhuongThucThanhToan("Chuyển Khoản", "Thành Công", LocalDate.now(), LocalDate.now(),
+                    nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
         }
 
         if (!newMethods.isEmpty()) {
@@ -158,18 +153,23 @@ public class ShopService {
         return maHoaDon;
     }
 
-    private void saveLichSuHoaDon(HoaDon hoaDon,HttpSession session) throws Exception {
-
-        // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
-        if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+    private void saveLichSuHoaDon(HoaDon hoaDon, HttpSession session) throws Exception {
+        // Lấy nhân viên từ session (đã sửa)
+        UserDetails userDetails = (UserDetails) session.getAttribute("user");
+        if (userDetails == null || !"NHANVIEN".equals(userDetails.getUserType())) {
+            throw new Exception("Bạn cần đăng nhập với tư cách nhân viên để lưu lịch sử hóa đơn");
         }
+
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(userDetails.getId());
+        if (nhanVienOpt.isEmpty()) {
+            throw new Exception("Không tìm thấy thông tin nhân viên");
+        }
+        NhanVien nhanVienSession = nhanVienOpt.get();
 
         LichSuHoaDon lichSu = new LichSuHoaDon();
         lichSu.setHoaDon(hoaDon);
         lichSu.setKhachHang(hoaDon.getKhachHang());
-        lichSu.setNhanVien(hoaDon.getNhanVien());
+        lichSu.setNhanVien(nhanVienSession);
         lichSu.setHanhDong(hoaDon.getTrangThai());
         lichSu.setNgayTao(LocalDateTime.now());
         lichSu.setNgaySua(LocalDateTime.now());
@@ -180,20 +180,16 @@ public class ShopService {
 
         lichSuHoaDonRepository.save(lichSu);
     }
-
     @Transactional
     public void deleteHoaDon(Integer hoaDonId) {
         try {
-            // Tìm hóa đơn theo ID
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                     .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
 
-            // Kiểm tra và khôi phục số lượng sản phẩm trong chi tiết hóa đơn
             if (hoaDon.getHoaDonChiTiet() != null && !hoaDon.getHoaDonChiTiet().isEmpty()) {
                 for (HoaDonChiTiet hoaDonChiTiet : hoaDon.getHoaDonChiTiet()) {
-                    if (hoaDonChiTiet == null) continue; // Bỏ qua nếu null
+                    if (hoaDonChiTiet == null) continue;
 
-                    // Lấy sản phẩm chi tiết và khôi phục số lượng
                     SanPhamChiTiet sanPhamChiTiet = hoaDonChiTiet.getSanPhamChiTiet();
                     if (sanPhamChiTiet != null) {
                         Integer soLuongChiTiet = hoaDonChiTiet.getSoLuong();
@@ -202,7 +198,6 @@ public class ShopService {
                             sanPhamChiTietRepository.save(sanPhamChiTiet);
                         }
 
-                        // Cập nhật số lượng sản phẩm chính
                         SanPham sanPham = sanPhamChiTiet.getSanPham();
                         if (sanPham != null) {
                             updateStockForProduct(sanPham);
@@ -210,16 +205,13 @@ public class ShopService {
                     }
                 }
 
-                // Xóa chi tiết hóa đơn sau khi khôi phục số lượng sản phẩm
                 hoaDonChiTietRepository.deleteAll(hoaDon.getHoaDonChiTiet());
             }
 
-            // Xóa lịch sử hóa đơn nếu có
             if (hoaDon.getLichSuHoaDon() != null && !hoaDon.getLichSuHoaDon().isEmpty()) {
                 lichSuHoaDonRepository.deleteAll(hoaDon.getLichSuHoaDon());
             }
 
-            // Xóa hóa đơn
             hoaDonRepository.delete(hoaDon);
 
         } catch (Exception e) {
@@ -723,18 +715,18 @@ public class ShopService {
 
 
     private void saveLichSuThanhToan(HoaDon hoaDon, Float soTien) {
+        NhanVien nhanVien = hoaDon.getNhanVien();
+
         LichSuThanhToan lichSuThanhToan = new LichSuThanhToan();
         lichSuThanhToan.setHoaDon(hoaDon);
-        lichSuThanhToan.setNhanVien(hoaDon.getNhanVien());
+        lichSuThanhToan.setNhanVien(nhanVien);
         lichSuThanhToan.setPhuongThucThanhToan(hoaDon.getPhuongThucThanhToan());
         lichSuThanhToan.setSoTienThanhToan(soTien);
         lichSuThanhToan.setThoiGianThanhToan(LocalDateTime.now());
         lichSuThanhToan.setTrangThai("Đã Thanh Toán");
         lichSuThanhToan.setGhiChu("Thanh toán hóa đơn " + hoaDon.getMaHoaDon());
 
-        // Check if the payment method is "Tiền Mặt"
         if (!"Tiền Mặt".equals(hoaDon.getPhuongThucThanhToan().getTenPhuongThuc())) {
-            // If not Tiền Mặt, generate a transaction code
             lichSuThanhToan.setMaGiaoDich(generateTransactionCode());
         }
 

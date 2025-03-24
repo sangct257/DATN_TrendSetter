@@ -16,16 +16,6 @@
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu" data-widget="tree">
 
-            <!-- Thống Kê (Chỉ Admin thấy) -->
-<!--            <li th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
-            <li>
-                <a href="/admin/thong-ke">
-                    <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
-                </a>
-            </li>
-<!--            </li>-->
-
-
             <!-- Bán Hàng Tại Quầy -->
             <li>
                 <a href="/admin/sell-counter">
@@ -63,10 +53,16 @@
                 </ul>
             </li>
 
+            <!-- Thống Kê (Chỉ Admin thấy) -->
+            <li th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+                <a href="/admin/thong-ke">
+                    <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
+                </a>
+            </li>
+
             <!-- Quản Lý Tài Khoản (Chỉ Admin thấy) -->
-            <li class="treeview">
-            <!--<li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
-            <a href="#">
+            <li class="treeview" th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+                <a href="#">
                     <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>
                 </a>
                 <ul class="treeview-menu">
@@ -74,11 +70,9 @@
                     <li><a href="/admin/khach-hang"><i class="fa fa-user"></i> Khách Hàng </a></li>
                 </ul>
             </li>
-<!--            </li>-->
 
             <!-- Giảm Giá (Chỉ Admin thấy) -->
-            <li class="treeview">
-<!--            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
+            <li class="treeview" th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
                 <a href="#">
                     <i class="fa fa-percentage"></i> <span>Giảm Giá</span>
                 </a>
@@ -86,8 +80,9 @@
                     <li><a href="/admin/phieu-giam-gia"><i class="fa fa-ticket-alt"></i> Phiếu Giảm Giá </a></li>
                     <li><a href="/admin/dot-giam-gia"><i class="fa fa-calendar-alt"></i> Đợt Giảm Giá </a></li>
                 </ul>
-<!--            </li>-->
             </li>
+
+            <!-- Widgets -->
             <li>
                 <a href="#">
                     <i class="fa fa-cogs"></i> <span>Widgets</span>

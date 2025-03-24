@@ -1,42 +1,23 @@
-// Tạo hóa đơn
-function createHoaDon() {
-    fetch('/create', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'}
-    })
-        .then(response => {
-            if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.id) {
-                // Lưu hóa đơn vào sessionStorage
-                sessionStorage.setItem('selectedHoaDonId', data.id);
-                console.log("Hóa đơn ID đã được lưu vào sessionStorage:", data.id);
-
-                // Hiển thị thông báo thành công
-                Swal.fire({
-                    title: "Thành công!",
-                    text: "Hóa đơn đã được tạo thành công.",
-                    icon: "success",
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                // Thêm hóa đơn vào UI sau 1.5 giây
-                setTimeout(() => addHoaDonToUI(data), 1500);
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: "Lỗi!",
-                text: "Không thể tạo hóa đơn.",
-                icon: "error"
-            });
+async function createHoaDon() {
+    try {
+        const response = await fetch(`/create`, {
+            method: 'POST',
+            credentials: 'include' // Quan trọng để gửi session cookie
         });
-}
 
-// Thêm hóa đơn mới vào danh sách hiển thị
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Lỗi khi tạo hóa đơn');
+        }
+
+        alert(`Tạo hóa đơn thành công! Mã: ${result.maHoaDon}`);
+        addHoaDonToUI(result)
+    } catch (error) {
+        console.error('Lỗi:', error);
+        alert(error.message);
+    }
+}
 function addHoaDonToUI(hoaDon) {
     const container = document.querySelector(".row.g-4");
 
@@ -1151,4 +1132,3 @@ $(document).ready(function () {
     });
 
 });
-

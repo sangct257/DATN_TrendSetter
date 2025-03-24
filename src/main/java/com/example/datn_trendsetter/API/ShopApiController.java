@@ -1,12 +1,16 @@
 package com.example.datn_trendsetter.API;
 
+import aj.org.objectweb.asm.TypeReference;
 import com.example.datn_trendsetter.DTO.ProductOrderRequest;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.Entity.DiaChi;
 import com.example.datn_trendsetter.Entity.HoaDon;
+import com.example.datn_trendsetter.Entity.KhachHang;
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import com.example.datn_trendsetter.Service.ShopService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,35 +27,51 @@ public class ShopApiController {
     @Autowired
     private ShopService shopService;
 
+
     @PostMapping("/create")
     public ResponseEntity<?> createHoaDon(HttpSession session) {
         try {
-            HoaDon hoaDon = new HoaDon();
-            hoaDon.setKhachHang(null);  // Hoặc gán khách hàng mặc định nếu cần
-            hoaDon.setNhanVien(null);   // Hoặc gán nhân viên mặc định nếu cần
+            // Lấy trực tiếp đối tượng NhanVien từ session
+            NhanVien nhanVien = (NhanVien) session.getAttribute("user");
 
-            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon,session);
-
-            if (createdHoaDon == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Không thể tạo hóa đơn, vui lòng thử lại.");
+            if (nhanVien == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Vui lòng đăng nhập"));
             }
 
-            return ResponseEntity.ok(createdHoaDon);
+            // Tạo hóa đơn mới
+            HoaDon hoaDon = new HoaDon();
+            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon, nhanVien.getId());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "id", createdHoaDon.getId(),
+                    "maHoaDon", createdHoaDon.getMaHoaDon(),
+                    "message", "Tạo hóa đơn thành công"
+            ));
+
+        } catch (ClassCastException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Định dạng session không hợp lệ"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi khi tạo hóa đơn: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Lỗi server: " + e.getMessage()));
         }
     }
 
 
     @PostMapping("delete/{id}")
-    public ResponseEntity<Map<String, String>> deleteHoaDon(@PathVariable("id") Integer hoaDonId) {
+    public ResponseEntity<Map<String, String>> deleteHoaDon(@PathVariable("id") Integer hoaDonId, HttpSession session) {
         Map<String, String> response = new HashMap<>();
         try {
-            // Gọi service để xóa hóa đơn
-            shopService.deleteHoaDon(hoaDonId);
+            // Kiểm tra quyền trước khi xóa
+            Object user = session.getAttribute("user");
+            if (!(user instanceof NhanVien)) {
+                response.put("error", "🚨 Chỉ nhân viên mới có thể xóa hóa đơn");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
 
-            // Trả về JSON thông báo thành công
+            shopService.deleteHoaDon(hoaDonId);
             response.put("message", "🗑️ Hóa đơn đã được xóa!");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -63,11 +83,18 @@ public class ShopApiController {
         }
     }
 
-
     @PostMapping("/add-customer")
     public ResponseEntity<?> addCustomerToInvoice(@RequestParam("hoaDonId") Integer hoaDonId,
-                                                  @RequestParam("khachHangId") Integer khachHangId) {
+                                                  @RequestParam("khachHangId") Integer khachHangId,
+                                                  HttpSession session) {
         try {
+            // Kiểm tra quyền
+            Object user = session.getAttribute("user");
+            if (!(user instanceof NhanVien)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Collections.singletonMap("error", "Chỉ nhân viên mới có thể thêm khách hàng vào hóa đơn"));
+            }
+
             String message = shopService.addCustomerToInvoice(hoaDonId, khachHangId);
             return ResponseEntity.ok(Collections.singletonMap("message", message));
         } catch (IllegalArgumentException e) {
@@ -183,12 +210,17 @@ public class ShopApiController {
     public ResponseEntity<Map<String,String>> deleteProductOrder(@RequestBody ProductOrderRequest orderRequest) {
         return shopService.handleProductOrder("delete", null, orderRequest.getHoaDonId(), null,orderRequest.getHoaDonChiTietId());
     }
-
-
     @PutMapping("/cap-nhat-loai-giao-dich/{id}")
-    public ResponseEntity<Map<String, Object>> capNhatLoaiGiaoDich(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, Object>> capNhatLoaiGiaoDich(@PathVariable Integer id, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         try {
+            // Kiểm tra quyền
+            Object user = session.getAttribute("user");
+            if (!(user instanceof NhanVien)) {
+                response.put("errorMessage", "Chỉ nhân viên mới có thể cập nhật loại giao dịch");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
             Optional<HoaDon> hoaDonOpt = hoaDonRepository.findById(id);
             if (hoaDonOpt.isEmpty()) {
                 response.put("errorMessage", "Hóa đơn không tồn tại!");
@@ -197,10 +229,16 @@ public class ShopApiController {
 
             HoaDon hoaDon = hoaDonOpt.get();
 
+//            // Kiểm tra xem nhân viên hiện tại có phải là người tạo hóa đơn không
+//            NhanVien currentNhanVien = (NhanVien) user;
+//            if (!currentNhanVien.equals(hoaDon.getNhanVien())) {
+//                response.put("errorMessage", "Bạn không có quyền chỉnh sửa hóa đơn này");
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+//            }
+
             if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
-                hoaDon.setPhiShip(null); // Tại quầy thì phí ship null
+                hoaDon.setPhiShip(null);
             } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
-                // Kiểm tra nếu có người nhận & số điện thoại thì set phí ship = 30,000
                 if (hoaDon.getNguoiNhan() != null && hoaDon.getSoDienThoai() != null) {
                     hoaDon.setPhiShip(30000F);
                 } else {
@@ -211,10 +249,9 @@ public class ShopApiController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
-            // Chuyển đổi trạng thái loại giao dịch
             hoaDon.setLoaiGiaoDich("Trả Sau".equals(hoaDon.getLoaiGiaoDich()) ? "Trả Trước" : "Trả Sau");
-
             hoaDonRepository.save(hoaDon);
+
             response.put("successMessage", "Cập nhật loại giao dịch thành công!");
             response.put("loaiGiaoDich", hoaDon.getLoaiGiaoDich());
             response.put("phiShip", hoaDon.getPhiShip());
@@ -225,10 +262,5 @@ public class ShopApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-
-
-
-
-
 
 }

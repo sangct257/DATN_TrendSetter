@@ -1,7 +1,7 @@
 document.getElementById("logout-btn").addEventListener("click", async function (e) {
     e.preventDefault(); // Ngăn chặn hành động mặc định
 
-    const response = await fetch("http://localhost:8080/api/auth/logout", {
+    const response = await fetch("http://localhost:8080/auth/logout", {
         method: "GET",
         credentials: "include"
     });

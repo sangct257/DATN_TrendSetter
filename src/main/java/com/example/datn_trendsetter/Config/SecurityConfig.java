@@ -28,10 +28,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/**" , "/auth/home", "/auth/login", "/auth/register", "/trang-chu",
+                                "/**", "/auth/home", "/auth/login", "/auth/register", "/trang-chu",
                                 "/css/**", "/js/**", "/images/**"
                         ).permitAll()
                         .anyRequest().authenticated()
+                ).sessionManagement(session -> session
+                        .sessionFixation().none() // Giữ nguyên session sau khi đăng nhập
                 )
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")

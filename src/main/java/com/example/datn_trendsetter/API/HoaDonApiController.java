@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
 
@@ -23,15 +24,25 @@ public class HoaDonApiController {
     private ShopService shopService;
 
     @PostMapping("/create-hoa-don")
-    public ResponseEntity<?> createHoaDon(@RequestBody(required = false) HoaDon hoaDon, HttpSession session) {
+    public String createHoaDon(
+            @ModelAttribute HoaDon hoaDon,
+            RedirectAttributes redirectAttributes,
+            HttpSession session
+    ) {
         try {
-            if (hoaDon == null) {
-                throw new Exception("Dữ liệu hóa đơn không hợp lệ hoặc thiếu.");
-            }
-            return ResponseEntity.ok(shopService.createHoaDon(hoaDon,session));
+            // Lấy ID nhân viên từ session
+            Map<String, Object> userData = (Map<String, Object>) session.getAttribute("user");
+            Integer nhanVienId = (Integer) ((Map<String, Object>) userData.get("user")).get("id");
+
+            // Gọi service
+            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon, nhanVienId);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Đã tạo hóa đơn thành công");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
+
+        return "redirect:/admin/sell-counter";
     }
 
     @PutMapping("/toggle-delivery/{id}")
