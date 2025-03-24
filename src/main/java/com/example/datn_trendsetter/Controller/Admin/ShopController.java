@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.Controller.Admin;
 
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Service.ShopService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,9 +25,9 @@ public class ShopController {
     }
 
     @PostMapping("create-hoa-don")
-    public String createHoaDon(HoaDon hoaDon,RedirectAttributes redirectAttributes) {
+    public String createHoaDon(HoaDon hoaDon, RedirectAttributes redirectAttributes, HttpSession session) {
         try {
-            shopService.createHoaDon(hoaDon);
+            shopService.createHoaDon(hoaDon,session);
             redirectAttributes.addFlashAttribute("successMessage", "Đã tạo hóa đơn thành công");
         }catch (Exception e){
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -43,4 +44,3 @@ public class ShopController {
 
 
 }
-
