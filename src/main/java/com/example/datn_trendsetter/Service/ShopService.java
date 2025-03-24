@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.Service;
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -65,23 +66,27 @@ public class ShopService {
     private KichThuocRepository kichThuocRepository;
 
     @Transactional
-    public HoaDon createHoaDon(HoaDon hoaDon) throws Exception {
+    public HoaDon createHoaDon(HoaDon hoaDon, HttpSession session) throws Exception {
         if (hoaDon == null) {
             throw new Exception("Dữ liệu hóa đơn không được để trống.");
         }
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+        }
+
+        // Gán nhân viên từ session vào hóa đơn
+        hoaDon.setNhanVien(nhanVienSession);
 
         if (hoaDon.getKhachHang() != null && hoaDon.getKhachHang().getId() == null) {
             KhachHang khachHang = khachHangRepository.save(hoaDon.getKhachHang());
             hoaDon.setKhachHang(khachHang);
         }
 
-        if (hoaDon.getNhanVien() != null && hoaDon.getNhanVien().getId() == null) {
-            NhanVien nhanVien = nhanVienRepository.save(hoaDon.getNhanVien());
-            hoaDon.setNhanVien(nhanVien);
-        }
-
         // Kiểm tra và tạo phương thức thanh toán nếu chưa tồn tại
-        createDefaultPaymentMethods();
+        createDefaultPaymentMethods(session);
 
         // Kiểm tra số lượng hóa đơn đang xử lý
         long countDangXuLy = hoaDonRepository.countByTrangThai("Đang xử lý");
@@ -91,13 +96,15 @@ public class ShopService {
 
         // Lấy phương thức thanh toán đầu tiên (nếu có)
         Optional<PhuongThucThanhToan> optionalPaymentMethod = phuongThucThanhToanRepository.findFirstByOrderByIdAsc();
-        optionalPaymentMethod.ifPresent(hoaDon::setPhuongThucThanhToan); // Tự động gán phương thức thanh toán đầu tiên nếu có
+        optionalPaymentMethod.ifPresent(hoaDon::setPhuongThucThanhToan);
 
         // Thiết lập thông tin hóa đơn
         hoaDon.setTongTien(null);
         hoaDon.setPhiShip(null);
         hoaDon.setLoaiHoaDon("Tại Quầy");
         hoaDon.setTrangThai("Đang Xử Lý");
+        hoaDon.setNguoiTao(hoaDon.getNhanVien().getHoTen());
+        hoaDon.setNguoiSua(hoaDon.getNhanVien().getHoTen());
         hoaDon.setNgayTao(LocalDateTime.now());
 
         // Lưu hóa đơn lần đầu để lấy ID
@@ -108,13 +115,14 @@ public class ShopService {
         hoaDonRepository.save(hoaDon);
 
         // Lưu lịch sử hóa đơn
-        saveLichSuHoaDon(hoaDon);
+        saveLichSuHoaDon(hoaDon,session);
 
         return hoaDon;
     }
 
 
-    private void createDefaultPaymentMethods() {
+
+    private void createDefaultPaymentMethods(HttpSession session) throws Exception {
 
         List<String> existingMethods = phuongThucThanhToanRepository.findAll().stream()
                 .map(PhuongThucThanhToan::getTenPhuongThuc)
@@ -122,11 +130,17 @@ public class ShopService {
 
         List<PhuongThucThanhToan> newMethods = new ArrayList<>();
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+        }
+
         if (!existingMethods.contains("Tiền Mặt")) {
-            newMethods.add(new PhuongThucThanhToan("Tiền Mặt", "Thành Công", LocalDate.now(), null, null, null, false));
+            newMethods.add(new PhuongThucThanhToan("Tiền Mặt", "Thành Công", LocalDate.now(), LocalDate.now(), nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
         }
         if (!existingMethods.contains("Chuyển Khoản")) {
-            newMethods.add(new PhuongThucThanhToan("Chuyển Khoản", "Thành Công", LocalDate.now(), null, null, null, false));
+            newMethods.add(new PhuongThucThanhToan("Chuyển Khoản", "Thành Công", LocalDate.now(), LocalDate.now(), nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
         }
 
         if (!newMethods.isEmpty()) {
@@ -144,14 +158,23 @@ public class ShopService {
         return maHoaDon;
     }
 
-    private void saveLichSuHoaDon(HoaDon hoaDon) {
+    private void saveLichSuHoaDon(HoaDon hoaDon,HttpSession session) throws Exception {
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+        }
+
         LichSuHoaDon lichSu = new LichSuHoaDon();
         lichSu.setHoaDon(hoaDon);
         lichSu.setKhachHang(hoaDon.getKhachHang());
         lichSu.setNhanVien(hoaDon.getNhanVien());
         lichSu.setHanhDong(hoaDon.getTrangThai());
         lichSu.setNgayTao(LocalDateTime.now());
-        lichSu.setNguoiTao(hoaDon.getNguoiTao());
+        lichSu.setNgaySua(LocalDateTime.now());
+        lichSu.setNguoiTao(nhanVienSession.getHoTen());
+        lichSu.setNguoiSua(nhanVienSession.getHoTen());
         lichSu.setDeleted(false);
         lichSu.setGhiChu("Tạo mới hóa đơn, mã: " + hoaDon.getMaHoaDon());
 
@@ -656,6 +679,18 @@ public class ShopService {
 
             // ✅ Xử lý theo loại hóa đơn Giao Hàng
             if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
+                // Kiểm tra nếu địa chỉ giao hàng bị thiếu
+                if (hoaDon.getSoNha() == null ||
+                        hoaDon.getTenDuong() == null || hoaDon.getTenDuong().isBlank() ||
+                        hoaDon.getHuyen() == null || hoaDon.getHuyen().isBlank() ||
+                        hoaDon.getPhuong() == null || hoaDon.getPhuong().isBlank() ||
+                        hoaDon.getThanhPho() == null || hoaDon.getThanhPho().isBlank()) {
+
+                    redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng cập nhật địa chỉ giao hàng!");
+                    return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+                }
+
+                // Kiểm tra nếu phí ship chưa được cập nhật
                 if (hoaDon.getPhiShip() == null) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Hãy cập nhật phí ship trước khi xác nhận thanh toán!");
                     return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
@@ -665,18 +700,12 @@ public class ShopService {
 
                 if ("Trả Trước".equals(hoaDon.getLoaiGiaoDich())) {
                     hoaDon.setTrangThai("Chờ Xác Nhận");
-
-                    // ✅ Lưu lịch sử thanh toán
                     saveLichSuThanhToan(hoaDon, tongTien);
                     redirectAttributes.addFlashAttribute("successMessage", "Thanh toán thành công! Đơn hàng đang chờ xác nhận.");
-
                 } else if ("Trả Sau".equals(hoaDon.getLoaiGiaoDich())) {
                     hoaDon.setTrangThai("Chờ Xác Nhận");
-
-                    // ✅ Lưu lịch sử thanh toán
                     saveLichSuThanhToan(hoaDon, 0.0f);
                     redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng sẽ được thanh toán sau, đang chờ xác nhận!");
-
                 } else {
                     hoaDon.setTrangThai("Chờ Xác Nhận");
                     redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng đang chờ giao hàng!");

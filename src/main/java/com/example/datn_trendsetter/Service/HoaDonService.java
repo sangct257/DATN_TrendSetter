@@ -50,6 +50,19 @@ public class HoaDonService {
         this.hoaDonRepository = hoaDonRepository;
     }
 
+    public Float getDoanhSoNamNay() {
+        return hoaDonRepository.getDoanhSoNamNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
+    public Float getDoanhSoThangNay() {
+        return hoaDonRepository.getDoanhSoThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
+
+    public Float getDoanhSoNgayNay() {
+        return hoaDonRepository.getDoanhSoNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
     public Float getDoanhThuNamNay() {
         return hoaDonRepository.getDoanhThuNamNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }

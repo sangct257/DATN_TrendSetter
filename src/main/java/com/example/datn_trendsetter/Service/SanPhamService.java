@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.Service;
 import com.example.datn_trendsetter.DTO.SanPhamViewDTO;
 import com.example.datn_trendsetter.Entity.SanPham;
 import com.example.datn_trendsetter.Repository.SanPhamRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,7 +53,7 @@ public class SanPhamService {
     }
 
     @Transactional
-    public synchronized ResponseEntity<?> addSanPham(SanPhamDTO sanPhamDTO) {
+    public synchronized ResponseEntity<?> addSanPham(SanPhamDTO sanPhamDTO, HttpSession session) {
         try {
             Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPham(
                     sanPhamDTO.getTenSanPham()
@@ -64,6 +65,12 @@ public class SanPhamService {
                         .body(Map.of("message", "Sản phẩm đã tồn tại trong danh mục và thương hiệu này!"));
             }
 
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            if (nhanVienSession == null) {
+                throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+            }
+
             SanPham sanPham = new SanPham();
             sanPham.setMaSanPham(generateMaSanPham());
             sanPham.setTenSanPham(sanPhamDTO.getTenSanPham());
@@ -72,8 +79,8 @@ public class SanPhamService {
             sanPham.setTrangThai("Ngừng Hoạt Động");
             sanPham.setNgayTao(LocalDate.now());
             sanPham.setNgaySua(LocalDate.now());
-            sanPham.setNguoiTao(sanPhamDTO.getNguoiTao());
-            sanPham.setNguoiSua(sanPhamDTO.getNguoiSua());
+            sanPham.setNguoiTao(nhanVienSession.getHoTen());
+            sanPham.setNguoiSua(nhanVienSession.getHoTen());
             sanPham.setDeleted(false);
 
             // Kiểm tra xem các đối tượng có tồn tại trước khi set không

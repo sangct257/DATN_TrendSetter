@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,6 +38,7 @@ public class DiaChi {
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")
+    @JsonIgnore // Tránh vòng lặp vô hạn khi serialize JSON
     private KhachHang khachHang;
 
 }

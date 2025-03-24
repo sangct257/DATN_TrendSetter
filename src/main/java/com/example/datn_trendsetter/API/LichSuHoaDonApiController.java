@@ -5,6 +5,7 @@ import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.*;
 import com.example.datn_trendsetter.Service.HoaDonChiTietService;
 import com.example.datn_trendsetter.Service.LichSuHoaDonService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,52 +49,65 @@ public class LichSuHoaDonApiController {
         return ResponseEntity.ok(response);
     }
 
-    private ResponseEntity<?> thayDoiTrangThaiHoaDon(Integer hoaDonId, String trangThai, String ghiChu) {
+    private ResponseEntity<?> thayDoiTrangThaiHoaDon(Integer hoaDonId, String trangThai, String ghiChu,HttpSession session) throws Exception {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
             HoaDon hoaDon = optionalHoaDon.get();
             hoaDon.setTrangThai(trangThai);
+            hoaDon.setNhanVien(hoaDon.getNhanVien());
+            hoaDon.setNguoiTao(hoaDon.getNhanVien().getHoTen());
+            hoaDon.setNguoiSua(hoaDon.getNhanVien().getHoTen());
             hoaDonRepository.save(hoaDon);
-            luuLichSuHoaDon(hoaDon, trangThai, ghiChu);
+            luuLichSuHoaDon(hoaDon, trangThai, ghiChu,session);
             return response("Hóa đơn đã được cập nhật trạng thái: " + trangThai, true);
         }
         return response("Hóa đơn không tồn tại!", false);
     }
 
-    private void luuLichSuHoaDon(HoaDon hoaDon, String hanhDong, String ghiChu) {
+    private void luuLichSuHoaDon(HoaDon hoaDon, String hanhDong, String ghiChu,HttpSession session) throws Exception {
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+        }
+
         LichSuHoaDon lichSu = new LichSuHoaDon();
         lichSu.setHoaDon(hoaDon);
         lichSu.setHanhDong(hanhDong);
         lichSu.setKhachHang(hoaDon.getKhachHang());
         lichSu.setNgayTao(LocalDateTime.now());
-        lichSu.setNguoiTao(hoaDon.getNguoiTao());
+        lichSu.setNhanVien(hoaDon.getNhanVien());
+        lichSu.setNguoiTao(nhanVienSession.getHoTen());
+        lichSu.setNguoiTao(nhanVienSession.getHoTen());
         lichSu.setGhiChu(ghiChu);
         lichSuHoaDonRepository.save(lichSu);
     }
 
     @PostMapping("/xac-nhan")
-    public ResponseEntity<?> xacNhan(@RequestParam("hoaDonId") Integer hoaDonId) {
+    public ResponseEntity<?> xacNhan(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
         try {
-            return thayDoiTrangThaiHoaDon(hoaDonId,"Đã Xác Nhận" , "Hoá đơn đã xác nhận");
+            return thayDoiTrangThaiHoaDon(hoaDonId,"Đã Xác Nhận" , "Hoá đơn đã xác nhận",session);
         } catch (Exception e) {
             return response("Lỗi khi xác nhận hóa đơn: " + e.getMessage(), false);
         }
     }
 
     @PostMapping("/van-chuyen")
-    public ResponseEntity<?> vanChuyen(@RequestParam("hoaDonId") Integer hoaDonId) {
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Chờ Vận Chuyển", "Hóa đơn đang vận chuyển");
+    public ResponseEntity<?> vanChuyen(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
+        return thayDoiTrangThaiHoaDon(hoaDonId, "Chờ Vận Chuyển", "Hóa đơn đang vận chuyển",session);
     }
 
     @PostMapping("/giao-hang")
-    public ResponseEntity<?> giaoHang(@RequestParam("hoaDonId") Integer hoaDonId) {
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Đang Giao Hàng", "Hóa đơn đang giao hàng");
+    public ResponseEntity<?> giaoHang(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
+        return thayDoiTrangThaiHoaDon(hoaDonId, "Đang Giao Hàng", "Hóa đơn đang giao hàng",session);
     }
 
     @PostMapping("/xac-nhan-thanh-toan")
     public ResponseEntity<?> xacNhanThanhToan(
             @RequestParam("hoaDonId") Integer hoaDonId,
-            @RequestParam("phuongThucThanhToan") Integer phuongThucId) {
+            @RequestParam("phuongThucThanhToan") Integer phuongThucId,
+            HttpSession session) throws Exception{
 
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
@@ -108,11 +122,19 @@ public class LichSuHoaDonApiController {
                 return response("Hóa đơn đã thanh toán đầy đủ, không cần thay đổi gì thêm.", true);
             }
 
+
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            if (nhanVienSession == null) {
+                throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+            }
+
             // Nếu chưa thanh toán đủ, xử lý thanh toán phần còn thiếu
             float soTienConThieu = tongTienHoaDon - tongTienDaThanhToan;
             LichSuThanhToan lichSuThanhToan = new LichSuThanhToan();
             lichSuThanhToan.setHoaDon(hoaDon);
             lichSuThanhToan.setSoTienThanhToan(soTienConThieu);
+            lichSuThanhToan.setNhanVien(hoaDon.getNhanVien());
             lichSuThanhToan.setThoiGianThanhToan(LocalDateTime.now());
             lichSuThanhToan.setTrangThai("Đã Thanh Toán");
             lichSuThanhToan.setGhiChu("Thanh toán số tiền còn lại " + hoaDon.getMaHoaDon());
@@ -137,7 +159,7 @@ public class LichSuHoaDonApiController {
             hoaDon.setLoaiGiaoDich(hoaDon.getLoaiGiaoDich());
             hoaDon.setTrangThai("Đã Thanh Toán");
             hoaDonRepository.save(hoaDon);
-            luuLichSuHoaDon(hoaDon, "Đã Thanh Toán", "Hóa đơn đã thanh toán");
+            luuLichSuHoaDon(hoaDon, "Đã Thanh Toán", "Hóa đơn đã thanh toán",session);
 
             return response("Hóa đơn đã được xác nhận thanh toán!", true);
         }
@@ -154,7 +176,7 @@ public class LichSuHoaDonApiController {
 
 
     @PostMapping("/xac-nhan-hoan-thanh")
-    public ResponseEntity<?> xacNhanHoanThanh(@RequestParam("hoaDonId") Integer hoaDonId) {
+    public ResponseEntity<?> xacNhanHoanThanh(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
         // Lấy hóa đơn từ cơ sở dữ liệu
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
 
@@ -171,7 +193,7 @@ public class LichSuHoaDonApiController {
         }
 
         // Xác nhận hóa đơn đã hoàn thành
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Hoàn Thành", "Hóa đơn đã hoàn thành");
+        return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Hoàn Thành", "Hóa đơn đã hoàn thành",session);
     }
 
 
@@ -187,21 +209,21 @@ public class LichSuHoaDonApiController {
 
 
     @PostMapping("/quay-lai")
-    public ResponseEntity<?> quayLai(@RequestParam("hoaDonId") Integer hoaDonId) {
+    public ResponseEntity<?> quayLai(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
             HoaDon hoaDon = optionalHoaDon.get();
             hoaDon.setLoaiGiaoDich("Trả Sau");
             hoaDon.setTrangThai("Chờ Xác Nhận");
             hoaDonRepository.save(hoaDon);
-            luuLichSuHoaDon(hoaDon, "Chờ Xác Nhận", "Quay lại trạng thái chờ xác nhận");
+            luuLichSuHoaDon(hoaDon, "Chờ Xác Nhận", "Quay lại trạng thái chờ xác nhận",session);
             return response("Quay lại trạng thái chờ xác nhận!", true);
         }
         return response("Hóa đơn không tồn tại!", false);
     }
 
     @PostMapping("/huy")
-    public ResponseEntity<?> huy(@RequestParam("hoaDonId") Integer hoaDonId) {
+    public ResponseEntity<?> huy(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
         // Lấy danh sách chi tiết hóa đơn theo hoaDonId
         List<HoaDonChiTiet> danhSachChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
 
@@ -233,7 +255,7 @@ public class LichSuHoaDonApiController {
         }
 
         // Đổi trạng thái hóa đơn thành "Đã Hủy"
-        return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Hủy", "Hóa đơn đã bị hủy");
+        return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Hủy", "Hóa đơn đã bị hủy",session);
     }
 
 
