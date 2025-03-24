@@ -59,11 +59,6 @@
             <h1>
                 <h5>Thêm Sản Phẩm</h5>
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
-            </ol>
         </section>
 
         <!-- Main content -->
@@ -185,10 +180,7 @@
                                             <label class="form-label fw-semibold">Màu Sắc:</label>
                                             <div class="border rounded p-2 d-flex flex-wrap gap-2">
                                                 <label th:each="ms : ${mauSacSanPham}" class="border rounded px-3 py-1">
-                                                    <span th:text="${ms.maMauSac}"
-                                                          th:style="'background-color:' + ${ms.maMauSac}"
-                                                          style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
-                                                          class="rounded border border-secondary shadow">
+                                                    <span th:text="${ms.tenMauSac}" class="rounded border border-secondary shadow">
                                                     </span>
                                                 </label>
                                             </div>
@@ -239,10 +231,7 @@
                                                 <input type="checkbox" name="mauSacIds" class="mau-sac me-2"
                                                        th:value="${ms.id}"
                                                        th:attr="data-mau-sac=${ms.id}">
-                                                <div th:text="${ms.maMauSac}"
-                                                     th:style="'background-color:' + ${ms.maMauSac}"
-                                                     style="width: 30px; height: 30px;" class="rounded border border-secondary shadow">
-                                                </div>
+                                                <div th:text="${ms.tenMauSac}" class="rounded border border-secondary shadow"></div>
                                             </label>
                                         </div>
 
@@ -999,6 +988,8 @@
         });
     });
 </script>
-
+<script src="/js/main.js"></script>
+<script src="/js/DangNhap/login.js"></script>
+<script src="/js/DangNhap/logout.js"></script>
 </body>
 </html>

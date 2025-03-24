@@ -414,15 +414,10 @@ document.addEventListener("DOMContentLoaded", () => {
 <!--API Phiếu Giảm Giá-->
 function applyPhieuGiamGia(button) {
     const hoaDonId = document.getElementById("hoaDonId").value;
-    const tenPhieuGiamGia = document.getElementById("tenPhieuGiamGia").value;
+    const tenPhieuGiamGia = document.getElementById("tenPhieuGiamGia").value || ""; // Cho phép bỏ chọn
 
     if (!hoaDonId || isNaN(hoaDonId)) {
         Swal.fire("Lỗi!", "ID hóa đơn không hợp lệ!", "error");
-        return;
-    }
-
-    if (!tenPhieuGiamGia) {
-        Swal.fire("Cảnh báo!", "Vui lòng chọn phiếu giảm giá.", "warning");
         return;
     }
 
@@ -438,7 +433,7 @@ function applyPhieuGiamGia(button) {
         .then(data => {
             Swal.fire({
                 title: data.success ? "Thành công!" : "Lỗi!",
-                text: data.success ? "Phiếu giảm giá đã được áp dụng!" : (data.error || "Lỗi khi áp dụng phiếu giảm giá!"),
+                text: data.success ? data.message : (data.error || "Lỗi khi áp dụng phiếu giảm giá!"),
                 icon: data.success ? "success" : "error"
             }).then(() => {
                 if (data.success) {
@@ -472,8 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const hoaDonId = formData.get("hoaDonId");
         const nguoiNhan = formData.get("nguoiNhan").trim();
         const soDienThoai = formData.get("soDienThoai").trim();
-        const soNha = formData.get("soNha").trim();
-        const tenDuong = formData.get("tenDuong").trim();
+        const diaChiCuThe = formData.get("diaChiCuThe").trim();
         const thanhPho = formData.get("thanhPho").trim();
         const huyen = formData.get("huyen").trim();
         const phuong = formData.get("phuong").trim();
@@ -481,8 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Xóa thông báo lỗi trước khi kiểm tra
         document.getElementById("shippingNguoiNhanError").textContent = "";
         document.getElementById("shippingSoDienThoaiError").textContent = "";
-        document.getElementById("soNhaError").textContent = "";
-        document.getElementById("tenDuongError").textContent = "";
+        document.getElementById("diaChiCuTheError").textContent = "";
         document.getElementById("thanhPhoError").textContent = "";
         document.getElementById("huyenError").textContent = "";
         document.getElementById("phuongError").textContent = "";
@@ -521,18 +514,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Kiểm tra địa chỉ
-        // Kiểm tra số nhà (chỉ được chứa số)
-        const soNhaRegex = /^[0-9]+$/;
-        if (!soNha) {
-            document.getElementById("soNhaError").textContent = "Số nhà không được để trống!";
-            isValid = false;
-        } else if (!soNhaRegex.test(soNha)) {
-            document.getElementById("soNhaError").textContent = "Số nhà chỉ được chứa số!";
-            isValid = false;
-        }
 
-        if (!tenDuong) {
-            document.getElementById("tenDuongError").textContent = "Tên đường không được để trống!";
+        if (!diaChiCuThe) {
+            document.getElementById("diaChiCuTheError").textContent = "Đia chỉ cụ thể không được để trống!";
             isValid = false;
         }
         if (!thanhPho) {
@@ -874,7 +858,6 @@ function updateQuantityOrder(input) {
     const soLuong = parseInt(input.value, 10);
     let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
 
-    // Kiểm tra hoaDonId
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId) || isNaN(soLuong) || soLuong < 1) {
         Swal.fire({
             title: "Lỗi!",
@@ -885,8 +868,7 @@ function updateQuantityOrder(input) {
     }
 
     hoaDonId = parseInt(hoaDonId, 10);
-
-    const data = {hoaDonChiTietId, hoaDonId, soLuong};
+    const data = { hoaDonChiTietId, hoaDonId, soLuong };
 
     Swal.fire({
         title: "Đang cập nhật...",
@@ -898,12 +880,34 @@ function updateQuantityOrder(input) {
 
     fetch('/update-product-order', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
         .then(response => response.json())
-        .then(response => handleResponse(response, hoaDonId))
-        .catch(handleError);
+        .then(response => {
+            if (response.errorMessage) {
+                Swal.fire({
+                    title: "Lỗi!",
+                    text: response.errorMessage,
+                    icon: "error"
+                });
+            } else {
+                Swal.fire({
+                    title: "Thành công!",
+                    text: response.successMessage,
+                    icon: "success"
+                }).then(() => {
+                    location.reload(); // Tải lại trang để cập nhật số lượng và tổng tiền
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                title: "Lỗi!",
+                text: "Có lỗi xảy ra khi cập nhật số lượng!",
+                icon: "error"
+            });
+        });
 }
 
 // API Xóa Sản Phẩm
@@ -912,13 +916,8 @@ function deleteProductOrder(button) {
     const hoaDonChiTietId = parseInt(row.querySelector('input[name="hoaDonChiTietId"]').value, 10);
     let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
 
-    // Kiểm tra hoaDonId
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId)) {
-        Swal.fire({
-            title: "Lỗi!",
-            text: "Thông tin không hợp lệ!",
-            icon: "error"
-        });
+        Swal.fire({ title: "Lỗi!", text: "Thông tin không hợp lệ!", icon: "error" });
         return;
     }
 
@@ -930,28 +929,24 @@ function deleteProductOrder(button) {
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Xóa",
-        cancelButtonText: "Hủy",
-        reverseButtons: true
+        cancelButtonText: "Hủy"
     }).then((result) => {
         if (result.isConfirmed) {
-            const data = {hoaDonChiTietId, hoaDonId};
-
-            Swal.fire({
-                title: "Đang xóa...",
-                text: "Vui lòng đợi trong giây lát.",
-                icon: "info",
-                showConfirmButton: false,
-                allowOutsideClick: false
-            });
-
             fetch('/delete-product-order', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hoaDonChiTietId, hoaDonId })
             })
                 .then(response => response.json())
-                .then(response => handleResponse(response, hoaDonId))
-                .catch(handleError);
+                .then(data => {
+                    if (data.errorMessage) {
+                        Swal.fire({ title: "Lỗi!", text: data.errorMessage, icon: "error" });
+                    } else {
+                        Swal.fire({ title: "Thành công!", text: data.successMessage, icon: "success" })
+                            .then(() => location.reload());
+                    }
+                })
+                .catch(() => Swal.fire({ title: "Lỗi!", text: "Không thể kết nối đến máy chủ.", icon: "error" }));
         }
     });
 }
@@ -1009,7 +1004,6 @@ window.onload = function() {
     saveHoaDonIdFromURL();
 };
 
-
 <!-- Script xử lý thanh toán -->
 document.addEventListener("DOMContentLoaded", function () {
     const confirmButton = document.getElementById("confirmPayment");
@@ -1023,8 +1017,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.warn("Không tìm thấy phần tử 'confirmPayment' hoặc 'paymentForm'");
     }
 });
-
-
 
 document.addEventListener("DOMContentLoaded", function () {
     let successMessage = document.getElementById("successMessage")?.value || "";
@@ -1066,6 +1058,7 @@ function selectHoaDon(card) {
     const hoaDonId = card.querySelector('input[name="hoaDonId"]').value;
     localStorage.setItem("selectedHoaDonId", hoaDonId);
 }
+
 // Khi trang load lại, kiểm tra và giữ trạng thái sáng cho hóa đơn đã chọn
 document.addEventListener("DOMContentLoaded", function () {
     const hoaDonIdFromUrl = getQueryParam("hoaDonId"); // Lấy ID từ URL
@@ -1089,7 +1082,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 $(document).ready(function () {
-    $('#productTable').DataTable({
+    var table1 = $('#productTable').DataTable({
         "paging": true,
         "lengthMenu": [5, 10, 20],
         "pageLength": 5,
@@ -1111,4 +1104,51 @@ $(document).ready(function () {
             }
         }
     });
+
+    var table2 = $('#productTable1').DataTable({
+        "paging": true,
+        "lengthMenu": [5, 10, 20],
+        "pageLength": 5,
+        "autoWidth": false,
+        "responsive": true,
+        "language": {
+            "sProcessing": "Đang xử lý...",
+            "sLengthMenu": "Hiển thị _MENU_ dòng",
+            "sZeroRecords": "Không tìm thấy dữ liệu",
+            "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+            "sInfoEmpty": "Không có dữ liệu để hiển thị",
+            "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+            "sSearch": "Tìm kiếm:",
+            "oPaginate": {
+                "sFirst": "Đầu",
+                "sPrevious": "Trước",
+                "sNext": "Tiếp",
+                "sLast": "Cuối"
+            }
+        }
+    });
+
+    // Lọc theo kích thước
+    $('#filterKichThuoc').on('change', function () {
+        var value = $(this).val();
+        table1.column(2).search(value).draw();
+    });
+
+    // Lọc theo màu sắc
+    $('#filterMauSac').on('change', function () {
+        var value = $(this).val();
+        table1.column(2).search(value).draw(); // Cột màu sắc có thể ở vị trí khác, kiểm tra lại index
+    });
+
+
+    // Giữ modal mở khi lọc
+    $('#addProductModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            if ($('.modal-backdrop').length) {
+                $('body').addClass('modal-open');
+            }
+        }, 100);
+    });
+
 });
+

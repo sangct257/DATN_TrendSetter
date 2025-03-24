@@ -22,16 +22,6 @@ public class InvoiceController {
     @Autowired
     private HoaDonChiTietRepository hoaDonChiTietRepository;
 
-    @Autowired
-    private KhachHangRepository khachHangRepository;
-
-    @Autowired
-    private PhuongThucThanhToanRepository phuongThucThanhToanRepository;
-
-    @Autowired
-    private PhieuGiamGiaRepository phieuGiamGiaRepository;
-
-    // Hiển thị hóa đơn
     @GetMapping
     public String viewInvoice(@RequestParam("hoaDonId") Integer hoaDonId, Model model) {
         if (hoaDonId != null) {

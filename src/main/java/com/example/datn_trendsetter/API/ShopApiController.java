@@ -2,10 +2,12 @@ package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.DTO.ProductOrderRequest;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
+import com.example.datn_trendsetter.Entity.DiaChi;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import com.example.datn_trendsetter.Service.ShopService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,29 +18,19 @@ import java.util.*;
 @RestController
 public class ShopApiController {
     @Autowired
-    private SanPhamChiTietRepository sanPhamChiTietRepository;
-
-    @Autowired
     private HoaDonRepository hoaDonRepository;
 
     @Autowired
     private ShopService shopService;
 
-    @GetMapping("/suggest-products")
-    @ResponseBody
-    public ResponseEntity<List<SanPhamChiTietDTO>> suggestProducts(@RequestParam("search") String search) {
-        List<SanPhamChiTietDTO> suggestions = sanPhamChiTietRepository.suggestSanPhamAndMauSacAndKichThuoc(search);
-        return ResponseEntity.ok(suggestions);
-    }
-
     @PostMapping("/create")
-    public ResponseEntity<?> createHoaDon() {
+    public ResponseEntity<?> createHoaDon(HttpSession session) {
         try {
             HoaDon hoaDon = new HoaDon();
             hoaDon.setKhachHang(null);  // Hoặc gán khách hàng mặc định nếu cần
             hoaDon.setNhanVien(null);   // Hoặc gán nhân viên mặc định nếu cần
 
-            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon);
+            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon,session);
 
             if (createdHoaDon == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -108,21 +100,23 @@ public class ShopApiController {
     @PostMapping("/apply-phieu-giam-gia")
     public ResponseEntity<Map<String, Object>> applyPhieuGiamGia(
             @RequestParam("hoaDonId") Integer hoaDonId,
-            @RequestParam("tenPhieuGiamGia") String tenPhieuGiamGia) {
+            @RequestParam(value = "tenPhieuGiamGia", required = false) String tenPhieuGiamGia) {
+
         Map<String, Object> response = new HashMap<>();
         try {
-            if (hoaDonId == null || tenPhieuGiamGia == null || tenPhieuGiamGia.isEmpty()) {
-                throw new IllegalArgumentException("Dữ liệu không hợp lệ");
+            if (hoaDonId == null) {
+                throw new IllegalArgumentException("ID hóa đơn không hợp lệ.");
             }
 
-            String message = shopService.applyPhieuGiamGia(hoaDonId, tenPhieuGiamGia);
+            // Gửi xuống service, chấp nhận cả trường hợp tenPhieuGiamGia rỗng (bỏ giảm giá)
+            String message = shopService.applyPhieuGiamGia(hoaDonId, (tenPhieuGiamGia != null) ? tenPhieuGiamGia.trim() : "");
 
             response.put("success", true);
             response.put("message", message);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             response.put("success", false);
-            response.put("error", "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
+            response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         } catch (RuntimeException e) {
             response.put("success", false);
@@ -132,19 +126,19 @@ public class ShopApiController {
     }
 
 
+
     @PutMapping("/update-shipping")
     public ResponseEntity<Map<String, String>> updateShipping(@RequestParam Integer hoaDonId,
                                                               @RequestParam String nguoiNhan,
                                                               @RequestParam String soDienThoai,
-                                                              @RequestParam Integer soNha,
-                                                              @RequestParam String tenDuong,
+                                                              @RequestParam String diaChiCuThe,
                                                               @RequestParam String phuong,
                                                               @RequestParam String huyen,
                                                               @RequestParam String thanhPho,
                                                               @RequestParam String ghiChu) {
         Map<String, String> response = new HashMap<>();
         try {
-            String message = shopService.updateShippingAddress(hoaDonId, nguoiNhan, soDienThoai, soNha, tenDuong, phuong, huyen, thanhPho, ghiChu);
+            String message = shopService.updateShippingAddress(hoaDonId, nguoiNhan, soDienThoai, diaChiCuThe, phuong, huyen, thanhPho, ghiChu);
             response.put("message", message);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -206,16 +200,19 @@ public class ShopApiController {
             if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
                 hoaDon.setPhiShip(null); // Tại quầy thì phí ship null
             } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
-                // Nếu là giao hàng, tự động tính phí ship
-                float phiShip = shopService.tinhPhiShip(hoaDon.getThanhPho(), hoaDon.getHuyen());
-                hoaDon.setPhiShip(phiShip);
+                // Kiểm tra nếu có người nhận & số điện thoại thì set phí ship = 30,000
+                if (hoaDon.getNguoiNhan() != null && hoaDon.getSoDienThoai() != null) {
+                    hoaDon.setPhiShip(30000F);
+                } else {
+                    hoaDon.setPhiShip(0F);
+                }
             } else {
                 response.put("errorMessage", "Loại hóa đơn không hợp lệ!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
             // Chuyển đổi trạng thái loại giao dịch
-            hoaDon.setLoaiGiaoDich("Trả Sau".equals(hoaDon.getLoaiGiaoDich()) ? "Đã Thanh Toán" : "Trả Sau");
+            hoaDon.setLoaiGiaoDich("Trả Sau".equals(hoaDon.getLoaiGiaoDich()) ? "Trả Trước" : "Trả Sau");
 
             hoaDonRepository.save(hoaDon);
             response.put("successMessage", "Cập nhật loại giao dịch thành công!");
@@ -228,6 +225,8 @@ public class ShopApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+
 
 
 

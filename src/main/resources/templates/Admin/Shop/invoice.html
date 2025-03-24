@@ -70,7 +70,7 @@
 
             <tr th:if="${hoaDon.loaiHoaDon != 'Tại Quầy'}">
                 <th>Địa Chỉ Nhận Hàng</th>
-                <td th:text="${hoaDon.soNha + ' - ' + hoaDon.tenDuong + ' - ' + hoaDon.phuong + ' - ' + hoaDon.huyen + ' - ' + hoaDon.thanhPho}"></td>
+                <td th:text="${hoaDon.diaChiCuThe+ ' - ' + hoaDon.phuong + ' - ' + hoaDon.huyen + ' - ' + hoaDon.thanhPho}"></td>
             </tr>
 
             <tr th:if="${hoaDon.loaiHoaDon == 'Online'}">

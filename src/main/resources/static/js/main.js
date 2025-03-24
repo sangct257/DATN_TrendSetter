@@ -18,6 +18,7 @@
         $(window).resize(toggleNavbarMethod);
     });
 
+
     // Back to top button
     $(window).scroll(function () {
         if ($(this).scrollTop() > 100) {
@@ -27,9 +28,10 @@
         }
     });
     $('.back-to-top').click(function () {
-        $('html, body').animate({ scrollTop: 0 }, 1500, 'easeInOutExpo');
+        $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
         return false;
     });
+
 
     // Vendor carousel
     $('.vendor-carousel').owlCarousel({
@@ -39,13 +41,24 @@
         autoplay: true,
         smartSpeed: 1000,
         responsive: {
-            0: { items: 2 },
-            576: { items: 3 },
-            768: { items: 4 },
-            992: { items: 5 },
-            1200: { items: 6 }
+            0:{
+                items:2
+            },
+            576:{
+                items:3
+            },
+            768:{
+                items:4
+            },
+            992:{
+                items:5
+            },
+            1200:{
+                items:6
+            }
         }
     });
+
 
     // Related carousel
     $('.related-carousel').owlCarousel({
@@ -55,18 +68,35 @@
         autoplay: true,
         smartSpeed: 1000,
         responsive: {
-            0: { items: 1 },
-            576: { items: 2 },
-            768: { items: 3 },
-            992: { items: 4 }
+            0:{
+                items:1
+            },
+            576:{
+                items:2
+            },
+            768:{
+                items:3
+            },
+            992:{
+                items:4
+            }
         }
     });
+
 
     // Product Quantity
     $('.quantity button').on('click', function () {
         var button = $(this);
         var oldValue = button.parent().parent().find('input').val();
-        var newVal = button.hasClass('btn-plus') ? parseFloat(oldValue) + 1 : Math.max(0, parseFloat(oldValue) - 1);
+        if (button.hasClass('btn-plus')) {
+            var newVal = parseFloat(oldValue) + 1;
+        } else {
+            if (oldValue > 0) {
+                var newVal = parseFloat(oldValue) - 1;
+            } else {
+                newVal = 0;
+            }
+        }
         button.parent().parent().find('input').val(newVal);
     });
 

@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,11 +18,8 @@ public class DiaChi {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "so_nha")
-    private Integer soNha;
-
-    @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
-    private String tenDuong;
+    @Column(name = "dia_chi_cu_the",columnDefinition = "NVARCHAR(255)")
+    private String diaChiCuThe;
 
     @Column(name = "phuong",columnDefinition = "NVARCHAR(255)")
     private String phuong;
@@ -37,6 +35,7 @@ public class DiaChi {
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")
+    @JsonIgnore // Tránh vòng lặp vô hạn khi serialize JSON
     private KhachHang khachHang;
 
 }

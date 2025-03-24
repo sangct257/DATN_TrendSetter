@@ -28,7 +28,7 @@ public class HoaDonService {
         hoaDon.setLoaiHoaDon(delivery ? "Giao Hàng" : "Tại Quầy");
 
         if (!delivery) {
-            hoaDon.setTenDuong(null);
+            hoaDon.setDiaChiCuThe(null);
             hoaDon.setHuyen(null);
             hoaDon.setPhuong(null);
             hoaDon.setThanhPho(null);
@@ -50,6 +50,19 @@ public class HoaDonService {
         this.hoaDonRepository = hoaDonRepository;
     }
 
+    public Float getDoanhSoNamNay() {
+        return hoaDonRepository.getDoanhSoNamNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
+    public Float getDoanhSoThangNay() {
+        return hoaDonRepository.getDoanhSoThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
+
+    public Float getDoanhSoNgayNay() {
+        return hoaDonRepository.getDoanhSoNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
     public Float getDoanhThuNamNay() {
         return hoaDonRepository.getDoanhThuNamNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
@@ -58,14 +71,16 @@ public class HoaDonService {
         return hoaDonRepository.getDoanhThuThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
-    public int countHoaDonThangNay() {
-        return hoaDonRepository.countHoaDonThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
-    }
-
 
     public Float getDoanhThuNgayNay() {
         return hoaDonRepository.getDoanhThuNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
+
+
+    public int countHoaDonThangNay() {
+        return hoaDonRepository.countHoaDonThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
+    }
+
 
     public int countHoaDonNgayNay() {
         return hoaDonRepository.countHoaDonNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");

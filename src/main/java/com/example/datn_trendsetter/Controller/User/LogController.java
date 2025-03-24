@@ -12,7 +12,9 @@ public class LogController {
     @GetMapping("auth/home")
     public String showLoginPage(Model model) {
         return "DangNhap/DangNhapKhach";
-    }    @GetMapping("auth/trendsetter")
+    }
+
+    @GetMapping("auth/trendsetter")
     public String showLogin(Model model) {
         return "DangNhap/DangNhapNV";
     }

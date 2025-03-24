@@ -1,93 +1,98 @@
-<!--<aside class="main-sidebar" th:fragment="sidebar">-->
-<!--    <br>-->
-<!--    <section class="sidebar">-->
-<!--        &lt;!&ndash; Search Form &ndash;&gt;-->
-<!--        <form action="#" method="get" class="sidebar-form">-->
-<!--            <div class="input-group">-->
-<!--                <input type="text" name="q" class="form-control" placeholder="Search...">-->
-<!--                <span class="input-group-btn">-->
-<!--                    <button type="submit" name="search" id="search-btn" class="btn btn-flat">-->
-<!--                        <i class="fa fa-search"></i>-->
-<!--                    </button>-->
-<!--                </span>-->
-<!--            </div>-->
-<!--        </form>-->
+<aside class="main-sidebar" th:fragment="sidebar">
+    <br>
+    <section class="sidebar">
+        <!-- Search Form -->
+        <form action="#" method="get" class="sidebar-form">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Search...">
+                <span class="input-group-btn">
+                    <button type="submit" name="search" id="search-btn" class="btn btn-flat">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </span>
+            </div>
+        </form>
 
-<!--        &lt;!&ndash; Sidebar Menu &ndash;&gt;-->
-<!--        <ul class="sidebar-menu" data-widget="tree">-->
+        <!-- Sidebar Menu -->
+        <ul class="sidebar-menu" data-widget="tree">
 
-<!--            &lt;!&ndash; Thống Kê (Chỉ Admin thấy) &ndash;&gt;-->
+            <!-- Thống Kê (Chỉ Admin thấy) -->
 <!--            <li th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
-<!--                <a href="/admin/thong-ke">-->
-<!--                    <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>-->
-<!--                </a>-->
+            <li>
+                <a href="/admin/thong-ke">
+                    <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
+                </a>
+            </li>
 <!--            </li>-->
 
-<!--            &lt;!&ndash; Bán Hàng Tại Quầy &ndash;&gt;-->
-<!--            <li>-->
-<!--                <a href="/admin/sell-counter">-->
-<!--                    <i class="fa fa-cash-register"></i> <span>Bán Hàng Tại Quầy</span>-->
-<!--                </a>-->
+
+            <!-- Bán Hàng Tại Quầy -->
+            <li>
+                <a href="/admin/sell-counter">
+                    <i class="fa fa-cash-register"></i> <span>Bán Hàng Tại Quầy</span>
+                </a>
+            </li>
+
+            <!-- Hóa Đơn -->
+            <li>
+                <a href="/admin/hoa-don">
+                    <i class="fa fa-file-invoice-dollar"></i> <span>Hóa Đơn</span>
+                </a>
+            </li>
+
+            <!-- Trả Hàng -->
+            <li>
+                <a href="#">
+                    <i class="fa fa-undo-alt"></i> <span>Trả Hàng</span>
+                </a>
+            </li>
+
+            <!-- Quản Lý Sản Phẩm -->
+            <li class="treeview">
+                <a href="#">
+                    <i class="fa fa-cogs"></i> <span>Quản lý Sản Phẩm</span>
+                </a>
+                <ul class="treeview-menu">
+                    <li><a href="/admin/san-pham"><i class="fa fa-cube"></i> Sản Phẩm </a></li>
+                    <li><a href="/admin/danh-muc"><i class="fa fa-tags"></i> Danh Mục </a></li>
+                    <li><a href="/admin/thuong-hieu"><i class="fa fa-industry"></i> Thương Hiệu </a></li>
+                    <li><a href="/admin/xuat-xu"><i class="fa fa-globe"></i> Xuất Xứ </a></li>
+                    <li><a href="/admin/mau-sac"><i class="fa fa-palette"></i> Màu Sắc</a></li>
+                    <li><a href="/admin/kich-thuoc"><i class="fa fa-ruler"></i> Kích Thước </a></li>
+                    <li><a href="/admin/chat-lieu"><i class="fa fa-leaf"></i> Chất Liệu </a></li>
+                </ul>
+            </li>
+
+            <!-- Quản Lý Tài Khoản (Chỉ Admin thấy) -->
+            <li class="treeview">
+            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">
+            <a href="#">
+                    <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>
+                </a>
+                <ul class="treeview-menu">
+                    <li><a href="/admin/nhan-vien"><i class="fa fa-users"></i> Nhân Viên </a></li>
+                    <li><a href="/admin/khach-hang"><i class="fa fa-user"></i> Khách Hàng </a></li>
+                </ul>
+            </li>
 <!--            </li>-->
 
-<!--            &lt;!&ndash; Hóa Đơn &ndash;&gt;-->
-<!--            <li>-->
-<!--                <a href="/admin/hoa-don">-->
-<!--                    <i class="fa fa-file-invoice-dollar"></i> <span>Hóa Đơn</span>-->
-<!--                </a>-->
+            <!-- Giảm Giá (Chỉ Admin thấy) -->
+            <li class="treeview">
+            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">
+                <a href="#">
+                    <i class="fa fa-percentage"></i> <span>Giảm Giá</span>
+                </a>
+                <ul class="treeview-menu">
+                    <li><a href="/admin/phieu-giam-gia"><i class="fa fa-ticket-alt"></i> Phiếu Giảm Giá </a></li>
+                    <li><a href="/admin/dot-giam-gia"><i class="fa fa-calendar-alt"></i> Đợt Giảm Giá </a></li>
+                </ul>
 <!--            </li>-->
-
-<!--            &lt;!&ndash; Trả Hàng &ndash;&gt;-->
-<!--            <li>-->
-<!--                <a href="#">-->
-<!--                    <i class="fa fa-undo-alt"></i> <span>Trả Hàng</span>-->
-<!--                </a>-->
-<!--            </li>-->
-
-<!--            &lt;!&ndash; Quản Lý Sản Phẩm &ndash;&gt;-->
-<!--            <li class="treeview">-->
-<!--                <a href="#">-->
-<!--                    <i class="fa fa-cogs"></i> <span>Quản lý Sản Phẩm</span>-->
-<!--                </a>-->
-<!--                <ul class="treeview-menu">-->
-<!--                    <li><a href="/admin/san-pham"><i class="fa fa-cube"></i> Sản Phẩm </a></li>-->
-<!--                    <li><a href="/admin/danh-muc"><i class="fa fa-tags"></i> Danh Mục </a></li>-->
-<!--                    <li><a href="/admin/thuong-hieu"><i class="fa fa-industry"></i> Thương Hiệu </a></li>-->
-<!--                    <li><a href="/admin/xuat-xu"><i class="fa fa-globe"></i> Xuất Xứ </a></li>-->
-<!--                    <li><a href="/admin/mau-sac"><i class="fa fa-palette"></i> Màu Sắc</a></li>-->
-<!--                    <li><a href="/admin/kich-thuoc"><i class="fa fa-ruler"></i> Kích Thước </a></li>-->
-<!--                    <li><a href="/admin/chat-lieu"><i class="fa fa-leaf"></i> Chất Liệu </a></li>-->
-<!--                </ul>-->
-<!--            </li>-->
-
-<!--            &lt;!&ndash; Quản Lý Tài Khoản (Chỉ Admin thấy) &ndash;&gt;-->
-<!--            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
-<!--                <a href="#">-->
-<!--                    <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>-->
-<!--                </a>-->
-<!--                <ul class="treeview-menu">-->
-<!--                    <li><a href="/admin/nhan-vien"><i class="fa fa-users"></i> Nhân Viên </a></li>-->
-<!--                    <li><a href="/admin/khach-hang"><i class="fa fa-user"></i> Khách Hàng </a></li>-->
-<!--                </ul>-->
-<!--            </li>-->
-
-<!--            &lt;!&ndash; Giảm Giá (Chỉ Admin thấy) &ndash;&gt;-->
-<!--            <li class="treeview" th:if="${role != null and role.equalsIgnoreCase('ADMIN')}">-->
-<!--                <a href="#">-->
-<!--                    <i class="fa fa-percentage"></i> <span>Giảm Giá</span>-->
-<!--                </a>-->
-<!--                <ul class="treeview-menu">-->
-<!--                    <li><a href="/admin/phieu-giam-gia"><i class="fa fa-ticket-alt"></i> Phiếu Giảm Giá </a></li>-->
-<!--                    <li><a href="/admin/dot-giam-gia"><i class="fa fa-calendar-alt"></i> Đợt Giảm Giá </a></li>-->
-<!--                </ul>-->
-<!--            </li>-->
-
-<!--            &lt;!&ndash; Widgets &ndash;&gt;-->
-<!--            <li>-->
-<!--                <a href="#">-->
-<!--                    <i class="fa fa-cogs"></i> <span>Widgets</span>-->
-<!--                </a>-->
-<!--            </li>-->
-<!--        </ul>-->
-<!--    </section>-->
-<!--</aside>-->
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa fa-cogs"></i> <span>Widgets</span>
+                </a>
+            </li>
+        </ul>
+    </section>
+</aside>
