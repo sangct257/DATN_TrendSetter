@@ -51,7 +51,7 @@ public class NhanVien {
     private String trangThai;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "vai_tro", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "vai_tro", nullable = false)
     private Role vaiTro;
 
     @Column(name = "hinh_anh", columnDefinition = "NVARCHAR(255)")

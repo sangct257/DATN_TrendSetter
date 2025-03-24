@@ -18,7 +18,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Kiểm tra xem có tài khoản admin chưa
-        if (nhanVienRepository.findByUsername("admin").isEmpty()) {
+        if (nhanVienRepository.findFirstByUsername("admin").isEmpty()) {
             NhanVien admin = new NhanVien();
             admin.setUsername("admin");
             admin.setHoTen("admin");

@@ -104,8 +104,12 @@
 
     async function checkLogin() {
         try {
-            const response = await fetch("http://localhost:8080/api/auth/me", { credentials: "include" });
-            if (!response.ok) console.warn("Bạn chưa đăng nhập!");
+            const response = await fetch("http://localhost:8080/api/auth/me", {
+                credentials: "include"  // Đảm bảo rằng cookie được gửi trong yêu cầu
+            });
+            if (!response.ok) {
+                console.warn("Bạn chưa đăng nhập!");
+            }
         } catch (error) {
             console.error("Lỗi kiểm tra đăng nhập:", error);
         }
@@ -125,7 +129,7 @@
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({ email, password }),
-                credentials: "include"
+                credentials: "include"  // Đảm bảo cookie được gửi trong mỗi yêu cầu
             });
 
             if (response.ok) {
@@ -155,6 +159,7 @@
             console.error("Lỗi khi đăng nhập:", error);
         }
     }
+
 </script>
 
 </body>
