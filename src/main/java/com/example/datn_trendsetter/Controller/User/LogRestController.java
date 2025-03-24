@@ -4,10 +4,12 @@ import com.example.datn_trendsetter.DTO.AuthResponse;
 import com.example.datn_trendsetter.DTO.LoginRequest;
 import com.example.datn_trendsetter.DTO.RegisterRequest;
 import com.example.datn_trendsetter.Service.AuthService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -48,25 +50,20 @@ public class LogRestController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
-
-    // Đăng nhập Nhân viên
     @PostMapping("/nhanvien/login")
-    public ResponseEntity<?> loginNhanVien(@RequestBody LoginRequest request) {
+    public String loginNhanVien(@RequestBody LoginRequest request, HttpSession session) {
         try {
             request.setLoaiTaiKhoan("NHANVIEN");
             AuthResponse response = authService.login(request);
-            return ResponseEntity.ok()
-                    .header("Authorization", "Bearer " + response.getToken())
-                    .body(Map.of(
-                            "redirect", response.getRedirectUrl(),
-                            "token", response.getToken(),
-                            "roles", response.getRoles()
-                    ));
+
+            // Lưu role vào session
+            session.setAttribute("role", response.getRoles());
+
+            return "redirect:" + response.getRedirectUrl();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return  e.getMessage();
         }
     }
-
     // Đăng nhập Khách hàng
     @PostMapping("/khachhang/login")
     public ResponseEntity<?> loginKhachHang(@RequestBody LoginRequest request) {
