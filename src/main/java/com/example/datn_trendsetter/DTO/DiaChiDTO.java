@@ -6,8 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DiaChiDTO {
-    private Integer soNha;
-    private String tenDuong;
+    private String diaChiCuThe;
     private String phuong;
     private String huyen;
     private String thanhPho;

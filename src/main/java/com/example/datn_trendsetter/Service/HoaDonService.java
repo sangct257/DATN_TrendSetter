@@ -28,7 +28,7 @@ public class HoaDonService {
         hoaDon.setLoaiHoaDon(delivery ? "Giao Hàng" : "Tại Quầy");
 
         if (!delivery) {
-            hoaDon.setTenDuong(null);
+            hoaDon.setDiaChiCuThe(null);
             hoaDon.setHuyen(null);
             hoaDon.setPhuong(null);
             hoaDon.setThanhPho(null);

@@ -464,19 +464,12 @@
                                                     <span class="text-danger" id="shippingSoDienThoaiError"></span>
                                                 </div>
 
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <input type="text" id="soNha" name="soNha" class="form-control"
-                                                               th:value="${hoaDon.soNha}" placeholder="Số nhà">
-                                                        <span class="text-danger" id="soNhaError"></span>
-                                                    </div>
-
-                                                    <div class="col-md-6 mb-3">
-                                                        <input type="text" id="tenDuong" name="tenDuong"
-                                                               class="form-control" th:value="${hoaDon.tenDuong}"
-                                                               placeholder="Tên đường">
-                                                        <span class="text-danger" id="tenDuongError"></span>
-                                                    </div>
+                                                <div class="col-md-12 mb-3">
+                                                    <input type="text" name="diaChiCuThe" class="form-control w-100"
+                                                           id="diaChiCuThe"
+                                                           th:value="${hoaDon.diaChiCuThe != null ? hoaDon.diaChiCuThe : ''}"
+                                                           placeholder="Địa chỉ cụ thể">
+                                                    <span class="text-danger" id="diaChiCuTheError"></span>
                                                 </div>
 
                                                 <div class="row">

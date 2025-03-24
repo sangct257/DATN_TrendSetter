@@ -56,8 +56,7 @@ public class DiaChiApiController {
         }
 
         DiaChi diaChi = optionalDiaChi.get();
-        diaChi.setSoNha(updatedDiaChi.getSoNha());
-        diaChi.setTenDuong(updatedDiaChi.getTenDuong());
+        diaChi.setDiaChiCuThe(updatedDiaChi.getDiaChiCuThe());
         diaChi.setPhuong(updatedDiaChi.getPhuong());
         diaChi.setHuyen(updatedDiaChi.getHuyen());
         diaChi.setThanhPho(updatedDiaChi.getThanhPho());

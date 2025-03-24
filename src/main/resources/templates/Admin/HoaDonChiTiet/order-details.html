@@ -511,17 +511,10 @@
 
                                                     <div class="row">
                                                         <div class="col-md-6 mb-3">
-                                                            <input type="text" id="soNha" name="soNha"
-                                                                   class="form-control"
-                                                                   th:value="${hoaDon.soNha}" placeholder="Số nhà">
-                                                            <span class="text-danger" id="soNhaError"></span>
-                                                        </div>
-
-                                                        <div class="col-md-6 mb-3">
-                                                            <input type="text" id="tenDuong" name="tenDuong"
-                                                                   class="form-control" th:value="${hoaDon.tenDuong}"
-                                                                   placeholder="Tên đường">
-                                                            <span class="text-danger" id="tenDuongError"></span>
+                                                            <input type="text" id="diaChiCuThe" name="diaChiCuThe"
+                                                                   class="form-control" th:value="${hoaDon.diaChiCuThe}"
+                                                                   placeholder="Địa Chỉ Cụ Thể">
+                                                            <span class="text-danger" id="diaChiCuTheError"></span>
                                                         </div>
                                                     </div>
 
@@ -600,8 +593,8 @@
                                             <div class="row mb-3">
                                                 <label class="col-md-5 fw-bold">Địa chỉ:</label>
                                                 <div class="col-md-6 border border-secondary rounded p-2">
-                                                    <span th:if="${hoaDon.soNha != null}"
-                                                          th:text="${hoaDon.soNha + ', '}"></span>
+                                                    <span th:if="${hoaDon.diaChiCuThe != null}"
+                                                          th:text="${hoaDon.diaChiCuThe + ', '}"></span>
                                                     <span th:if="${hoaDon.phuong != null}"
                                                           th:text="${hoaDon.phuong + ', '}"></span>
                                                     <span th:if="${hoaDon.huyen != null}"

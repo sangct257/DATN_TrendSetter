@@ -131,15 +131,14 @@ public class ShopApiController {
     public ResponseEntity<Map<String, String>> updateShipping(@RequestParam Integer hoaDonId,
                                                               @RequestParam String nguoiNhan,
                                                               @RequestParam String soDienThoai,
-                                                              @RequestParam Integer soNha,
-                                                              @RequestParam String tenDuong,
+                                                              @RequestParam String diaChiCuThe,
                                                               @RequestParam String phuong,
                                                               @RequestParam String huyen,
                                                               @RequestParam String thanhPho,
                                                               @RequestParam String ghiChu) {
         Map<String, String> response = new HashMap<>();
         try {
-            String message = shopService.updateShippingAddress(hoaDonId, nguoiNhan, soDienThoai, soNha, tenDuong, phuong, huyen, thanhPho, ghiChu);
+            String message = shopService.updateShippingAddress(hoaDonId, nguoiNhan, soDienThoai, diaChiCuThe, phuong, huyen, thanhPho, ghiChu);
             response.put("message", message);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {

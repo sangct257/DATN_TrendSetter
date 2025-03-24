@@ -64,11 +64,8 @@ public class HoaDon {
     @Column(name = "email",columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "so_nha")
-    private Integer soNha;
-
     @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
-    private String tenDuong;
+    private String diaChiCuThe;
 
     @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
     private String huyen;
@@ -140,8 +137,7 @@ public class HoaDon {
     private float tinhPhiShip() {
         if (this.nguoiNhan != null && !this.nguoiNhan.isEmpty()
                 && this.soDienThoai != null && !this.soDienThoai.isEmpty()
-                && this.soNha != null
-                && this.tenDuong != null && !this.tenDuong.isEmpty()
+                && this.diaChiCuThe != null && !this.diaChiCuThe.isEmpty()
                 && this.huyen != null && !this.huyen.isEmpty()
                 && this.phuong != null && !this.phuong.isEmpty()
                 && this.thanhPho != null && !this.thanhPho.isEmpty()) {
