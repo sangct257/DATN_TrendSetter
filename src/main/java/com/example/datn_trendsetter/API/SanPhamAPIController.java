@@ -176,25 +176,41 @@ public class SanPhamAPIController {
     }
 
     @PutMapping("/update-product-detail-status")
-    public ResponseEntity<?> updateProductDetails(@RequestBody SanPhamChiTietDTO request) {
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
-        if (sanPhamChiTiet == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
+    public ResponseEntity<?> updateProductDetails(
+            @RequestBody SanPhamChiTietDTO request,
+            HttpSession session
+    ) {
+        try {
+            NhanVien nhanVien = (NhanVien) session.getAttribute("user");
+            if (nhanVien == null || nhanVien.getVaiTro() != NhanVien.Role.ADMIN) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Chỉ admin mới được thực hiện thao tác này");
+            }
+
+            SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId())
+                    .orElseThrow(() -> new RuntimeException("Chi tiết sản phẩm không tồn tại"));
+
+            if ("Còn Hàng".equals(sanPhamChiTiet.getTrangThai())) {
+                sanPhamChiTiet.setTrangThai("Hết Hàng");
+                sanPhamChiTiet.setDeleted(true);
+            } else {
+                sanPhamChiTiet.setTrangThai("Còn Hàng");
+                sanPhamChiTiet.setDeleted(false);
+            }
+
+            sanPhamChiTietRepository.save(sanPhamChiTiet);
+            capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cập nhật thành công",
+                    "newStatus", sanPhamChiTiet.getTrangThai()
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
         }
-
-        if ("Còn Hàng".equals(sanPhamChiTiet.getTrangThai())) {
-            sanPhamChiTiet.setTrangThai("Hết Hàng");
-            sanPhamChiTiet.setDeleted(true);
-        }else if ("Hết Hàng".equals(sanPhamChiTiet.getTrangThai())) {
-            sanPhamChiTiet.setTrangThai("Còn Hàng");
-            sanPhamChiTiet.setDeleted(false);
-        }
-
-        sanPhamChiTietRepository.save(sanPhamChiTiet);
-
-
-        capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
-        return response("Cập nhật chi tiết sản phẩm thành công!",true);
     }
 
     @PutMapping("/update")
