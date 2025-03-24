@@ -7,6 +7,7 @@ import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import com.example.datn_trendsetter.Service.ShopService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +24,13 @@ public class ShopApiController {
     private ShopService shopService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createHoaDon() {
+    public ResponseEntity<?> createHoaDon(HttpSession session) {
         try {
             HoaDon hoaDon = new HoaDon();
             hoaDon.setKhachHang(null);  // Hoặc gán khách hàng mặc định nếu cần
             hoaDon.setNhanVien(null);   // Hoặc gán nhân viên mặc định nếu cần
 
-            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon);
+            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon,session);
 
             if (createdHoaDon == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

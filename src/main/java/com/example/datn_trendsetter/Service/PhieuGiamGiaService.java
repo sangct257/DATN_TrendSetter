@@ -1,16 +1,11 @@
 package com.example.datn_trendsetter.Service;
 
 import com.example.datn_trendsetter.DTO.PhieuGiamGiaDTO;
-import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
-import com.example.datn_trendsetter.Entity.SanPham;
-import com.example.datn_trendsetter.Repository.KhachHangRepository;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

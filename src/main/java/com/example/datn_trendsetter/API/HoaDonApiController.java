@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.API;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Service.ShopService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -22,12 +23,12 @@ public class HoaDonApiController {
     private ShopService shopService;
 
     @PostMapping("/create-hoa-don")
-    public ResponseEntity<?> createHoaDon(@RequestBody(required = false) HoaDon hoaDon) {
+    public ResponseEntity<?> createHoaDon(@RequestBody(required = false) HoaDon hoaDon, HttpSession session) {
         try {
             if (hoaDon == null) {
                 throw new Exception("Dữ liệu hóa đơn không hợp lệ hoặc thiếu.");
             }
-            return ResponseEntity.ok(shopService.createHoaDon(hoaDon));
+            return ResponseEntity.ok(shopService.createHoaDon(hoaDon,session));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

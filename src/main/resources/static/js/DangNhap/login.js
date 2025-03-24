@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const email = emailInput.value;
         const password = passwordInput.value;
-        const userType = userTypeInput.value; 
+        const userType = userTypeInput.value;
 
         const loginUrl = userType === "NHANVIEN" ? "/auth/nhanvien/login" : "/auth/khachhang/login";
 

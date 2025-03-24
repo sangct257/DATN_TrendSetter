@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Getter
 @Setter
@@ -24,19 +26,19 @@ public class NhanVien {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ho_ten",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "ho_ten", columnDefinition = "NVARCHAR(255)")
     private String hoTen;
 
-    @Column(name = "username",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "username", columnDefinition = "NVARCHAR(255)")
     private String username;
 
-    @Column(name = "password",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "password", columnDefinition = "NVARCHAR(255)")
     private String password;
 
-    @Column(name = "email",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "email", columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "dia_chi",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "dia_chi", columnDefinition = "NVARCHAR(255)")
     private String diaChi;
 
     @Column(name = "gioi_tinh")
@@ -45,13 +47,14 @@ public class NhanVien {
     @Column(name = "ngay_sinh")
     private LocalDate ngaySinh;
 
-    @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "trang_thai", columnDefinition = "NVARCHAR(255)")
     private String trangThai;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vai_tro", columnDefinition = "NVARCHAR(255)")
     private Role vaiTro;
 
-    @Column(name = "hinh_anh",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "hinh_anh", columnDefinition = "NVARCHAR(255)")
     private String hinhAnh;
+
 }

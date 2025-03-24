@@ -33,6 +33,9 @@ public class ThongKeControlller {
         Float doanhThuNamNay = hoaDonService.getDoanhThuNamNay();
         Float doanhThuThangNay = hoaDonService.getDoanhThuThangNay();
         Float doanhThuNgayNay = hoaDonService.getDoanhThuNgayNay();
+        Float doanhSoNamNay = hoaDonService.getDoanhSoNamNay();
+        Float doanhSoThangNay = hoaDonService.getDoanhSoThangNay();
+        Float doanhSoNgayNay = hoaDonService.getDoanhSoNgayNay();
         int soLuongHoaDonThangNay = hoaDonService.countHoaDonThangNay();
         int soLuongHoaDonNgayNay = hoaDonService.countHoaDonNgayNay();
         int soLuongSanPhamThangNay = hoaDonChiTietService.getTongSanPhamBanTrongThang();
@@ -73,10 +76,13 @@ public class ThongKeControlller {
         List<SanPhamChiTiet> lowStockProducts = sanPhamChiTietService.findLowStockProducts();
         model.addAttribute("lowStockProducts", lowStockProducts.isEmpty() ? Collections.emptyList() : lowStockProducts);
 
-        // Thêm các giá trị vào model
         model.addAttribute("doanhThuNgayNay", doanhThuNgayNay);
         model.addAttribute("doanhThuThangNay", doanhThuThangNay);
         model.addAttribute("doanhThuNamNay", doanhThuNamNay);
+        // Thêm các giá trị vào model
+        model.addAttribute("doanhSoNgayNay", doanhSoNgayNay);
+        model.addAttribute("doanhSoThangNay", doanhSoThangNay);
+        model.addAttribute("doanhSoNamNay", doanhSoNamNay);
         model.addAttribute("soLuongSanPhamThangNay", soLuongSanPhamThangNay);
         model.addAttribute("soLuongHoaDonNgayNay", soLuongHoaDonNgayNay);
         model.addAttribute("soLuongHoaDonThangNay", soLuongHoaDonThangNay);

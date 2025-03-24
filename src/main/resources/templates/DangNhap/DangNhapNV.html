@@ -90,8 +90,72 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script src="/js/main.js"></script>
 
-<script src="/js/DangNhap/login.js"></script>
+<!--<script src="/js/DangNhap/login.js"></script>-->
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        await checkLogin();
+    });
+
+    async function checkLogin() {
+        try {
+            const response = await fetch("http://localhost:8080/api/auth/me", { credentials: "include" });
+            if (!response.ok) console.warn("Bạn chưa đăng nhập!");
+        } catch (error) {
+            console.error("Lỗi kiểm tra đăng nhập:", error);
+        }
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        await handleLogin();
+    });
+
+    async function handleLogin() {
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
+
+        try {
+            const response = await fetch("http://localhost:8080/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ email, password }),
+                credentials: "include"
+            });
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Đăng nhập thành công!",
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = "http://localhost:8080/admin/";
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Đăng nhập thất bại!",
+                    text: "Sai email hoặc mật khẩu.",
+                    confirmButtonText: "Thử lại"
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi hệ thống!",
+                text: "Vui lòng thử lại sau.",
+                confirmButtonText: "OK"
+            });
+            console.error("Lỗi khi đăng nhập:", error);
+        }
+    }
+</script>
+
 </body>
 </html>

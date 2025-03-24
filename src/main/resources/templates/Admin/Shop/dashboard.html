@@ -25,14 +25,7 @@
         <section class="content-header">
             <h1>
                 Bán Hàng Tại Quầy
-                <small>it all starts here</small>
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i><a href="/admin">Home</a></a></li>
-                <li><a href="#">Bán Hàng Tại Quầy</a></li>
-            </ol>
-            <!-- Vùng hiển thị Toast -->
-            <div id="custom-toast" class="hidden"></div>
         </section>
 
 
@@ -636,23 +629,26 @@
                                                         <input type="hidden" name="hoaDonId" id="hoaDonId"
                                                                th:value="${hoaDon != null ? hoaDon.id : ''}">
                                                         <div class="mb-3">
-                                                            <label for="tenPhieuGiamGia" class="form-label">
-                                                                <i class="fas fa-tag"></i> Phiếu giảm giá:
-                                                            </label>
-                                                            <select id="tenPhieuGiamGia" name="tenPhieuGiamGia" class="form-select">
-                                                                <option value="">Không áp dụng phiếu giảm giá</option>
-                                                                <th:block th:if="${listPhieuGiamGia != null and not #lists.isEmpty(listPhieuGiamGia)}">
-                                                                    <th:block th:each="phieuGiamGia : ${listPhieuGiamGia}">
-                                                                        <option th:value="${phieuGiamGia.tenPhieuGiamGia}"
-                                                                                th:text="${phieuGiamGia.tenPhieuGiamGia + ' ( ' + #numbers.formatInteger(phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VND ) '}">
-                                                                        </option>
+                                                            <div class="mb-3">
+                                                                <label for="tenPhieuGiamGia" class="form-label fw-bold">
+                                                                    <i class="bi bi-tags-fill text-primary"></i> Chọn Phiếu Giảm Giá
+                                                                </label>
+                                                                <select id="tenPhieuGiamGia" name="tenPhieuGiamGia" class="form-select border-primary shadow-sm rounded-pill">
+                                                                    <option value="">🚫 Không áp dụng phiếu giảm giá</option>
+                                                                    <th:block th:if="${listPhieuGiamGia != null and not #lists.isEmpty(listPhieuGiamGia)}">
+                                                                        <th:block th:each="phieuGiamGia : ${listPhieuGiamGia}">
+                                                                            <option th:value="${phieuGiamGia.tenPhieuGiamGia}"
+                                                                                    th:text="${phieuGiamGia.tenPhieuGiamGia +
+                        ' ( ' + #numbers.formatInteger(phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VND ) ' +
+                        (phieuGiamGia.dieuKien > 0 ? '( Điều Kiện ≥ ' + #numbers.formatInteger(phieuGiamGia.dieuKien, 3, 'COMMA') + ' VND )' : '')}">
+                                                                            </option>
+                                                                        </th:block>
                                                                     </th:block>
-                                                                </th:block>
-                                                                <th:block th:if="${listPhieuGiamGia == null or #lists.isEmpty(listPhieuGiamGia)}">
-                                                                    <option value="" disabled selected>Không có phiếu giảm giá</option>
-                                                                </th:block>
-
-                                                            </select>
+                                                                    <th:block th:if="${listPhieuGiamGia == null or #lists.isEmpty(listPhieuGiamGia)}">
+                                                                        <option value="" disabled selected>⛔ Không có phiếu giảm giá</option>
+                                                                    </th:block>
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                         <button type="button" class="btn btn-primary"
                                                                 onclick="applyPhieuGiamGia(this)">Áp dụng
@@ -807,6 +803,9 @@
 
 <script src="/js/shop.js"></script>
 
+<script src="/js/main.js"></script>
+<script src="/js/DangNhap/login.js"></script>
+<script src="/js/DangNhap/logout.js"></script>
 
 </body>
 </html>

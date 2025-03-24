@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.SanPham;
 import com.example.datn_trendsetter.Repository.SanPhamRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -98,8 +99,8 @@ public class SanPhamAPIController {
 
     @PostMapping("/add")
     @ResponseBody
-    public ResponseEntity<?> addSanPham(@RequestBody SanPhamDTO sanPhamDTO) {
-        return sanPhamService.addSanPham(sanPhamDTO);
+    public ResponseEntity<?> addSanPham(@RequestBody SanPhamDTO sanPhamDTO, HttpSession session) {
+        return sanPhamService.addSanPham(sanPhamDTO,session);
     }
 
     @PutMapping("/update-san-pham/{id}")
