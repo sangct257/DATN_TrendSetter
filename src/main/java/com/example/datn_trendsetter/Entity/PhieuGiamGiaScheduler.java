@@ -6,29 +6,33 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
-
+import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class PhieuGiamGiaScheduler {
+    private static final ConcurrentHashMap<Integer, Boolean> editedByAdmin = new ConcurrentHashMap<>();
 
     private final PhieuGiamGiaRepository phieuGiamGiaRepository;
 
     public PhieuGiamGiaScheduler(PhieuGiamGiaRepository phieuGiamGiaRepository) {
         this.phieuGiamGiaRepository = phieuGiamGiaRepository;
     }
-    @Scheduled(fixedRate = 1) // Chạy mỗi phút (60 giây)
+
+    @Scheduled(fixedRate = 60000) // Chạy mỗi phút
     public void updatePhieuGiamGiaStatus() {
-        List<PhieuGiamGia> phieuGiamGiaList = phieuGiamGiaRepository.findAll(Sort.by(Sort.Direction.DESC,"id"));
+        List<PhieuGiamGia> phieuGiamGiaList = phieuGiamGiaRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         LocalDate today = LocalDate.now();
 
-        // Kiểm tra nếu danh sách là null hoặc rỗng
-        if (phieuGiamGiaList == null || phieuGiamGiaList.isEmpty()) {
-            return; // Nếu không có phiếu giảm giá nào, thoát khỏi phương thức
+        if (phieuGiamGiaList.isEmpty()) {
+            return;
         }
 
         for (PhieuGiamGia pgg : phieuGiamGiaList) {
-            // Kiểm tra nếu pgg là null
-            if (pgg == null) {
-                continue; // Nếu phiếu giảm giá là null, bỏ qua và chuyển sang phần tử tiếp theo
+            if (pgg == null) continue;
+
+            boolean isEditedByAdmin = editedByAdmin.getOrDefault(pgg.getId(), false);
+
+            if (isEditedByAdmin) {
+                continue; // Bỏ qua cập nhật nếu ADMIN đã thay đổi
             }
 
             if (pgg.getNgayBatDau() != null && pgg.getNgayKetThuc() != null) {
@@ -41,13 +45,29 @@ public class PhieuGiamGiaScheduler {
                     newStatus = "Ngừng Hoạt Động";
                 }
 
-                if (!pgg.getTrangThai().equals(newStatus)) {
-                    pgg.setTrangThai(newStatus);
-                    phieuGiamGiaRepository.save(pgg); // Lưu nếu trạng thái thay đổi
+                // Nếu phiếu đã hết hạn, khóa luôn trạng thái (không cho nhân viên chỉnh sửa nữa)
+                if (newStatus.equals("Ngừng Hoạt Động") && today.isAfter(pgg.getNgayKetThuc())) {
+                    editedByAdmin.put(pgg.getId(), true); // Khóa trạng thái
+                }
+
+                // Scheduler chỉ cập nhật nếu ADMIN chưa thay đổi
+                if (!isEditedByAdmin) {
+                    if (!pgg.getTrangThai().equals(newStatus)) {
+                        pgg.setTrangThai(newStatus);
+                        phieuGiamGiaRepository.save(pgg);
+                    }
                 }
             }
         }
     }
 
-}
+    // Cập nhật cờ trong bộ nhớ tạm thời khi ADMIN thay đổi trạng thái
+    public static void markAsEditedByAdmin(Integer id) {
+        editedByAdmin.put(id, true);
+    }
 
+    // Xóa cờ trong bộ nhớ tạm thời khi ADMIN cho phép thay đổi lại
+    public static void removeEditedFlag(Integer id) {
+        editedByAdmin.remove(id);
+    }
+}

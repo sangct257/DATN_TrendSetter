@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     item.trangThai === 'Đang Hoạt Động' ? 'btn-success' : 
                         item.trangThai === 'Sắp Diễn Ra' ? 'btn-warning' : 
                             'btn-danger'} btn-sm" 
-                                onclick="toggleStatus(${item.id}, '${item.trangThai}')">
+                                onclick="window.toggleStatus(${item.id}, '${item.trangThai}')">
                             ${item.trangThai}
                 </button>`,
                 `<button class="btn btn-primary btn-sm" onclick="viewDetail(${item.id})">
@@ -140,6 +140,58 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error("Lỗi:", error));
     }
 
+    window.toggleStatus = function(id, currentStatus) {
+        let actionText = currentStatus === "Đang Hoạt Động" ? "vô hiệu hóa" : "kích hoạt lại";
+
+        Swal.fire({
+            title: `Xác nhận ${actionText} phiếu giảm giá?`,
+            text: `Bạn có chắc muốn ${actionText} phiếu giảm giá này không?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Có, thay đổi!",
+            cancelButtonText: "Hủy"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/api/phieu-giam-gia/toggle-status/${id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Thành công",
+                                text: data.message,
+                                confirmButtonText: "OK"
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Lỗi",
+                                text: data.error,
+                                confirmButtonText: "OK"
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Lỗi:", error);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Lỗi",
+                            text: "Đã xảy ra lỗi trong quá trình xử lý!",
+                            confirmButtonText: "OK"
+                        });
+                    });
+            }
+        });
+    };
 
     // Đảm bảo rằng phần dưới có sự kiện DOMContentLoaded
     document.addEventListener("DOMContentLoaded", function() {
@@ -168,7 +220,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("trangThai").value = pgg.trangThai;
                 document.getElementById("dieuKien").value = pgg.dieuKien;
 
-                // Chuẩn bị modal cho chế độ "Sửa"
+                // Gọi hàm cập nhật trạng thái sau khi giá trị ngày bắt đầu được thiết lập
+                updateTrangThai();
+
+                // Hiển thị modal
                 let addModal = new bootstrap.Modal(document.getElementById("addModal"));
                 document.getElementById("addModal").setAttribute("data-mode", "edit");
                 document.querySelector("#addModal .btn-primary").style.display = "block";

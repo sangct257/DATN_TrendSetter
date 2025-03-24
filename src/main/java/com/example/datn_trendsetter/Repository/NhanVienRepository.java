@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
     Optional<NhanVien> findByEmail(String email); // Đảm bảo trả về Optional
 
-    Optional<NhanVien> findByUsername(String username);
+    Optional<NhanVien> findFirstByUsername(String username);
 }

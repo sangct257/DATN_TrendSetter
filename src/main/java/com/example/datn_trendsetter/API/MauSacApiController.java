@@ -32,7 +32,7 @@ public class MauSacApiController {
         }
 
         MauSac mauSac = new MauSac();
-        mauSac.setMaMauSac(mauSacRequest.getMaMauSac());
+        mauSac.setMaMauSac("MS-" + UUID.randomUUID().toString().substring(0, 8));
         mauSac.setTenMauSac(mauSacRequest.getTenMauSac());
         mauSac.setNgayTao(LocalDate.now());
         mauSac.setNgaySua(LocalDate.now());
@@ -72,7 +72,7 @@ public class MauSacApiController {
         }
 
         // Cập nhật thông tin màu sắc
-        mauSac.setMaMauSac(updatedMauSac.getMaMauSac());
+        mauSac.setMaMauSac(mauSac.getMaMauSac());
         mauSac.setTenMauSac(updatedMauSac.getTenMauSac());
         mauSac.setNgaySua(LocalDate.now());
         mauSac.setNguoiSua(updatedMauSac.getNguoiSua() != null ? updatedMauSac.getNguoiSua() : "admin");
