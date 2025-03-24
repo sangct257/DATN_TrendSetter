@@ -356,8 +356,7 @@ public class ShopService {
 
         // Cập nhật địa chỉ nhưng KHÔNG cập nhật phí ship
         if (diaChi != null) {
-            hoaDon.setSoNha(diaChi.getSoNha());
-            hoaDon.setTenDuong(diaChi.getTenDuong());
+            hoaDon.setDiaChiCuThe(diaChi.getDiaChiCuThe());
             hoaDon.setPhuong(diaChi.getPhuong());
             hoaDon.setHuyen(diaChi.getHuyen());
             hoaDon.setThanhPho(diaChi.getThanhPho());
@@ -404,8 +403,7 @@ public class ShopService {
             hoaDon.setNguoiNhan(null);
             hoaDon.setSoDienThoai(null);
             hoaDon.setEmail(null); // Nếu bạn cũng muốn xóa email
-            hoaDon.setSoNha(null);
-            hoaDon.setTenDuong(null);
+            hoaDon.setDiaChiCuThe(null);
             hoaDon.setPhuong(null);
             hoaDon.setHuyen(null);
             hoaDon.setThanhPho(null);
@@ -421,8 +419,7 @@ public class ShopService {
             hoaDon.setNguoiNhan(null);
             hoaDon.setSoDienThoai(null);
             hoaDon.setEmail(null);
-            hoaDon.setSoNha(null);
-            hoaDon.setTenDuong(null);
+            hoaDon.setDiaChiCuThe(null);
             hoaDon.setPhuong(null);
             hoaDon.setHuyen(null);
             hoaDon.setThanhPho(null);
@@ -454,8 +451,8 @@ public class ShopService {
     }
 
     @Transactional
-    public String updateShippingAddress(Integer hoaDonId, String nguoiNhan, String soDienThoai, Integer soNha,
-                                        String tenDuong, String phuong, String huyen, String thanhPho, String ghiChu) {
+    public String updateShippingAddress(Integer hoaDonId, String nguoiNhan, String soDienThoai,
+                                        String diaChiCuThe, String phuong, String huyen, String thanhPho, String ghiChu) {
         if (hoaDonId == null) {
             throw new IllegalArgumentException("ID hóa đơn không được null!");
         }
@@ -471,8 +468,7 @@ public class ShopService {
         // Xóa địa chỉ cũ
         hoaDon.setNguoiNhan(null);
         hoaDon.setSoDienThoai(null);
-        hoaDon.setSoNha(null);
-        hoaDon.setTenDuong(null);
+        hoaDon.setDiaChiCuThe(null);
         hoaDon.setPhuong(null);
         hoaDon.setHuyen(null);
         hoaDon.setThanhPho(null);
@@ -481,8 +477,7 @@ public class ShopService {
         // Cập nhật địa chỉ mới
         hoaDon.setNguoiNhan(nguoiNhan);
         hoaDon.setSoDienThoai(soDienThoai);
-        hoaDon.setSoNha(soNha);
-        hoaDon.setTenDuong(tenDuong);
+        hoaDon.setDiaChiCuThe(diaChiCuThe);
         hoaDon.setPhuong(phuong);
         hoaDon.setHuyen(huyen);
         hoaDon.setThanhPho(thanhPho);
@@ -680,8 +675,7 @@ public class ShopService {
             // ✅ Xử lý theo loại hóa đơn Giao Hàng
             if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
                 // Kiểm tra nếu địa chỉ giao hàng bị thiếu
-                if (hoaDon.getSoNha() == null ||
-                        hoaDon.getTenDuong() == null || hoaDon.getTenDuong().isBlank() ||
+                if (hoaDon.getDiaChiCuThe() == null || hoaDon.getDiaChiCuThe().isBlank() ||
                         hoaDon.getHuyen() == null || hoaDon.getHuyen().isBlank() ||
                         hoaDon.getPhuong() == null || hoaDon.getPhuong().isBlank() ||
                         hoaDon.getThanhPho() == null || hoaDon.getThanhPho().isBlank()) {
@@ -786,8 +780,7 @@ public class ShopService {
             // Cập nhật họ tên và số điện thoại vào hóa đơn
             hoaDon.setNguoiNhan(nguoiNhan);
             hoaDon.setSoDienThoai(soDienThoai);
-            hoaDon.setSoNha(null);
-            hoaDon.setTenDuong(null);
+            hoaDon.setDiaChiCuThe(null);
             hoaDon.setPhuong(null);
             hoaDon.setHuyen(null);
             hoaDon.setThanhPho(null);

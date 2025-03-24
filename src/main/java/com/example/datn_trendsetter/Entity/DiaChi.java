@@ -18,11 +18,8 @@ public class DiaChi {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "so_nha")
-    private Integer soNha;
-
-    @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
-    private String tenDuong;
+    @Column(name = "dia_chi_cu_the",columnDefinition = "NVARCHAR(255)")
+    private String diaChiCuThe;
 
     @Column(name = "phuong",columnDefinition = "NVARCHAR(255)")
     private String phuong;

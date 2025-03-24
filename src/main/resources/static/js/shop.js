@@ -467,8 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const hoaDonId = formData.get("hoaDonId");
         const nguoiNhan = formData.get("nguoiNhan").trim();
         const soDienThoai = formData.get("soDienThoai").trim();
-        const soNha = formData.get("soNha").trim();
-        const tenDuong = formData.get("tenDuong").trim();
+        const diaChiCuThe = formData.get("diaChiCuThe").trim();
         const thanhPho = formData.get("thanhPho").trim();
         const huyen = formData.get("huyen").trim();
         const phuong = formData.get("phuong").trim();
@@ -476,8 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Xóa thông báo lỗi trước khi kiểm tra
         document.getElementById("shippingNguoiNhanError").textContent = "";
         document.getElementById("shippingSoDienThoaiError").textContent = "";
-        document.getElementById("soNhaError").textContent = "";
-        document.getElementById("tenDuongError").textContent = "";
+        document.getElementById("diaChiCuTheError").textContent = "";
         document.getElementById("thanhPhoError").textContent = "";
         document.getElementById("huyenError").textContent = "";
         document.getElementById("phuongError").textContent = "";
@@ -516,18 +514,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Kiểm tra địa chỉ
-        // Kiểm tra số nhà (chỉ được chứa số)
-        const soNhaRegex = /^[0-9]+$/;
-        if (!soNha) {
-            document.getElementById("soNhaError").textContent = "Số nhà không được để trống!";
-            isValid = false;
-        } else if (!soNhaRegex.test(soNha)) {
-            document.getElementById("soNhaError").textContent = "Số nhà chỉ được chứa số!";
-            isValid = false;
-        }
 
-        if (!tenDuong) {
-            document.getElementById("tenDuongError").textContent = "Tên đường không được để trống!";
+        if (!diaChiCuThe) {
+            document.getElementById("diaChiCuTheError").textContent = "Đia chỉ cụ thể không được để trống!";
             isValid = false;
         }
         if (!thanhPho) {

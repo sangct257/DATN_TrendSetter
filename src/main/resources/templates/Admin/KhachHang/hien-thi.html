@@ -168,8 +168,7 @@
                                         <thead class="table-dark">
                                         <tr>
                                             <th class="text-center">#</th>
-                                            <th class="text-center">Số Nhà</th>
-                                            <th class="text-center">Tên Đường</th>
+                                            <th class="text-center">Địa Chỉ Cụ Thể</th>
                                             <th class="text-center">Phường</th>
                                             <th class="text-center">Huyện</th>
                                             <th class="text-center">Thành Phố</th>
@@ -198,12 +197,8 @@
                                     <input type="hidden" id="idKhachHang">
                                     <input type="hidden" id="idDiaChi">
                                     <div class="mb-3">
-                                        <label class="form-label">Số Nhà</label>
-                                        <input type="text" class="form-control" id="soNha">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Tên Đường</label>
-                                        <input type="text" class="form-control" id="tenDuong">
+                                        <label class="form-label">Địa chỉ cụ thể</label>
+                                        <input type="text" class="form-control" id="diaChiCuThe">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Thành Phố</label>
@@ -397,7 +392,7 @@
             })
             .then(data => {
                 document.querySelector('#modalUpdateKhachHang input[name="diaChi"]').value =
-                    `${data.soNha}, ${data.tenDuong}, ${data.phuong}, ${data.huyen}, ${data.thanhPho}`;
+                    `${data.diaChiCuThe}, ${data.phuong}, ${data.huyen}, ${data.thanhPho}`;
             })
             .catch(error => {
                 console.error("Lỗi khi lấy địa chỉ mặc định:", error);
@@ -576,8 +571,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                         <td class="text-center">${index + 1}</td>
-                        <td class="text-center">${diaChi.soNha || 'N/A'}</td>
-                        <td class="text-center">${diaChi.tenDuong || 'N/A'}</td>
+                        <td class="text-center">${diaChi.diaChiCuThe || 'N/A'}</td>
                         <td class="text-center">${diaChi.phuong || 'N/A'}</td>
                         <td class="text-center">${diaChi.huyen || 'N/A'}</td>
                         <td class="text-center">${diaChi.thanhPho || 'N/A'}</td>
@@ -657,8 +651,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                         <td class="text-center">${index + 1}</td>
-                        <td class="text-center">${diaChi.soNha || 'N/A'}</td>
-                        <td class="text-center">${diaChi.tenDuong || 'N/A'}</td>
+                        <td class="text-center">${diaChi.diaChiCuThe || 'N/A'}</td>
                         <td class="text-center">${diaChi.phuong || 'N/A'}</td>
                         <td class="text-center">${diaChi.huyen || 'N/A'}</td>
                         <td class="text-center">${diaChi.thanhPho || 'N/A'}</td>
@@ -686,8 +679,7 @@
     // Mở modal thêm địa chỉ (thiết lập chế độ thêm mới)
     function openAddDiaChiModal() {
         document.getElementById("modalDiaChiLabel").textContent = "Thêm Địa Chỉ";
-        document.getElementById("soNha").value = "";
-        document.getElementById("tenDuong").value = "";
+        document.getElementById("diaChiCuThe").value = "";
         document.getElementById("phuong").value = "";
         document.getElementById("huyen").value = "";
         document.getElementById("thanhPho").value = "";
@@ -709,8 +701,7 @@
 
     // Thêm mới địa chỉ
     function saveDiaChi() {
-        const soNha = document.getElementById("soNha").value.trim();
-        const tenDuong = document.getElementById("tenDuong").value.trim();
+        const diaChiCuThe = document.getElementById("diaChiCuThe").value.trim();
         const phuong = document.getElementById("phuong").value.trim();
         const huyen = document.getElementById("huyen").value.trim();
         const thanhPho = document.getElementById("thanhPho").value.trim();
@@ -722,14 +713,13 @@
         }
 
         // Kiểm tra các trường cần thiết
-        if (!soNha || !tenDuong || !phuong || !huyen || !thanhPho) {
+        if (!diaChiCuThe || !phuong || !huyen || !thanhPho) {
             Swal.fire("Lỗi!", "Vui lòng điền đầy đủ thông tin địa chỉ.", "error");
             return;
         }
 
         const diaChi = {
-            soNha,
-            tenDuong,
+            diaChiCuThe,
             phuong,
             huyen,
             thanhPho
@@ -770,8 +760,7 @@
                 console.log("Dữ liệu nhận được:", data);
 
                 document.getElementById("modalDiaChiLabel").textContent = "Chỉnh Sửa Địa Chỉ";
-                document.getElementById("soNha").value = data.soNha || "";
-                document.getElementById("tenDuong").value = data.tenDuong || "";
+                document.getElementById("diaChiCuThe").value = data.diaChiCuThe || "";
                 document.getElementById("thanhPho").value = data.thanhPho || "";
                 document.getElementById("idDiaChi").value = idDiaChi;
 
@@ -814,8 +803,7 @@
         console.log("ID gửi lên API cập nhật:", idDiaChi); // Kiểm tra ID trước khi gửi
 
         const diaChi = {
-            soNha: document.getElementById("soNha").value,
-            tenDuong: document.getElementById("tenDuong").value,
+            diaChiCuThe: document.getElementById("diaChiCuThe").value,
             phuong: document.getElementById("phuong").value,
             huyen: document.getElementById("huyen").value,
             thanhPho: document.getElementById("thanhPho").value
