@@ -11,13 +11,28 @@ async function createHoaDon() {
             throw new Error(result.message || 'Lỗi khi tạo hóa đơn');
         }
 
-        alert(`Tạo hóa đơn thành công! Mã: ${result.maHoaDon}`);
-        addHoaDonToUI(result)
+        // Hiển thị thông báo thành công
+        Swal.fire({
+            title: 'Tạo hóa đơn thành công!',
+            text: `Mã hóa đơn: ${result.maHoaDon}`,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+        addHoaDonToUI(result);
     } catch (error) {
         console.error('Lỗi:', error);
-        alert(error.message);
+
+        // Hiển thị thông báo lỗi
+        Swal.fire({
+            title: 'Lỗi!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonText: 'Đóng'
+        });
     }
 }
+
 function addHoaDonToUI(hoaDon) {
     const container = document.querySelector(".row.g-4");
 
@@ -40,7 +55,7 @@ function addHoaDonToUI(hoaDon) {
                     <div class="card-body text-center">
                         <p class="card-text text-muted">
                             <i class="fas fa-shopping-cart"></i> Số lượng Sản Phẩm:
-                            <strong>${hoaDon.tongSanPham}</strong>
+                            <strong th:text="${hoaDon.tongSanPham != null ? hoaDon.tongSanPham : 0}"></strong>
                         </p>
                     </div>
                     <div class="card-footer bg-light text-center">

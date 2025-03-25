@@ -77,53 +77,63 @@ public class ShopService {
             throw new Exception("Dữ liệu hóa đơn không được để trống.");
         }
 
+        // Kiểm tra nhân viên
         Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(nhanVienId);
         if (nhanVienOpt.isEmpty()) {
             throw new Exception("Không tìm thấy thông tin nhân viên");
         }
-
         NhanVien nhanVien = nhanVienOpt.get();
 
+        // Gán thông tin nhân viên vào hóa đơn
         hoaDon.setNhanVien(nhanVien);
         hoaDon.setNguoiTao(nhanVien.getHoTen());
         hoaDon.setNguoiSua(nhanVien.getHoTen());
 
+        // Nếu khách hàng chưa có ID -> Lưu vào DB trước
         if (hoaDon.getKhachHang() != null && hoaDon.getKhachHang().getId() == null) {
             KhachHang khachHang = khachHangRepository.save(hoaDon.getKhachHang());
             hoaDon.setKhachHang(khachHang);
         }
 
+        // Giới hạn số hóa đơn đang xử lý
         long countDangXuLy = hoaDonRepository.countByTrangThai("Đang xử lý");
         if (countDangXuLy >= 3) {
             throw new Exception("Đã đạt giới hạn 3 hóa đơn đang xử lý");
         }
 
+        // Kiểm tra và tạo phương thức thanh toán mặc định nếu chưa có
+        List<PhuongThucThanhToan> paymentMethods = createDefaultPaymentMethods(nhanVienId);
+
+        // Gán phương thức thanh toán mặc định là "Tiền Mặt"
+        if (!paymentMethods.isEmpty()) {
+            hoaDon.setPhuongThucThanhToan(paymentMethods.get(0)); // Chọn phương thức đầu tiên
+        }
+
+        // Thiết lập thông tin hóa đơn
         hoaDon.setLoaiHoaDon("Tại Quầy");
         hoaDon.setTrangThai("Đang Xử Lý");
         hoaDon.setNgayTao(LocalDateTime.now());
 
+        // Lưu hóa đơn
         hoaDon = hoaDonRepository.save(hoaDon);
 
+        // Tạo mã hóa đơn duy nhất
         hoaDon.setMaHoaDon(generateUniqueMaHoaDon());
+
+        // Lưu lịch sử hóa đơn
+        saveLichSuHoaDon(hoaDon, nhanVienId);
 
         return hoaDonRepository.save(hoaDon);
     }
 
-
-    private void createDefaultPaymentMethods(HttpSession session) throws Exception {
+    private List<PhuongThucThanhToan> createDefaultPaymentMethods(Integer nhanVienId) throws Exception {
         List<String> existingMethods = phuongThucThanhToanRepository.findAll().stream()
                 .map(PhuongThucThanhToan::getTenPhuongThuc)
                 .toList();
 
         List<PhuongThucThanhToan> newMethods = new ArrayList<>();
 
-        // Lấy nhân viên từ session (đã sửa)
-        UserDetails userDetails = (UserDetails) session.getAttribute("user");
-        if (userDetails == null || !"NHANVIEN".equals(userDetails.getUserType())) {
-            throw new Exception("Bạn cần đăng nhập với tư cách nhân viên để tạo phương thức thanh toán");
-        }
-
-        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(userDetails.getId());
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(nhanVienId);
         if (nhanVienOpt.isEmpty()) {
             throw new Exception("Không tìm thấy thông tin nhân viên");
         }
@@ -141,6 +151,9 @@ public class ShopService {
         if (!newMethods.isEmpty()) {
             phuongThucThanhToanRepository.saveAll(newMethods);
         }
+
+        // Lấy lại danh sách phương thức thanh toán để trả về
+        return phuongThucThanhToanRepository.findAll();
     }
 
     private String generateUniqueMaHoaDon() {
@@ -153,14 +166,9 @@ public class ShopService {
         return maHoaDon;
     }
 
-    private void saveLichSuHoaDon(HoaDon hoaDon, HttpSession session) throws Exception {
-        // Lấy nhân viên từ session (đã sửa)
-        UserDetails userDetails = (UserDetails) session.getAttribute("user");
-        if (userDetails == null || !"NHANVIEN".equals(userDetails.getUserType())) {
-            throw new Exception("Bạn cần đăng nhập với tư cách nhân viên để lưu lịch sử hóa đơn");
-        }
+    private void saveLichSuHoaDon(HoaDon hoaDon,Integer nhanVienId) throws Exception {
 
-        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(userDetails.getId());
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(nhanVienId);
         if (nhanVienOpt.isEmpty()) {
             throw new Exception("Không tìm thấy thông tin nhân viên");
         }
@@ -180,6 +188,7 @@ public class ShopService {
 
         lichSuHoaDonRepository.save(lichSu);
     }
+
     @Transactional
     public void deleteHoaDon(Integer hoaDonId) {
         try {
