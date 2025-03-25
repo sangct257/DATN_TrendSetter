@@ -146,7 +146,7 @@ public class AuthService {
             return new AuthResponse(
                     khachHang,
                     userDetails,
-                    "/",
+                    "/trang-chu",
                     roles
             );
         }

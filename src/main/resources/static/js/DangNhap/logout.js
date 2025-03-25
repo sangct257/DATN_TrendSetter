@@ -13,7 +13,7 @@ document.getElementById("logout-btn").addEventListener("click", async function (
             timer: 2000, // 2 giây tự động đóng
             showConfirmButton: false
         }).then(() => {
-            window.location.replace("http://localhost:8080/auth/trendsetter"); // Chuyển hướng sau khi thông báo đóng
+            window.location.replace("http://localhost:8080/auth/home"); // Chuyển hướng sau khi thông báo đóng
         });
     } else {
         Swal.fire({
