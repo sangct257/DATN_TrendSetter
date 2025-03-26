@@ -53,24 +53,30 @@ public class LichSuHoaDonService {
             // Lấy danh sách tất cả sản phẩm chi tiết có trạng thái "Còn Hàng"
             List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
-            // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
+// Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
             Set<String> seenImages = new HashSet<>();
 
-            // Danh sách sản phẩm không trùng hình ảnh
+// Danh sách sản phẩm không trùng hình ảnh
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
-                if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
-                    String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
-                    if (!seenImages.contains(imageUrl)) {
-                        seenImages.add(imageUrl);
-                        uniqueSanPhamChiTiet.add(sp);
+                // Kiểm tra thêm trạng thái của sản phẩm chính: chỉ lấy khi sản phẩm chính đang hoạt động
+                if (sp.getSanPham() != null && "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai())) {
+                    if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
+                        String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
+                        if (!seenImages.contains(imageUrl)) {
+                            seenImages.add(imageUrl);
+                            uniqueSanPhamChiTiet.add(sp);
+                        }
                     }
                 }
             }
 
             // Trộn danh sách để có thứ tự ngẫu nhiên
             Collections.shuffle(uniqueSanPhamChiTiet);
+
+            // Gán vào model
+            model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
 
             // Tính tổng tiền đã thanh toán
             float soTienDaThanhToan = lichSuThanhToanRepository
@@ -79,8 +85,6 @@ public class LichSuHoaDonService {
 
             hoaDon.setSoTienDaThanhToan(soTienDaThanhToan);
 
-            // Gán vào model
-            model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
 

@@ -184,6 +184,10 @@
                         <h6 class="font-weight-medium">Tạm tính</h6>
                         <h6 class="font-weight-medium" id="subtotal">0 VND</h6>
                     </div>
+                    <div id="discount-container" class="d-flex justify-content-between text-danger font-weight-bold" style="display: none;">
+                        <h6>Giảm giá</h6>
+                        <h6 id="discount-display">-0 VND</h6>
+                    </div>
                     <div class="d-flex justify-content-between">
                         <h6 class="font-weight-medium">Phí vận chuyển</h6>
                         <h6 class="font-weight-medium" id="shipping-fee">30,000 VND</h6>
@@ -209,8 +213,8 @@
                     </div>
                     <div class="form-group">
                         <div class="custom-control custom-radio">
-                            <input type="radio" class="custom-control-input" name="payment" id="bank-transfer">
-                            <label class="custom-control-label" for="bank-transfer">Chuyển khoản qua ngân hàng</label>
+                            <input type="radio" class="custom-control-input" name="payment" id="payment-vnpay">
+                            <label class="custom-control-label" for="payment-vnpay">Chuyển khoản qua ngân hàng (VNPay)</label>
                         </div>
                     </div>
                 </div>
