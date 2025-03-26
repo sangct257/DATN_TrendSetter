@@ -589,11 +589,6 @@ public class ShopService {
             throw new RuntimeException("Điều kiện phiếu giảm giá không thỏa mãn.");
         }
 
-        if ("Giao Hàng".equalsIgnoreCase(phieuGiamGiaMoi.getLoaiApDung()) &&
-                !"Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
-            throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
-        }
-
         // Gán phiếu giảm giá mới cho hóa đơn
         hoaDon.setPhieuGiamGia(phieuGiamGiaMoi);
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0F;
@@ -750,6 +745,7 @@ public class ShopService {
     }
 
     private void saveLichSuHoaDon(HoaDon hoaDon, String hanhDong) {
+
         LichSuHoaDon lichSuHoaDon = new LichSuHoaDon();
         lichSuHoaDon.setHoaDon(hoaDon);
         lichSuHoaDon.setKhachHang(hoaDon.getKhachHang());
