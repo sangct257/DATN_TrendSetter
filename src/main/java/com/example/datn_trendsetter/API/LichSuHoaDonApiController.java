@@ -62,7 +62,7 @@ public class LichSuHoaDonApiController {
 
             HoaDon hoaDon = optionalHoaDon.get();
             hoaDon.setTrangThai(trangThai);
-            hoaDon.setNhanVien(hoaDon.getNhanVien());
+            hoaDon.setNhanVien(nhanVienSession);
             hoaDon.setNguoiTao(nhanVienSession.getHoTen());
             hoaDon.setNguoiSua(nhanVienSession.getHoTen());
             hoaDonRepository.save(hoaDon);
@@ -85,7 +85,7 @@ public class LichSuHoaDonApiController {
         lichSu.setHanhDong(hanhDong);
         lichSu.setKhachHang(hoaDon.getKhachHang());
         lichSu.setNgayTao(LocalDateTime.now());
-        lichSu.setNhanVien(hoaDon.getNhanVien());
+        lichSu.setNhanVien(nhanVienSession);
         lichSu.setNguoiTao(nhanVienSession.getHoTen());
         lichSu.setNguoiTao(nhanVienSession.getHoTen());
         lichSu.setGhiChu(ghiChu);
