@@ -238,7 +238,51 @@
             color: #333;
             line-height: 1.4;
         }
-
+        .size-guide-btn {
+            background-color: #ff9cbe;
+            color: white;
+            border: none;
+            padding: 4px 152px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .size-guide-btn:hover {
+            background-color: #e91e63;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 40%;
+        }
+        .popup-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        body.no-scroll {
+            overflow: hidden;
+        }
     </style>
 
 </head>
@@ -365,6 +409,11 @@
             <label>Màu sắc:</label>
             <div id="color-options" class="color-options"></div>
         </div>
+        <div class="options">
+            <button class="size-guide-btn" onclick="openSizeGuide()">
+                <span class="btn-text" style="text-align: left">Hướng dẫn chọn size</span>
+            </button>
+        </div>
 
         <!-- Chọn Số lượng -->
         <div class="options">
@@ -408,7 +457,12 @@
     </div>
 </div>
 
-
+<div id="sizeGuidePopup" class="popup" onclick="closeSizeGuide(event)">
+    <div class="popup-content" onclick="event.stopPropagation()">
+        <span class="close-btn" onclick="closeSizeGuide(event)">&times;</span>
+        <img src="https://res.cloudinary.com/dsuehugin/image/upload/v1742635122/fv6qxn9nsriw3gqhdnak.png" alt="Hướng dẫn chọn size">
+    </div>
+</div>
 
 
 <!-- Shop Detail End -->

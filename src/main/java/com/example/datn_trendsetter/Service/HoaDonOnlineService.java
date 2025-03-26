@@ -40,6 +40,9 @@ public class HoaDonOnlineService {
     @Autowired
     private LichSuThanhToanRepository lichSuThanhToanRepository;
 
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
+
     @Transactional
     public HoaDon createHoaDon(HoaDonDTO request) {
         logger.info("=== Bắt đầu tạo hóa đơn mới ===");
@@ -100,22 +103,35 @@ public class HoaDonOnlineService {
 
         // ✅ Lưu chi tiết hóa đơn
         for (HoaDonChiTietDTO chiTietDTO : request.getHoaDonChiTiet()) {
+            SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository
+                    .findById(chiTietDTO.getIdSanPhamChiTiet())
+                    .orElseThrow(() -> new IllegalArgumentException("Sản phẩm chi tiết không tồn tại!"));
+
+            // Kiểm tra số lượng tồn kho
+            if (sanPhamChiTiet.getSoLuong() < chiTietDTO.getSoLuong()) {
+                throw new IllegalArgumentException("Số lượng sản phẩm không đủ!");
+            }
+
+            // Giảm số lượng tồn kho của sản phẩm chi tiết
+            sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() - chiTietDTO.getSoLuong());
+            sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() == 0 ? "Hết Hàng" : "Còn Hàng");
+            sanPhamChiTietRepository.save(sanPhamChiTiet);
+
+            // Tạo chi tiết hóa đơn
             HoaDonChiTiet chiTiet = new HoaDonChiTiet();
             chiTiet.setHoaDon(hoaDon);
-            chiTiet.setSanPhamChiTiet(
-                    sanPhamChiTietRepository.findById(chiTietDTO.getIdSanPhamChiTiet()).orElse(null)
-            );
+            chiTiet.setSanPhamChiTiet(sanPhamChiTiet);
             chiTiet.setSoLuong(chiTietDTO.getSoLuong());
             chiTiet.setGia(chiTietDTO.getGia());
             chiTiet.setThanhTien(chiTietDTO.getGia() * chiTietDTO.getSoLuong());
             hoaDonChiTietRepository.save(chiTiet);
 
-            // Log chi tiết từng sản phẩm
-            logger.info("Lưu chi tiết hóa đơn - Sản phẩm ID: {}, Số lượng: {}, Giá: {}, Thành tiền: {}",
-                    chiTietDTO.getIdSanPhamChiTiet(),
-                    chiTietDTO.getSoLuong(),
-                    chiTietDTO.getGia(),
-                    chiTiet.getThanhTien());
+            // Cập nhật số lượng tổng của sản phẩm chính
+            updateSoLuongSanPham(sanPhamChiTiet.getSanPham());
+
+            // Log chi tiết
+            logger.info("Cập nhật sản phẩm ID: {}, Số lượng còn lại: {}",
+                    sanPhamChiTiet.getId(), sanPhamChiTiet.getSoLuong());
         }
 
         // ✅ Lưu lịch sử hóa đơn
@@ -173,5 +189,17 @@ public class HoaDonOnlineService {
         int randomPart = new Random().nextInt(900000) + 100000; // Số ngẫu nhiên 6 chữ số
         return "GD" + timePart + randomPart; // VD: GD20240321123045123456
     }
+
+    private void updateSoLuongSanPham(SanPham sanPham) {
+        int tongSoLuong = sanPhamChiTietRepository.tinhTongSoLuongTheoSanPham(sanPham.getId());
+        sanPham.setSoLuong(tongSoLuong);
+
+        // ✅ Cập nhật trạng thái của sản phẩm chính
+        sanPham.setTrangThai(tongSoLuong == 0 ? "Không Hoạt Động" : "Đang Hoạt Động");
+
+        sanPhamRepository.save(sanPham);
+    }
+
+
 
 }

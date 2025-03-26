@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 @Service
 public class ShopService {
@@ -299,10 +300,18 @@ public class ShopService {
         List<KichThuoc> kichThuocs = kichThuocRepository.findAll();
         model.addAttribute("danhSachKichThuoc", kichThuocs);
 
-        // Lấy danh sách sản phẩm duy nhất và trộn ngẫu nhiên
-        List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>(uniqueSanPhamMap.values());
-        Collections.shuffle(uniqueSanPhamChiTiet);
-        model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
+        // ✅ Lọc danh sách sản phẩm chi tiết Còn Hàng và có sản phẩm chính Đang Hoạt Động
+        List<SanPhamChiTiet> filteredSanPhamChiTiet = uniqueSanPhamMap.values().stream()
+                .filter(spct -> "Còn Hàng".equals(spct.getTrangThai())
+                        && "Đang Hoạt Động".equals(spct.getSanPham().getTrangThai()))
+                .collect(Collectors.toList());
+
+        // ✅ Trộn ngẫu nhiên danh sách sản phẩm đã lọc
+        Collections.shuffle(filteredSanPhamChiTiet);
+
+        // ✅ Đưa danh sách vào model
+        model.addAttribute("sanPhamChiTiet", filteredSanPhamChiTiet);
+
 
         // Lấy danh sách khách hàng và phương thức thanh toán
         Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
