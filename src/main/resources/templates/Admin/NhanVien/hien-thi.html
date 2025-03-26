@@ -159,6 +159,7 @@
                             <th class="text-center">Tên Nhân Viên</th>
                             <th class="text-center">Ngày Sinh</th>
                             <th class="text-center">Giới Tính</th>
+                            <th class="text-center">Vai Trò</th>
                             <th class="text-center">Trạng Thái</th>
                             <th class="text-center">Action</th>
                         </tr>
@@ -284,6 +285,7 @@
                     <td class="text-center">${nhanVien.hoTen}</td>
                     <td class="text-center">${formatDate(nhanVien.ngaySinh)}</td>
                     <td class="text-center">${nhanVien.gioiTinh ? "Nam" : "Nữ"}</td>
+                    <td class="text-center">${nhanVien.vaiTro}</td>
                     <td class="text-center">${nhanVien.trangThai}</td>
                     <td class="text-center">
                         <button class="btn btn-primary" onclick="editNhanVien(${nhanVien.id})">Sửa</button>

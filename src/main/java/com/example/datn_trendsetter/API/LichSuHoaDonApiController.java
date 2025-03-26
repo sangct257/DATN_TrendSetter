@@ -52,11 +52,19 @@ public class LichSuHoaDonApiController {
     private ResponseEntity<?> thayDoiTrangThaiHoaDon(Integer hoaDonId, String trangThai, String ghiChu,HttpSession session) throws Exception {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
+
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            if (nhanVienSession == null) {
+                throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+            }
+
+
             HoaDon hoaDon = optionalHoaDon.get();
             hoaDon.setTrangThai(trangThai);
             hoaDon.setNhanVien(hoaDon.getNhanVien());
-            hoaDon.setNguoiTao(hoaDon.getNhanVien().getHoTen());
-            hoaDon.setNguoiSua(hoaDon.getNhanVien().getHoTen());
+            hoaDon.setNguoiTao(nhanVienSession.getHoTen());
+            hoaDon.setNguoiSua(nhanVienSession.getHoTen());
             hoaDonRepository.save(hoaDon);
             luuLichSuHoaDon(hoaDon, trangThai, ghiChu,session);
             return response("Hóa đơn đã được cập nhật trạng thái: " + trangThai, true);

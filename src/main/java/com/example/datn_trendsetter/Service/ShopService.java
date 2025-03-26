@@ -27,6 +27,7 @@ public class ShopService {
     private static final Set<String> ALLOWED_ROLES = Set.of("ADMIN", "NHANVIEN");
     private static final Map<Long, Lock> USER_LOCKS = new ConcurrentHashMap<>();
     private static final long SESSION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(30);
+
     @Autowired
     private HoaDonChiTietService hoaDonChiTietService;
 
@@ -721,8 +722,6 @@ public class ShopService {
         }
     }
 
-
-
     private void saveLichSuThanhToan(HoaDon hoaDon, Float soTien) {
         NhanVien nhanVien = hoaDon.getNhanVien();
 
@@ -750,8 +749,6 @@ public class ShopService {
         return "GD" + timePart + randomPart; // VD: GD20240321123045123456
     }
 
-
-
     private void saveLichSuHoaDon(HoaDon hoaDon, String hanhDong) {
         LichSuHoaDon lichSuHoaDon = new LichSuHoaDon();
         lichSuHoaDon.setHoaDon(hoaDon);
@@ -764,6 +761,7 @@ public class ShopService {
         lichSuHoaDon.setGhiChu("Hóa đơn: " + hoaDon.getMaHoaDon() + " - " + hanhDong);
         lichSuHoaDonRepository.save(lichSuHoaDon);
     }
+
 
     public Map<String, String> addNewCustomer(Integer hoaDonId, String nguoiNhan, String soDienThoai) {
         Map<String, String> response = new HashMap<>();

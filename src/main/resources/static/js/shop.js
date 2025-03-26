@@ -792,58 +792,44 @@ function saveHoaDonIdFromURL() {
     const hoaDonId = urlParams.get('hoaDonId');
 
     if (hoaDonId && !sessionStorage.getItem('selectedHoaDonId')) {
-        sessionStorage.setItem('selectedHoaDonId', hoaDonId);
+        localStorage.setItem('selectedHoaDonId', hoaDonId);
         console.log("HoaDonId từ URL đã lưu:", hoaDonId);
     }
 }
 
 // Lưu hoaDonId vào sessionStorage khi chọn hóa đơn
 function saveHoaDonId(hoaDonId) {
-    sessionStorage.setItem('selectedHoaDonId', hoaDonId);
+    localStorage.setItem('selectedHoaDonId', hoaDonId);
     console.log("HoaDonId đã lưu:", hoaDonId);
 }
 
 // API Thêm Sản Phẩm
 function addProductOrder(button) {
     const row = button.closest('tr');
-    if (!row) {
-        console.error("Không tìm thấy hàng sản phẩm.");
-        return;
-    }
-
     const sanPhamChiTietId = parseInt(row.querySelector('td:first-child')?.textContent.trim(), 10);
     const soLuong = parseInt(row.querySelector('input[name="soLuong"]')?.value, 10);
-    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
+    let hoaDonId = parseInt(row.querySelector('input[name="hoaDonId"]')?.value, 10);
 
-    // Kiểm tra hoaDonId
     if (!hoaDonId || isNaN(hoaDonId)) {
-        // Nếu không có trong sessionStorage, thử lấy từ URL
         const urlParams = new URLSearchParams(window.location.search);
         hoaDonId = urlParams.get('hoaDonId');
 
         if (!hoaDonId || isNaN(hoaDonId)) {
-            Swal.fire({
-                title: "Lỗi!",
-                text: "Không tìm thấy hóa đơn hợp lệ! Vui lòng chọn hóa đơn trước.",
-                icon: "error"
-            });
+            Swal.fire({ title: "Lỗi!", text: "Không tìm thấy hóa đơn hợp lệ!", icon: "error" });
             return;
         }
     }
 
     hoaDonId = parseInt(hoaDonId, 10);
-    console.log("Gửi yêu cầu thêm sản phẩm:", {sanPhamChiTietId, hoaDonId, soLuong});
+    console.log("Gửi yêu cầu thêm sản phẩm:", { sanPhamChiTietId, hoaDonId, soLuong });
 
     fetch('/add-product-order', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({sanPhamChiTietId, hoaDonId, soLuong})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sanPhamChiTietId, hoaDonId, soLuong })
     })
         .then(response => response.json())
-        .then(response => {
-            console.log("Phản hồi API:", response);
-            handleResponse(response, hoaDonId);
-        })
+        .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
         .catch(handleError);
 }
 
@@ -851,15 +837,12 @@ function addProductOrder(button) {
 function updateQuantityOrder(input) {
     const row = input.closest('tr');
     const hoaDonChiTietId = parseInt(row.querySelector('input[name="hoaDonChiTietId"]').value, 10);
+    const sanPhamChiTietId = parseInt(row.dataset.sanPhamChiTietId, 10); // Giữ ID sản phẩm
     const soLuong = parseInt(input.value, 10);
-    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
+    let hoaDonId = parseInt(row.querySelector('input[name="hoaDonId"]')?.value, 10);
 
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId) || isNaN(soLuong) || soLuong < 1) {
-        Swal.fire({
-            title: "Lỗi!",
-            text: "Thông tin không hợp lệ!",
-            icon: "error"
-        });
+        Swal.fire({ title: "Lỗi!", text: "Thông tin không hợp lệ!", icon: "error" });
         return;
     }
 
@@ -880,37 +863,16 @@ function updateQuantityOrder(input) {
         body: JSON.stringify(data)
     })
         .then(response => response.json())
-        .then(response => {
-            if (response.errorMessage) {
-                Swal.fire({
-                    title: "Lỗi!",
-                    text: response.errorMessage,
-                    icon: "error"
-                });
-            } else {
-                Swal.fire({
-                    title: "Thành công!",
-                    text: response.successMessage,
-                    icon: "success"
-                }).then(() => {
-                    location.reload(); // Tải lại trang để cập nhật số lượng và tổng tiền
-                });
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: "Lỗi!",
-                text: "Có lỗi xảy ra khi cập nhật số lượng!",
-                icon: "error"
-            });
-        });
+        .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
+        .catch(handleError);
 }
 
 // API Xóa Sản Phẩm
 function deleteProductOrder(button) {
     const row = button.closest('tr');
     const hoaDonChiTietId = parseInt(row.querySelector('input[name="hoaDonChiTietId"]').value, 10);
-    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
+    const sanPhamChiTietId = parseInt(row.dataset.sanPhamChiTietId, 10);
+    let hoaDonId = parseInt(row.querySelector('input[name="hoaDonId"]')?.value, 10);
 
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId)) {
         Swal.fire({ title: "Lỗi!", text: "Thông tin không hợp lệ!", icon: "error" });
@@ -934,21 +896,14 @@ function deleteProductOrder(button) {
                 body: JSON.stringify({ hoaDonChiTietId, hoaDonId })
             })
                 .then(response => response.json())
-                .then(data => {
-                    if (data.errorMessage) {
-                        Swal.fire({ title: "Lỗi!", text: data.errorMessage, icon: "error" });
-                    } else {
-                        Swal.fire({ title: "Thành công!", text: data.successMessage, icon: "success" })
-                            .then(() => location.reload());
-                    }
-                })
-                .catch(() => Swal.fire({ title: "Lỗi!", text: "Không thể kết nối đến máy chủ.", icon: "error" }));
+                .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
+                .catch(handleError);
         }
     });
 }
 
 // Xử lý phản hồi chung cho các API
-function handleResponse(response, hoaDonId) {
+function handleResponse(response, hoaDonId, sanPhamChiTietId) {
     if (response.successMessage) {
         Swal.fire({
             title: "Thành công!",
@@ -957,8 +912,11 @@ function handleResponse(response, hoaDonId) {
             timer: 1500,
             showConfirmButton: false
         }).then(() => {
-            // Lưu vị trí cuộn trước khi chuyển hướng
+            // Lưu thông tin trước khi redirect
             sessionStorage.setItem('scrollPosition', window.scrollY);
+            sessionStorage.setItem('highlightProductId', sanPhamChiTietId); // Đánh dấu sản phẩm vừa thao tác
+            sessionStorage.setItem('previousUrl', window.location.href); // Lưu URL trước khi chuyển trang
+
             redirectToAppropriatePage(response.trangThai, hoaDonId);
         });
     } else {
@@ -980,9 +938,10 @@ function handleError(error) {
     });
 }
 
-// Chuyển hướng đến trang phù hợp dựa trên trạng thái
+// 🏷️ Chuyển hướng và lưu vị trí cuộn
 function redirectToAppropriatePage(trangThai, hoaDonId) {
     let redirectUrl;
+
     if (trangThai === "Đang Xử Lý") {
         redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
     } else if (trangThai === "Chờ Xác Nhận") {
@@ -991,9 +950,52 @@ function redirectToAppropriatePage(trangThai, hoaDonId) {
         redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
     }
 
-    // Sau khi chuyển hướng, trang sẽ giữ lại vị trí cuộn
+    // ✅ Lưu vị trí cuộn trước khi chuyển trang
+    localStorage.setItem('scrollPosition', window.scrollY);
+    localStorage.setItem('highlightProductId', hoaDonId);
+
+    // Chuyển hướng
     window.location.href = redirectUrl;
 }
+
+// 🎯 Cuộn lại và highlight sản phẩm
+document.addEventListener("DOMContentLoaded", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Đợi 100ms cho DOM load
+
+    // ✅ Khôi phục vị trí cuộn
+    const savedScrollPosition = localStorage.getItem('scrollPosition');
+    if (savedScrollPosition !== null) {
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: parseInt(savedScrollPosition, 10), behavior: "smooth" });
+            localStorage.removeItem('scrollPosition');
+        });
+    }
+
+    // ✅ Tạo hiệu ứng highlight sản phẩm
+    const highlightProductId = localStorage.getItem('highlightProductId');
+    if (highlightProductId) {
+        const highlightedRow = document.querySelector(`tr[data-sanphamchitietid="${highlightProductId}"]`);
+        if (highlightedRow) {
+            // 🕵️‍♂️ Chỉ highlight nếu phần tử thực sự xuất hiện trên màn hình
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        highlightedRow.style.backgroundColor = "#ffff99"; // Màu vàng nhạt
+                        setTimeout(() => {
+                            highlightedRow.style.transition = "background-color 1s";
+                            highlightedRow.style.backgroundColor = "";
+                        }, 3000);
+                        observer.disconnect(); // Ngừng theo dõi sau khi highlight
+                    }
+                });
+            });
+
+            observer.observe(highlightedRow);
+        }
+        localStorage.removeItem('highlightProductId');
+    }
+});
+
 
 // Đảm bảo khi trang được tải lại, hoaDonId được lấy từ URL nếu chưa có trong sessionStorage
 window.onload = function() {
