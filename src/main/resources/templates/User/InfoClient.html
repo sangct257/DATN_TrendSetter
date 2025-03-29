@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -13,7 +13,8 @@
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
@@ -23,78 +24,8 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #D19C97;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            padding: 20px;
-        }
-        .coupon {
-            display: flex;
-            align-items: center;
-            background: #fff;
-            border: 2px dashed var(--primary);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-        .coupon:hover {
-            transform: scale(1.02);
-        }
-        .coupon-left {
-            background: var(--primary);
-            color: white;
-            padding: 10px;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 8px;
-            min-width: 80px;
-            text-align: center;
-        }
-        .coupon-right {
-            flex-grow: 1;
-            padding-left: 15px;
-        }
-        .coupon-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .coupon-condition {
-            font-size: 14px;
-            color: #555;
-        }
-        .coupon-select {
-            margin-left: auto;
-        }
-        .see-more-btn {
-            text-align: center;
-            font-weight: bold;
-            color: #020101;
-            cursor: pointer;
-            margin-top: 10px;
-            padding: 10px 0;
-            position: relative;
-        }
-
-        .see-more-btn::before,
-        .see-more-btn::after {
-            content: "";
-            display: inline-block;
-            width: 30%;
-            height: 1px;
-            background-color: #ccc;
-            vertical-align: middle;
-            margin: 0 10px;
-        }
-
-    </style>
 </head>
+
 <body>
 <!-- Topbar Start -->
 <div class="container-fluid">
@@ -150,11 +81,13 @@
 <div class="container-fluid">
     <div class="row border-top px-xl-5">
         <div class="col-lg-3 d-none d-lg-block">
-            <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100" data-toggle="collapse" href="#navbar-vertical" style="height: 65px; margin-top: -1px; padding: 0 30px;">
+            <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
+               data-toggle="collapse" href="#navbar-vertical" style="height: 65px; margin-top: -1px; padding: 0 30px;">
                 <h6 class="m-0">Thể loại</h6>
                 <i class="fa fa-angle-down text-dark"></i>
             </a>
-            <nav class="collapse position-absolute navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0 bg-light" id="navbar-vertical" style="width: calc(100% - 30px); z-index: 1;">
+            <nav class="collapse position-absolute navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0 bg-light"
+                 id="navbar-vertical" style="width: calc(100% - 30px); z-index: 1;">
                 <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
                     <a href="" class="nav-item nav-link">Váy</a>
                     <a href="" class="nav-item nav-link">Quần</a>
@@ -170,7 +103,8 @@
         <div class="col-lg-9">
             <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
                 <a href="" class="text-decoration-none d-block d-lg-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+                    <h1 class="m-0 display-5 font-weight-semi-bold"><span
+                            class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
                 </a>
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
                     <span class="navbar-toggler-icon"></span>
@@ -214,7 +148,8 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item text-info text-center" href="/thong-tin">Thông tin </a>
-                                    <a class="dropdown-item text-danger text-center" href="#" id="logout-btn">Log out</a>
+                                    <a class="dropdown-item text-danger text-center" href="#" id="logout-btn">Log
+                                        out</a>
                                 </li>
                             </ul>
                         </li>
@@ -230,82 +165,69 @@
 <!-- Page Header Start -->
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Giỏ hàng</h1>
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Thông Tin Khách Hàng</h1>
         <div class="d-inline-flex">
             <p class="m-0"><a href="trang-chu">Trang chủ</a></p>
             <p class="m-0 px-2">-</p>
-            <p class="m-0">Giỏ hàng</p>
+            <p class="m-0">Khách Hàng</p>
         </div>
     </div>
 </div>
 <!-- Page Header End -->
 
 
-<!-- Cart Start -->
-<div class="container-fluid pt-5">
-    <div class="row px-xl-5">
-        <div class="col-lg-8 table-responsive mb-5">
-            <table class="table table-bordered text-center mb-0">
-                <thead class="bg-secondary text-dark">
-                <tr>
-                    <th>STT</th>
-                    <th>Hình ảnh</th>
-                    <th>Tên</th>
-                    <th>Màu và size</th>
-                    <th>Số lượng</th>
-                    <th>Giá</th>
-                    <th>Tổng</th>
-                    <th>Xóa</th>
-                </tr>
-                </thead>
-                <tbody id="cart-body" class="align-middle">
-                <!-- Giỏ hàng sẽ được cập nhật tại đây bằng JavaScript -->
-                </tbody>
-            </table>
-        </div>
-        <div class="col-lg-4">
-            <div class="card border-secondary mb-5">
-                <div class="card-header bg-secondary border-0 text-center">
-                    <h4 class="font-weight-semi-bold m-0">🛒 Tóm tắt giỏ hàng</h4>
+<!-- Thong Tin Khach Hang Start -->
+<div class="container mt-5">
+    <div class="row px-xl-5 d-flex justify-content-center">
+        <div class="col-md-10 p-4 shadow rounded bg-white">
+            <div class="row g-4">
+                <!-- Cột 1: Avatar -->
+                <div class="col-md-4 d-flex flex-column align-items-center justify-content-center">
+                    <img id="avatarPreview1" class="rounded-circle border shadow mb-3"
+                         width="150" height="150" alt="Ảnh Nhân Viên">
+                    <input type="file" class="form-control mt-2" accept="image/*"
+                           name="hinhAnh" onchange="previewImage(event)">
                 </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3 pt-1">
-                        <h6 class="font-weight-medium">🧾 Tạm tính</h6>
-                        <h6 class="font-weight-medium" id="subtotal">0 VND</h6>
+                <!-- Cột 2: Thông tin khách hàng -->
+                <div class="col-md-8">
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-person"></i> Họ Tên</label>
+                        <input type="text" class="form-control" name="hoTen"
+                               placeholder="Nhập họ tên" required>
                     </div>
-                    <div id="discount-container" class="d-flex justify-content-between text-danger font-weight-bold" style="display: none;">
-                        <h6>🎉 Giảm giá</h6>
-                        <h6 id="discount-display">-0 VND</h6>
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-person-circle"></i> Username</label>
+                        <input type="text" class="form-control" name="username"
+                               placeholder="Nhập username" required>
                     </div>
-                    <hr class="my-2">
-                    <div class="d-flex justify-content-between">
-                        <h6 class="font-weight-medium">🚚 Phí vận chuyển</h6>
-                        <h6 id="shipping-fee" class="font-weight-medium">0 VND</h6>
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-envelope"></i> Email</label>
+                        <input type="email" class="form-control" name="email"
+                               placeholder="Nhập email" required>
                     </div>
-                </div>
-
-                <hr class="my-3">
-
-                <div class="px-3">
-                    <h5 class="font-weight-bold text-center">🎟 Chọn Phiếu Giảm Giá</h5>
-                    <div id="coupon-container" class="p-2 border rounded bg-light"></div>
-                </div>
-
-                <hr class="my-3">
-
-                <div class="card-footer border-secondary bg-transparent">
-                    <div class="d-flex justify-content-between mt-2">
-                        <h5 class="font-weight-bold">💰 Tổng cộng</h5>
-                        <h5 class="font-weight-bold text-danger" id="total">0 VND</h5>
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-key"></i> Số Điện Thoại</label>
+                        <input type="text" class="form-control" name="soDienThoai"
+                               placeholder="Nhập số điện thoại" required>
                     </div>
-                    <button id="checkout-button" class="btn btn-block btn-primary my-3 py-3">🛍 Thanh toán ngay</button>
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-gender-ambiguous"></i> Giới Tính</label>
+                        <select class="form-select" name="gioiTinh">
+                            <option value="true">Nam</option>
+                            <option value="false">Nữ</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-calendar"></i> Ngày Sinh</label>
+                        <input type="date" class="form-control" name="ngaySinh">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Cart End -->
+<!-- Thong Tin Khach Hang End -->
 
 
 <!-- Footer Start -->
@@ -313,9 +235,11 @@
     <div class="row px-xl-5 pt-5">
         <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
             <a href="" class="text-decoration-none">
-                <h1 class="mb-4 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper</h1>
+                <h1 class="mb-4 display-5 font-weight-semi-bold"><span
+                        class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper</h1>
             </a>
-            <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum dolore amet erat.</p>
+            <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum dolore
+                amet erat.</p>
             <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
             <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
             <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
@@ -327,9 +251,12 @@
                     <div class="d-flex flex-column justify-content-start">
                         <a class="text-dark mb-2" href="trangChuClient.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
                         <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop
+                            Detail</a>
+                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping
+                            Cart</a>
+                        <a class="text-dark mb-2" href="checkout.html"><i
+                                class="fa fa-angle-right mr-2"></i>Checkout</a>
                         <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
                     </div>
                 </div>
@@ -338,9 +265,12 @@
                     <div class="d-flex flex-column justify-content-start">
                         <a class="text-dark mb-2" href="trangChuClient.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
                         <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop
+                            Detail</a>
+                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping
+                            Cart</a>
+                        <a class="text-dark mb-2" href="checkout.html"><i
+                                class="fa fa-angle-right mr-2"></i>Checkout</a>
                         <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
                     </div>
                 </div>
@@ -348,11 +278,12 @@
                     <h5 class="font-weight-bold text-dark mb-4">Newsletter</h5>
                     <form action="">
                         <div class="form-group">
-                            <input type="text" class="form-control border-0 py-4" placeholder="Your Name" required="required" />
+                            <input type="text" class="form-control border-0 py-4" placeholder="Your Name"
+                                   required="required"/>
                         </div>
                         <div class="form-group">
                             <input type="email" class="form-control border-0 py-4" placeholder="Your Email"
-                                   required="required" />
+                                   required="required"/>
                         </div>
                         <div>
                             <button class="btn btn-primary btn-block border-0 py-3" type="submit">Subscribe Now</button>
@@ -365,7 +296,8 @@
     <div class="row border-top border-light mx-xl-5 py-4">
         <div class="col-md-6 px-xl-0">
             <p class="mb-md-0 text-center text-md-left text-dark">
-                &copy; <a class="text-dark font-weight-semi-bold" href="#">Your Site Name</a>. All Rights Reserved. Designed
+                &copy; <a class="text-dark font-weight-semi-bold" href="#">Your Site Name</a>. All Rights Reserved.
+                Designed
                 by
                 <a class="text-dark font-weight-semi-bold" href="https://htmlcodex.com">HTML Codex</a>
             </p>
@@ -397,9 +329,81 @@
 <script src="/js/main.js"></script>
 <script src="/js/DangNhap/login.js"></script>
 <script src="/js/DangNhap/logout.js"></script>
-<script src="js/giohang.js"></script>
+<script src="js/thanhtoan.js"></script>
 <script src="js/sanphamchitiet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        loadUserInfo();
+        loadAddresses();
+    });
+
+    function previewImage(event) {
+        let reader = new FileReader();
+        reader.onload = function () {
+            document.getElementById("avatarPreview").src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function updateUserInfo() {
+        let user = {
+            hoTen: document.getElementById("hoTen").value,
+            email: document.getElementById("email").value,
+            soDienThoai: document.getElementById("soDienThoai").value,
+            gioiTinh: document.getElementById("gioiTinh").value,
+            ngaySinh: document.getElementById("ngaySinh").value,
+        };
+        console.log("Cập nhật thông tin khách hàng:", user);
+    }
+
+    function loadUserInfo() {
+        let user = {
+            hoTen: "Nguyễn Văn A",
+            email: "nguyenvana@example.com",
+            soDienThoai: "0987 654 321",
+            gioiTinh: "true",
+            ngaySinh: "1995-05-20",
+        };
+
+        document.getElementById("hoTen").value = user.hoTen;
+        document.getElementById("email").value = user.email;
+        document.getElementById("soDienThoai").value = user.soDienThoai;
+        document.getElementById("gioiTinh").value = user.gioiTinh;
+        document.getElementById("ngaySinh").value = user.ngaySinh;
+    }
+
+    function loadAddresses() {
+        let addresses = [
+            {diaChi: "123 Đường ABC, Quận 1, TP.HCM", isDefault: true},
+            {diaChi: "456 Đường XYZ, Quận 3, TP.HCM", isDefault: false},
+        ];
+
+        let addressList = document.getElementById("addressList");
+        addressList.innerHTML = "";
+
+        addresses.forEach((addr, index) => {
+            addressList.innerHTML += `
+            <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                <span>${addr.diaChi} ${addr.isDefault ? "(Mặc định)" : ""}</span>
+                <button class="btn btn-sm btn-danger" onclick="deleteAddress(${index})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        });
+    }
+
+    function deleteAddress(index) {
+        console.log("Xóa địa chỉ:", index);
+    }
+
+    function saveAddress() {
+        console.log("Lưu địa chỉ mới.");
+    }
+
+</script>
 </body>
 
 </html>

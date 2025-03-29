@@ -57,13 +57,13 @@
         <div class="col-lg-2 col-6 text-center">
             <div class="input-group shadow-sm">
                 <input type="text" class="form-control border-primary rounded-start px-2"
-                       placeholder="Nhập mã hóa đơn"
-                       style="border-right: none; box-shadow: none;">
+                       placeholder="Nhập mã hóa đơn" style="border-right: none; box-shadow: none;">
                 <div class="input-group-append">
-                    <button class="btn btn-primary rounded-end px-3">Tra cứu</button>
+                    <a href="don-hang" id="searchOrderBtn" class="btn btn-primary rounded-end px-3">Tra cứu</a>
                 </div>
             </div>
         </div>
+
 
         <!-- Nút giỏ hàng (Hợp lý) -->
         <div class="col-lg-2 col-6 text-right">
@@ -119,6 +119,8 @@
                             <div class="dropdown-menu rounded-0 m-0">
                                 <a href="gio-hang" class="dropdown-item">Giỏ hàng</a>
                                 <a href="thanh-toan" class="dropdown-item">Thanh toán</a>
+                                <a href="thong-tin" class="dropdown-item">Thông tin </a>
+                                <a href="don-hang" class="dropdown-item">Tra cứu</a>
                             </div>
                         </div>
                     </div>
@@ -126,8 +128,8 @@
                         <!-- Nếu chưa đăng nhập -->
                         <a th:if="${session.user == null}" href="/auth/home" class="nav-item nav-link">Đăng nhập</a>
 
-                        <!-- Nếu đã đăng nhập -->
-                        <li th:if="${session.user != null}" class="nav-item dropdown">
+                        <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
+                        <li th:if="${session.user != null and session.roles != null and #lists.contains(session.roles, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <img th:src="${session.user.hinhAnh}" class="rounded-circle user-image" alt="User Image"
@@ -145,7 +147,7 @@
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li>
-                                    <a class="dropdown-item text-info text-center">Thông tin </a>
+                                    <a class="dropdown-item text-info text-center" href="/thong-tin">Thông tin</a>
                                     <a class="dropdown-item text-danger text-center" href="#" id="logout-btn">Log out</a>
                                 </li>
                             </ul>

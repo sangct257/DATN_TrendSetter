@@ -79,16 +79,19 @@ public class PhieuGiamGiaApiController {
         }
 
         PhieuGiamGia pgg = phieuGiamGiaOpt.get();
-        String userRole = (String) session.getAttribute("role");
 
-        if (userRole == null || (!"ADMIN".equalsIgnoreCase(userRole) && !"NHANVIEN".equalsIgnoreCase(userRole))) {
-            userRole = "NHANVIEN";
+        // Lấy danh sách vai trò từ session
+        List<String> userRoles = (List<String>) session.getAttribute("roles");
+
+        // Nếu không có vai trò, đặt mặc định là NHANVIEN
+        if (userRoles == null) {
+            userRoles = Collections.singletonList("ROLE_NHANVIEN");
         }
 
-        System.out.println("Vai trò hiện tại: " + userRole); // Kiểm tra session
+        System.out.println("Vai trò hiện tại: " + userRoles); // Kiểm tra session
 
-        // 🚀 Nếu là ADMIN, có toàn quyền chỉnh sửa
-        if ("ADMIN".equalsIgnoreCase(userRole)) {
+        // Nếu là ADMIN, có toàn quyền chỉnh sửa
+        if (userRoles.contains("ROLE_ADMIN")) {
             pgg.setTrangThai("Đang Hoạt Động".equalsIgnoreCase(pgg.getTrangThai()) ? "Ngừng Hoạt Động" : "Đang Hoạt Động");
             PhieuGiamGiaScheduler.markAsEditedByAdmin(pgg.getId()); // Đánh dấu là ADMIN đã thay đổi trong bộ nhớ
             phieuGiamGiaRepository.save(pgg);

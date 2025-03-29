@@ -97,7 +97,6 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request, HttpSession session) {
-        // Kiểm tra đăng nhập cho nhân viên trước
         Optional<NhanVien> optionalNhanVien = nhanVienRepository.findByEmail(request.getEmail());
         if (optionalNhanVien.isPresent()) {
             NhanVien nhanVien = optionalNhanVien.get();
@@ -106,6 +105,8 @@ public class AuthService {
                 throw new RuntimeException("Email hoặc mật khẩu không đúng");
             }
 
+            System.out.println("Nhân viên đăng nhập thành công, ID: " + nhanVien.getId() + ", Vai trò: " + nhanVien.getVaiTro().name());
+
             UserDetails userDetails = UserDetails.fromNhanVien(nhanVien);
             List<String> roles = Collections.singletonList("ROLE_" + nhanVien.getVaiTro().name());
 
@@ -113,16 +114,11 @@ public class AuthService {
             session.setAttribute("user", nhanVien);
             session.setAttribute("userDetails", userDetails);
             session.setAttribute("roles", roles);
-            System.out.println("Session ID: " + session.getId());
-            System.out.println("Session attributes: " + Collections.list(session.getAttributeNames()));
-            String redirectUrl = nhanVien.getVaiTro() == NhanVien.Role.ADMIN
-                    ? "/admin/sell-counter"
-                    : "/admin/";
 
             return new AuthResponse(
                     nhanVien,
                     userDetails,
-                    redirectUrl,
+                    nhanVien.getVaiTro() == NhanVien.Role.ADMIN ? "/admin/sell-counter" : "/admin/",
                     roles
             );
         }
@@ -134,6 +130,8 @@ public class AuthService {
             if (!passwordEncoder.matches(request.getPassword(), khachHang.getPassword())) {
                 throw new RuntimeException("Email hoặc mật khẩu không đúng");
             }
+
+            System.out.println("Khách hàng đăng nhập thành công, ID: " + khachHang.getId() + ", Vai trò: KHACHHANG");
 
             UserDetails userDetails = UserDetails.fromKhachHang(khachHang);
             List<String> roles = Collections.singletonList("ROLE_KHACHHANG");
