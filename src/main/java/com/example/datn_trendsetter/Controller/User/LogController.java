@@ -9,8 +9,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/") // Định nghĩa URL gốc
 public class LogController {
 
-    @GetMapping("auth/home") // Khi truy cập /auth/home sẽ trả về trang login
+    @GetMapping("auth/home")
     public String showLoginPage(Model model) {
-        return "DangNhap"; // Điều hướng đến file templates/DangNhap.html
+        return "DangNhap/DangNhapKhach";
+    }
+
+    @GetMapping("auth/trendsetter")
+    public String showLogin(Model model) {
+        return "DangNhap/DangNhapNV";
     }
 }

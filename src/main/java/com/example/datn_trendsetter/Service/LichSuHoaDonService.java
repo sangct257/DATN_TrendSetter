@@ -34,11 +34,14 @@ public class LichSuHoaDonService {
     @Autowired
     private PhieuGiamGiaRepository phieuGiamGiaRepository;
 
+    @Autowired
+    private LichSuThanhToanRepository lichSuThanhToanRepository;
+
     public List<LichSuHoaDon> getAll() {
         return lichSuHoaDonRepository.findAll();
     }
 
-    public void getOrderDetails(Integer hoaDonId, Model model, Integer page) {
+    public void getOrderDetails(Integer hoaDonId, Model model) {
         // Kiểm tra nếu hoaDonId không phải null
         if (hoaDonId != null) {
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
@@ -50,18 +53,21 @@ public class LichSuHoaDonService {
             // Lấy danh sách tất cả sản phẩm chi tiết có trạng thái "Còn Hàng"
             List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
-            // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
+// Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
             Set<String> seenImages = new HashSet<>();
 
-            // Danh sách sản phẩm không trùng hình ảnh
+// Danh sách sản phẩm không trùng hình ảnh
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
-                if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
-                    String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
-                    if (!seenImages.contains(imageUrl)) {
-                        seenImages.add(imageUrl);
-                        uniqueSanPhamChiTiet.add(sp);
+                // Kiểm tra thêm trạng thái của sản phẩm chính: chỉ lấy khi sản phẩm chính đang hoạt động
+                if (sp.getSanPham() != null && "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai())) {
+                    if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
+                        String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
+                        if (!seenImages.contains(imageUrl)) {
+                            seenImages.add(imageUrl);
+                            uniqueSanPhamChiTiet.add(sp);
+                        }
                     }
                 }
             }
@@ -71,6 +77,14 @@ public class LichSuHoaDonService {
 
             // Gán vào model
             model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
+
+            // Tính tổng tiền đã thanh toán
+            float soTienDaThanhToan = lichSuThanhToanRepository
+                    .sumSoTienThanhToanByHoaDonId(hoaDon.getId())
+                    .orElse(0F);
+
+            hoaDon.setSoTienDaThanhToan(soTienDaThanhToan);
+
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
 
@@ -88,9 +102,11 @@ public class LichSuHoaDonService {
             } else {
                 model.addAttribute("listPhieuGiamGia", new ArrayList<>()); // Không có phiếu giảm giá nào
             }
-            List<LichSuHoaDon> listLichSuHoaDon = lichSuHoaDonRepository.findByHoaDon_Id(hoaDonId);
+            List<LichSuHoaDon> listLichSuHoaDon = lichSuHoaDonRepository.findByHoaDonId(hoaDonId);
+            List<LichSuThanhToan> listLichSuThanhToan = lichSuThanhToanRepository.findByHoaDonId(hoaDonId);
             // Lọc danh sách phiếu giảm giá dựa trên tổng tiền
             model.addAttribute("hoaDon", hoaDon);
+            model.addAttribute("listLichSuThanhToan",listLichSuThanhToan);
             model.addAttribute("listLichSuHoaDon", listLichSuHoaDon);
             model.addAttribute("danhSachHoaDonChiTiet", hoaDonChiTiet);
             model.addAttribute("hoaDon", hoaDon);

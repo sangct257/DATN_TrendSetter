@@ -18,14 +18,8 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Blank page
-                <small>it all starts here</small>
+                Khách Hàng
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
-            </ol>
         </section>
 
         <!-- Main content -->
@@ -34,7 +28,212 @@
             <!-- Default box -->
             <div class="box">
                 <div class="box-body">
-                    <h1>Danh sach khach hang</h1>
+                    <button class="btn btn-success mb-2" onclick="openModalForAdd()">Thêm Khách Hàng</button>
+
+                    <table id="productTable" class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                        <tr class="text-center">
+                            <th class="text-center">#</th>
+                            <th class="text-center">Ảnh</th>
+                            <th class="text-center">Tên Khách Hàng</th>
+                            <th class="text-center">Số Điện Thoại</th>
+                            <th class="text-center">Ngày Sinh</th>
+                            <th class="text-center">Giới Tính</th>
+                            <th class="text-center">Trạng Thái</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="khachHangBody">
+                        <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+                        </tbody>
+                    </table>
+
+                    <!-- Modal Sửa Khach Hang -->
+                    <div class="modal fade" id="modalUpdateKhachHang" tabindex="-1"
+                         aria-labelledby="updateKhachHangLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title" id="updateKhachHangLabel"><i class="bi bi-person-plus"></i>
+                                        Thông Tin Khách Hàng</h5>
+                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="updateKhachHangForm">
+                                        <input type="hidden" name="id" id="khachHangId">
+                                        <div class="row">
+                                            <!-- Cột 1: Avatar -->
+                                            <div class="col-md-4 d-flex flex-column align-items-center justify-content-center">
+                                                <img id="avatarPreview1" class="rounded-circle border shadow mb-3"
+                                                     width="150" height="150" alt="Ảnh Nhân Viên">
+                                                <input type="file" class="form-control mt-2" accept="image/*"
+                                                       name="hinhAnh" onchange="previewImage(event)">
+                                            </div>
+                                            <!-- Cột 2: Thông tin khach hang -->
+                                            <div class="col-md-8">
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-person"></i> Họ
+                                                        Tên</label>
+                                                    <input type="text" class="form-control" name="hoTen"
+                                                           placeholder="Nhập họ tên" required>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-person-circle"></i>
+                                                            Username</label>
+                                                        <input type="text" class="form-control" name="username"
+                                                               placeholder="Nhập username" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-key"></i> Mật
+                                                            Khẩu</label>
+                                                        <input type="password" class="form-control" name="password"
+                                                               placeholder="Nhập mật khẩu" required>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-envelope"></i>
+                                                            Email</label>
+                                                        <input type="email" class="form-control" name="email"
+                                                               placeholder="Nhập email" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-key"></i> So Dien Thoai</label>
+                                                        <input type="text" class="form-control" name="soDienThoai"
+                                                               placeholder="Nhập so dien thoai" required>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-house"></i> Địa
+                                                        Chỉ</label>
+                                                    <input type="text" class="form-control" name="diaChi"
+                                                           placeholder="Nhập địa chỉ" disabled>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-gender-ambiguous"></i>
+                                                            Giới Tính</label>
+                                                        <select class="form-select" name="gioiTinh">
+                                                            <option value="true">Nam</option>
+                                                            <option value="false">Nữ</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-calendar"></i> Ngày
+                                                            Sinh</label>
+                                                        <input type="date" class="form-control" name="ngaySinh">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-toggle-on"></i> Trạng Thái</label>
+                                                    <select class="form-select" name="trangThai">
+                                                        <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                                        <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="btnSave"
+                                            onclick="saveKhachHang()">Luu
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="btnUpdate"
+                                            onclick="updateKhachHang()">Cap Nhap
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Danh Sách Địa Chỉ -->
+                    <div class="modal fade" id="modalDiaChiKhachHang" tabindex="-1"
+                         aria-labelledby="modalDiaChiKhachHangLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalDiaChiKhachHangLabel">Danh Sách Địa Chỉ</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Nút thêm địa chỉ bên ngoài bảng -->
+                                    <button class="btn btn-success" onclick="openAddDiaChiModal()">Thêm Địa Chỉ</button>
+                                    <table id="productTable1" class="table table-striped table-bordered">
+                                        <thead class="table-dark">
+                                        <tr>
+                                            <th class="text-center">#</th>
+                                            <th class="text-center">Địa Chỉ Cụ Thể</th>
+                                            <th class="text-center">Phường</th>
+                                            <th class="text-center">Huyện</th>
+                                            <th class="text-center">Thành Phố</th>
+                                            <th class="text-center">Trạng Thái</th>
+                                            <th class="text-center">Hành Động</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="diaChiBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Thêm/Chỉnh Sửa Địa Chỉ -->
+                    <div class="modal fade" id="modalDiaChi" tabindex="-1" aria-labelledby="modalDiaChiLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalDiaChiLabel">Thêm/Chỉnh Sửa Địa Chỉ</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" id="idKhachHang">
+                                    <input type="hidden" id="idDiaChi">
+                                    <div class="mb-3">
+                                        <label class="form-label">Địa chỉ cụ thể</label>
+                                        <input type="text" class="form-control" id="diaChiCuThe">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Thành Phố</label>
+                                        <select class="form-select" id="thanhPho">
+                                            <option value="">Chọn Tỉnh/Thành phố</option>
+                                        </select>
+                                        <input type="hidden" id="thanhPhoHidden">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Huyện</label>
+                                        <select class="form-select" id="huyen">
+                                            <option value="">Chọn Quận/Huyện</option>
+                                        </select>
+                                        <input type="hidden" id="huyenHidden">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Phường</label>
+                                        <select class="form-select" id="phuong">
+                                            <option value="">Chọn Phường/Xã</option>
+                                        </select>
+                                        <input type="hidden" id="phuongHidden">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                    <button type="button" id="saveDiaChiButton" class="btn btn-success"
+                                            onclick="saveDiaChi()">Lưu
+                                    </button>
+                                    <button type="button" id="updateDiaChiButton" class="btn btn-primary d-none"
+                                            onclick="updateDiaChi()">Cập Nhật
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- /.box -->
@@ -54,5 +253,779 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Hàm chuyển đổi ngày sang định dạng Việt Nam (dd/MM/yyyy)
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            return date.toLocaleDateString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+        }
+
+        function renderKhachHang(data) {
+            if (!Array.isArray(data)) {
+                console.error("Dữ liệu không phải là mảng:", data);
+                return;
+            }
+
+            const tbody = document.getElementById('khachHangBody');
+            tbody.innerHTML = "";
+
+            data.forEach((khachHang, index) => {
+                if (!khachHang || typeof khachHang !== "object") return; // Kiểm tra dữ liệu hợp lệ
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td class="text-center">${index + 1}</td>
+            <td class="text-center"><img src="${khachHang.hinhAnh || ''}" alt="Ảnh" width="50"></td>
+            <td class="text-center">${khachHang.hoTen || 'N/A'}</td>
+            <td class="text-center">${khachHang.soDienThoai || 'N/A'}</td>
+            <td class="text-center">${formatDate(khachHang.ngaySinh) || 'N/A'}</td>
+            <td class="text-center">${khachHang.gioiTinh ? "Nam" : "Nữ"}</td>
+            <td class="text-center">${khachHang.trangThai || 'N/A'}</td>
+            <td class="text-center">
+                <button class="btn btn-primary" onclick="editKhachHang(${khachHang.id})">Sửa</button>
+                <button class="btn btn-primary" onclick="diaChiKhachHang(${khachHang.id})">Địa Chỉ</button>
+            </td>
+        `;
+                tbody.appendChild(row);
+            });
+        }
+
+        fetch('http://localhost:8080/api/khach-hang')
+            .then(response => response.text()) // Lấy dữ liệu dạng text để debug
+            .then(text => {
+                try {
+                    const data = JSON.parse(text); // Kiểm tra JSON hợp lệ
+                    renderKhachHang(data);
+                } catch (error) {
+                    console.error("Lỗi khi parse JSON:", error, text);
+                }
+            })
+            .catch(error => console.error('Lỗi khi tải dữ liệu:', error));
+    });
+
+    function previewImage(event) {
+        const input = event.target;
+        const preview = document.getElementById('avatarPreview');
+        const preview1 = document.getElementById('avatarPreview1');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (preview) preview.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (preview1) preview1.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function openModalForAdd() {
+        // Xóa dữ liệu cũ trong form
+        document.querySelector('#modalUpdateKhachHang input[name="hoTen"]').value = "";
+        document.querySelector('#modalUpdateKhachHang input[name="username"]').value = "";
+        document.querySelector('#modalUpdateKhachHang input[name="email"]').value = "";
+        document.querySelector('#modalUpdateKhachHang input[name="soDienThoai"]').value = "";
+        document.querySelector('#modalUpdateKhachHang select[name="gioiTinh"]').value = "true";
+        document.querySelector('#modalUpdateKhachHang input[name="ngaySinh"]').value = "";
+        document.querySelector('#modalUpdateKhachHang select[name="trangThai"]').value = "Đang Hoạt Động";
+        document.querySelector('#modalUpdateKhachHang img#avatarPreview1').src = "";
+        document.querySelector('#modalUpdateKhachHang #khachHangId').value = ""; // Đặt ID rỗng để biết là thêm mới
+
+        // Hiển thị nút "Lưu" và ẩn nút "Cập Nhật"
+        document.getElementById("btnSave").classList.remove("d-none");
+        document.getElementById("btnUpdate").classList.add("d-none");
+
+        // Mở modal
+        new bootstrap.Modal(document.getElementById('modalUpdateKhachHang')).show();
+    }
+
+    // Hàm mở modal và điền thông tin nhân viên vào form
+    function editKhachHang(id) {
+        // Gọi API để lấy thông tin khách hàng
+        fetch(`http://localhost:8080/api/khach-hang/${id}`)
+            .then(response => response.json())
+            .then(khachHang => {
+                // Điền thông tin khách hàng vào form
+                document.querySelector('#modalUpdateKhachHang input[name="hoTen"]').value = khachHang.hoTen;
+                document.querySelector('#modalUpdateKhachHang input[name="username"]').value = khachHang.username;
+                document.querySelector('#modalUpdateKhachHang input[name="email"]').value = khachHang.email;
+                document.querySelector('#modalUpdateKhachHang input[name="soDienThoai"]').value = khachHang.soDienThoai;
+                document.querySelector('#modalUpdateKhachHang select[name="gioiTinh"]').value = khachHang.gioiTinh ? "true" : "false";
+                document.querySelector('#modalUpdateKhachHang input[name="ngaySinh"]').value = khachHang.ngaySinh;
+                document.querySelector('#modalUpdateKhachHang select[name="trangThai"]').value = khachHang.trangThai;
+                document.querySelector('#modalUpdateKhachHang img#avatarPreview1').src = khachHang.hinhAnh;
+                document.querySelector('#modalUpdateKhachHang #khachHangId').value = khachHang.id;
+
+
+                // Ẩn nút "Lưu" và hiển thị nút "Cập Nhật"
+                document.getElementById("btnSave").classList.add("d-none");
+                document.getElementById("btnUpdate").classList.remove("d-none");
+
+                // Gọi API để lấy địa chỉ mặc định của khách hàng
+                loadDiaChiMacDinh(id);
+
+                // Mở modal
+                new bootstrap.Modal(document.getElementById('modalUpdateKhachHang')).show();
+            })
+            .catch(error => console.error('Lỗi khi tải thông tin khách hàng:', error));
+    }
+
+    function loadDiaChiMacDinh(id) {
+        fetch(`http://localhost:8080/api/khach-hang/${id}/dia-chi-mac-dinh`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Không tìm thấy địa chỉ mặc định");
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.querySelector('#modalUpdateKhachHang input[name="diaChi"]').value =
+                    `${data.diaChiCuThe}, ${data.phuong}, ${data.huyen}, ${data.thanhPho}`;
+            })
+            .catch(error => {
+                console.error("Lỗi khi lấy địa chỉ mặc định:", error);
+                // Không hiển thị thông báo
+            });
+    }
+
+    async function saveKhachHang() {
+        const btnSubmit = document.getElementById("btnSave");
+        if (!btnSubmit) return;
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+        const formData = new FormData();
+
+        function getValue(name) {
+            const element = document.querySelector(`[name="${name}"]`);
+            return element ? element.value.trim() : "";
+        }
+
+        formData.append("hoTen", getValue("hoTen"));
+        formData.append("username", getValue("username"));
+        formData.append("password", getValue("password"));
+        formData.append("email", getValue("email"));
+        formData.append("soDienThoai", getValue("soDienThoai"));
+        formData.append("gioiTinh", getValue("gioiTinh") === "true");
+        formData.append("ngaySinh", getValue("ngaySinh"));
+        formData.append("trangThai", getValue("trangThai"));
+
+        // Xử lý file ảnh
+        const fileInput = document.querySelector('[name="hinhAnh"]');
+        if (fileInput && fileInput.files.length > 0) {
+            formData.append("file", fileInput.files[0]);
+        }
+
+        console.log("Dữ liệu gửi đi:", Object.fromEntries(formData.entries()));
+
+        try {
+            const response = await fetch("http://localhost:8080/api/khach-hang/add", {
+                method: "POST",
+                body: formData
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                throw new Error(responseData.message || "Có lỗi xảy ra khi thêm khách hàng.");
+            }
+
+            await Swal.fire({
+                title: "Thành công!",
+                text: "Khách hàng đã được thêm thành công!",
+                icon: "success",
+                confirmButtonText: "OK"
+            });
+
+            setTimeout(() => location.reload(), 1500);
+
+        } catch (error) {
+            Swal.fire({
+                title: "Lỗi!",
+                text: error.message,
+                icon: "error",
+                confirmButtonText: "Thử lại"
+            });
+        } finally {
+            setTimeout(() => {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `Thêm khách hàng`;
+            }, 2000);
+        }
+    }
+
+    async function updateKhachHang() {
+        const btnSubmit = document.getElementById("btnUpdate");
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+        const form = document.getElementById('updateKhachHangForm');
+        const updatedKhachHang = {
+            id: form.querySelector('input[name="id"]').value,
+            hoTen: form.querySelector('input[name="hoTen"]').value,
+            username: form.querySelector('input[name="username"]').value,
+            email: form.querySelector('input[name="email"]').value,
+            soDienThoai: form.querySelector('input[name="soDienThoai"]').value,
+            gioiTinh: form.querySelector('select[name="gioiTinh"]').value === "true",
+            ngaySinh: form.querySelector('input[name="ngaySinh"]').value,
+            trangThai: form.querySelector('select[name="trangThai"]').value,
+            password: form.querySelector('input[name="password"]').value
+        };
+
+        console.log("Dữ liệu khách hàng trước khi gửi:", updatedKhachHang); // Log dữ liệu
+
+        const formData = new FormData();
+        formData.append('id', updatedKhachHang.id);
+        formData.append('hoTen', updatedKhachHang.hoTen);
+        formData.append('username', updatedKhachHang.username);
+        formData.append('email', updatedKhachHang.email);
+        formData.append('soDienThoai', updatedKhachHang.soDienThoai);
+        formData.append('gioiTinh', updatedKhachHang.gioiTinh);
+        formData.append('ngaySinh', updatedKhachHang.ngaySinh);
+        formData.append('trangThai', updatedKhachHang.trangThai);
+        formData.append('password', updatedKhachHang.password);
+
+        const fileInput = form.querySelector('input[name="hinhAnh"]');
+        if (fileInput.files && fileInput.files[0]) {
+            formData.append('file', fileInput.files[0]);
+        }
+
+        console.log("Dữ liệu FormData trước khi gửi:");
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/khach-hang/update/${updatedKhachHang.id}`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            console.log("Response status:", response.status);
+
+            if (response.ok) {
+                Swal.fire({
+                    title: "Cập nhật thành công!",
+                    text: "Thông tin khách hàng đã được cập nhật.",
+                    icon: "success",
+                    confirmButtonText: "OK"
+                }).then(() => location.reload());
+            } else {
+                const errorText = await response.text();
+                console.error("Lỗi khi cập nhật:", errorText);
+                throw new Error("Lỗi khi cập nhật thông tin khách hàng.");
+            }
+        } catch (error) {
+            console.error("Lỗi xảy ra:", error);
+            Swal.fire({
+                title: "Lỗi!",
+                text: error.message,
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `Cập nhật Khách Hàng`;
+        }
+    }
+
+</script>
+<script>
+    document.addEventListener("focusin", function (event) {
+        let ancestor = document.querySelector(".wrapper[aria-hidden='true']");
+        if (ancestor && ancestor.contains(event.target)) {
+            ancestor.removeAttribute("aria-hidden");
+        }
+    });
+</script>
+<script>
+    let currentKhachHangId = null; // Khai báo biến toàn cục
+
+    function diaChiKhachHang(id) {
+        currentKhachHangId = id;
+
+        fetch(`http://localhost:8080/api/khach-hang/dia-chi/${id}`)
+            .then(response => response.ok ? response.json() : [])
+            .then(data => {
+                const tbody = document.getElementById('diaChiBody');
+                tbody.innerHTML = "";
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='8' class='text-center'>Không có địa chỉ nào.</td></tr>";
+                } else {
+                    data.forEach((diaChi, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td class="text-center">${index + 1}</td>
+                        <td class="text-center">${diaChi.diaChiCuThe || 'N/A'}</td>
+                        <td class="text-center">${diaChi.phuong || 'N/A'}</td>
+                        <td class="text-center">${diaChi.huyen || 'N/A'}</td>
+                        <td class="text-center">${diaChi.thanhPho || 'N/A'}</td>
+                        <td class="text-center align-middle">
+                            <div class="d-flex justify-content-center">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                        ${diaChi.trangThai === 'Mặc Định' ? 'checked' : ''}
+                                        onchange="updateTrangThai(${diaChi.id}, this.checked)">
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-primary" onclick="editDiaChi(${diaChi.id})">Sửa</button>
+                            <button class="btn btn-danger" onclick="deleteDiaChi(${diaChi.id})">Xóa</button>
+                        </td>
+                    `;
+                        tbody.appendChild(row);
+                    });
+                }
+
+                // Mở modal chứa form danh sách địa chỉ và nút thêm địa chỉ
+                new bootstrap.Modal(document.getElementById('modalDiaChiKhachHang')).show();
+            })
+            .catch(error => console.error('Lỗi khi tải danh sách địa chỉ:', error));
+    }
+
+    function updateTrangThai(id, isChecked) {
+        fetch(`http://localhost:8080/api/khach-hang/dia-chi/${id}/trang-thai`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({trangThai: isChecked ? "Mặc Định" : "Không Mặc Định"})
+        })
+            .then(response => response.text()) // Đọc dữ liệu dưới dạng text
+            .then(text => {
+                console.log("Server Response:", text); // Kiểm tra phản hồi từ server
+                if (text.includes("thành công")) { // Kiểm tra nếu phản hồi có chứa "thành công"
+                    Swal.fire({
+                        icon: "success",
+                        title: "Thành công!",
+                        text: "Cập nhật trạng thái địa chỉ thành công.",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    reloadDiaChiBody(); // Cập nhật lại danh sách địa chỉ
+                } else {
+                    throw new Error("Phản hồi không hợp lệ!");
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi cập nhật trạng thái:', error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi!",
+                    text: "Đã xảy ra lỗi trong quá trình cập nhật.",
+                });
+            });
+    }
+
+    // Hàm chỉ cập nhật phần thân tbody
+    function reloadDiaChiBody() {
+        if (!currentKhachHangId) {
+            console.error('Lỗi: currentKhachHangId chưa được gán giá trị.');
+            return;
+        }
+
+        fetch(`http://localhost:8080/api/khach-hang/dia-chi/${currentKhachHangId}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('diaChiBody');
+                tbody.innerHTML = "";
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='8' class='text-center'>Không có địa chỉ nào.</td></tr>";
+                } else {
+                    data.forEach((diaChi, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td class="text-center">${index + 1}</td>
+                        <td class="text-center">${diaChi.diaChiCuThe || 'N/A'}</td>
+                        <td class="text-center">${diaChi.phuong || 'N/A'}</td>
+                        <td class="text-center">${diaChi.huyen || 'N/A'}</td>
+                        <td class="text-center">${diaChi.thanhPho || 'N/A'}</td>
+                        <td class="text-center align-middle">
+                            <div class="d-flex justify-content-center">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                        ${diaChi.trangThai === 'Mặc Định' ? 'checked' : ''}
+                                        onchange="updateTrangThai(${diaChi.id}, this.checked)">
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-primary" onclick="editDiaChi(${diaChi.id})">Sửa</button>
+                            <button class="btn btn-danger" onclick="deleteDiaChi(${diaChi.id})">Xóa</button>
+                        </td>
+                    `;
+                        tbody.appendChild(row);
+                    });
+                }
+            })
+            .catch(error => console.error('Lỗi khi tải danh sách địa chỉ:', error));
+    }
+
+    // Mở modal thêm địa chỉ (thiết lập chế độ thêm mới)
+    function openAddDiaChiModal() {
+        document.getElementById("modalDiaChiLabel").textContent = "Thêm Địa Chỉ";
+        document.getElementById("diaChiCuThe").value = "";
+        document.getElementById("phuong").value = "";
+        document.getElementById("huyen").value = "";
+        document.getElementById("thanhPho").value = "";
+        document.getElementById("idDiaChi").value = "";
+        document.getElementById("idKhachHang").value = currentKhachHangId;  // Đảm bảo currentKhachHangId được gán vào trường này
+
+        document.getElementById("thanhPhoHidden").value = "";
+        document.getElementById("huyenHidden").value = "";
+        document.getElementById("phuongHidden").value = "";
+
+
+        // Ẩn nút "Cập Nhật" và hiển thị nút "Lưu"
+        document.getElementById("saveDiaChiButton").classList.remove("d-none");
+        document.getElementById("updateDiaChiButton").classList.add("d-none");
+
+        // Mở modal
+        new bootstrap.Modal(document.getElementById("modalDiaChi")).show();
+    }
+
+    // Thêm mới địa chỉ
+    function saveDiaChi() {
+        const diaChiCuThe = document.getElementById("diaChiCuThe").value.trim();
+        const phuong = document.getElementById("phuong").value.trim();
+        const huyen = document.getElementById("huyen").value.trim();
+        const thanhPho = document.getElementById("thanhPho").value.trim();
+        const khachHangId = document.getElementById("idKhachHang").value.trim();
+
+        if (!khachHangId) {
+            Swal.fire("Lỗi!", "Khách hàng không được để trống.", "error");
+            return;
+        }
+
+        // Kiểm tra các trường cần thiết
+        if (!diaChiCuThe || !phuong || !huyen || !thanhPho) {
+            Swal.fire("Lỗi!", "Vui lòng điền đầy đủ thông tin địa chỉ.", "error");
+            return;
+        }
+
+        const diaChi = {
+            diaChiCuThe,
+            phuong,
+            huyen,
+            thanhPho
+        };
+
+        console.log("Dữ liệu gửi lên API:", JSON.stringify(diaChi, null, 2));
+
+        // Thay đổi đường dẫn API với idKhachHang làm tham số URL
+        fetch(`http://localhost:8080/api/dia-chi/add?idKhachHang=${khachHangId}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(diaChi)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Lỗi khi gửi dữ liệu!");
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Phản hồi từ server:", data);
+                Swal.fire("Thành công!", "Đã thêm địa chỉ.", "success");
+                reloadDiaChiBody();  // Giả sử bạn có hàm reloadDiaChiBody() để làm mới danh sách địa chỉ
+                bootstrap.Modal.getInstance(document.getElementById("modalDiaChi")).hide();
+            })
+            .catch(error => {
+                console.error("Lỗi khi thêm địa chỉ:", error);
+                Swal.fire("Lỗi!", "Không thể thêm địa chỉ.", "error");
+            });
+    }
+
+    // Mở modal chỉnh sửa địa chỉ
+    function editDiaChi(idDiaChi) {
+        console.log("ID Địa Chỉ cần sửa:", idDiaChi);  // Kiểm tra ID trước khi gửi API
+        fetch(`http://localhost:8080/api/dia-chi/${idDiaChi}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Dữ liệu nhận được:", data);
+
+                document.getElementById("modalDiaChiLabel").textContent = "Chỉnh Sửa Địa Chỉ";
+                document.getElementById("diaChiCuThe").value = data.diaChiCuThe || "";
+                document.getElementById("thanhPho").value = data.thanhPho || "";
+                document.getElementById("idDiaChi").value = idDiaChi;
+
+                // Gán giá trị cho select huyện
+                const huyenSelect = document.getElementById("huyen");
+                huyenSelect.innerHTML = ""; // Xóa các option cũ
+                if (data.huyen) {
+                    const huyenOption = new Option(data.huyen, data.huyen);
+                    huyenSelect.add(huyenOption);
+                    huyenSelect.value = data.huyen;
+                }
+
+                // Gán giá trị cho select phường
+                const phuongSelect = document.getElementById("phuong");
+                phuongSelect.innerHTML = ""; // Xóa các option cũ
+                if (data.phuong) {
+                    const phuongOption = new Option(data.phuong, data.phuong);
+                    phuongSelect.add(phuongOption);
+                    phuongSelect.value = data.phuong;
+                }
+
+                // Kiểm tra và gán giá trị khách hàng ID nếu có
+                if (data.khachHangId) {
+                    document.getElementById("khachHangId").value = data.khachHangId;
+                }
+
+                // Hiển thị nút "Cập Nhật", ẩn nút "Lưu"
+                document.getElementById("saveDiaChiButton").classList.add("d-none");
+                document.getElementById("updateDiaChiButton").classList.remove("d-none");
+
+                // Hiển thị modal
+                new bootstrap.Modal(document.getElementById("modalDiaChi")).show();
+            })
+            .catch(error => console.error("Lỗi khi tải dữ liệu địa chỉ:", error));
+    }
+
+    // Cập nhật địa chỉ
+    function updateDiaChi() {
+        const idDiaChi = document.getElementById("idDiaChi").value;
+        console.log("ID gửi lên API cập nhật:", idDiaChi); // Kiểm tra ID trước khi gửi
+
+        const diaChi = {
+            diaChiCuThe: document.getElementById("diaChiCuThe").value,
+            phuong: document.getElementById("phuong").value,
+            huyen: document.getElementById("huyen").value,
+            thanhPho: document.getElementById("thanhPho").value
+        };
+
+        fetch(`http://localhost:8080/api/dia-chi/${idDiaChi}`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(diaChi)
+        })
+            .then(response => response.text()) // Lấy phản hồi dạng text
+            .then(text => {
+                try {
+                    const data = JSON.parse(text); // Thử chuyển đổi thành JSON
+                    console.log("Phản hồi từ server:", data);
+                    Swal.fire("Thành công!", "Đã cập nhật địa chỉ.", "success");
+                } catch (error) {
+                    console.log("Phản hồi không phải JSON:", text);
+                    Swal.fire("Thành công!", text, "success");
+                }
+                // Đóng modal sau khi cập nhật
+                const modal = bootstrap.Modal.getInstance(document.getElementById("modalDiaChi"));
+                if (modal) modal.hide();
+                reloadDiaChiBody(); // Làm mới danh sách sau khi cập nhật
+            })
+            .catch(error => {
+                console.error("Lỗi khi cập nhật địa chỉ:", error);
+                Swal.fire("Lỗi!", "Không thể cập nhật địa chỉ.", "error");
+            });
+    }
+
+    function deleteDiaChi(id) {
+        Swal.fire({
+            title: "Bạn có chắc chắn?",
+            text: "Bạn có muốn xóa địa chỉ này không?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Có, xóa ngay!",
+            cancelButtonText: "Hủy",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`http://localhost:8080/api/dia-chi/${id}`, {
+                    method: "DELETE",
+                })
+                    .then(response => response.text()) // Lấy phản hồi dạng text
+                    .then(text => {
+                        try {
+                            const data = JSON.parse(text); // Thử chuyển đổi thành JSON
+                            console.log("Phản hồi từ server:", data);
+                            Swal.fire("Thành công!", "Đã xóa địa chỉ.", "success");
+                        } catch (error) {
+                            console.log("Phản hồi không phải JSON:", text);
+                            Swal.fire("Thành công!", text, "success");
+                        }
+
+                        // Đóng modal nếu đang mở
+                        const modal = bootstrap.Modal.getInstance(document.getElementById("modalDiaChi"));
+                        if (modal) modal.hide();
+
+                        // Làm mới danh sách
+                        reloadDiaChiBody();
+                    })
+                    .catch(error => {
+                        console.error("Lỗi khi xóa địa chỉ:", error);
+                        Swal.fire("Lỗi!", "Không thể xóa địa chỉ. Vui lòng thử lại sau.", "error");
+                    });
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const thanhPhoSelect = document.getElementById("thanhPho");
+        const huyenSelect = document.getElementById("huyen");
+        const phuongSelect = document.getElementById("phuong");
+
+        const thanhPhoHidden = document.getElementById("thanhPhoHidden");
+        const huyenHidden = document.getElementById("huyenHidden");
+        const phuongHidden = document.getElementById("phuongHidden");
+
+        function fetchProvinces(selectedValue = "") {
+            fetch("/api/ghn/provinces")
+                .then(response => response.json())
+                .then(data => {
+                    thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+                    let selectedProvinceId = "";
+
+                    data.data.forEach(province => {
+                        const selected = province.ProvinceName === selectedValue ? "selected" : "";
+                        if (selected) selectedProvinceId = province.ProvinceID;
+                        thanhPhoSelect.innerHTML += `<option value="${province.ProvinceName}" data-id="${province.ProvinceID}" ${selected}>${province.ProvinceName}</option>`;
+                    });
+
+                    if (selectedProvinceId) fetchDistricts(selectedProvinceId, huyenHidden.value);
+                })
+                .catch(error => console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error));
+        }
+
+        function fetchDistricts(provinceId, selectedValue = "") {
+            fetch(`/api/ghn/districts?province_id=${provinceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+                    let selectedDistrictId = "";
+
+                    data.data.forEach(district => {
+                        const selected = district.DistrictName === selectedValue ? "selected" : "";
+                        if (selected) selectedDistrictId = district.DistrictID;
+                        huyenSelect.innerHTML += `<option value="${district.DistrictName}" data-id="${district.DistrictID}" ${selected}>${district.DistrictName}</option>`;
+                    });
+
+                    if (selectedDistrictId) fetchWards(selectedDistrictId, phuongHidden.value);
+                })
+                .catch(error => console.error("Lỗi khi lấy danh sách quận/huyện:", error));
+        }
+
+        function fetchWards(districtId, selectedValue = "") {
+            fetch(`/api/ghn/wards?district_id=${districtId}`)
+                .then(response => response.json())
+                .then(data => {
+                    phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+                    data.data.forEach(ward => {
+                        const selected = ward.WardName === selectedValue ? "selected" : "";
+                        phuongSelect.innerHTML += `<option value="${ward.WardName}" data-id="${ward.WardCode}" ${selected}>${ward.WardName}</option>`;
+                    });
+                })
+                .catch(error => console.error("Lỗi khi lấy danh sách phường/xã:", error));
+        }
+
+        // Cập nhật giá trị ẩn khi thay đổi lựa chọn
+        thanhPhoSelect.addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const provinceId = selectedOption.getAttribute("data-id");
+
+            thanhPhoHidden.value = selectedOption.value;
+            huyenHidden.value = "";
+            phuongHidden.value = "";
+
+            huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+            if (provinceId) {
+                fetchDistricts(provinceId);
+            }
+        });
+
+        huyenSelect.addEventListener("change", function () {
+            const districtId = this.options[this.selectedIndex].getAttribute("data-id");
+            huyenHidden.value = this.value;
+            phuongHidden.value = "";
+            phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+            if (districtId) {
+                fetchWards(districtId);
+            }
+        });
+
+        phuongSelect.addEventListener("change", function () {
+            phuongHidden.value = this.value;
+        });
+
+        // Nếu có dữ liệu cũ, hiển thị trước rồi cho phép thay đổi
+        if (thanhPhoHidden.value) {
+            fetchProvinces(thanhPhoHidden.value);
+        } else {
+            fetchProvinces();
+        }
+    });
+
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('#productTable').DataTable({
+            "paging": true,
+            "lengthMenu": [5, 10, 20],
+            "pageLength": 5,
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "sProcessing": "Đang xử lý...",
+                "sLengthMenu": "Hiển thị _MENU_ dòng",
+                "sZeroRecords": "Không tìm thấy dữ liệu",
+                "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+                "sInfoEmpty": "Không có dữ liệu để hiển thị",
+                "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+                "sSearch": "Tìm kiếm:",
+                "oPaginate": {
+                    "sFirst": "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext": "Tiếp",
+                    "sLast": "Cuối"
+                }
+            }
+        });
+
+        $('#productTable1').DataTable({
+            "paging": true,
+            "lengthMenu": [5, 10, 20],
+            "pageLength": 5,
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "sProcessing": "Đang xử lý...",
+                "sLengthMenu": "Hiển thị _MENU_ dòng",
+                "sZeroRecords": "Không tìm thấy dữ liệu",
+                "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+                "sInfoEmpty": "Không có dữ liệu để hiển thị",
+                "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+                "sSearch": "Tìm kiếm:",
+                "oPaginate": {
+                    "sFirst": "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext": "Tiếp",
+                    "sLast": "Cuối"
+                }
+            }
+        });
+
+    });
+</script>
+<script src="/js/main.js"></script>
+<script src="/js/DangNhap/login.js"></script>
+<script src="/js/DangNhap/logout.js"></script>
 </body>
 </html>

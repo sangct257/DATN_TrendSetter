@@ -59,11 +59,6 @@
             <h1>
                 <h5>Thêm Sản Phẩm</h5>
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
-            </ol>
         </section>
 
         <!-- Main content -->
@@ -185,10 +180,7 @@
                                             <label class="form-label fw-semibold">Màu Sắc:</label>
                                             <div class="border rounded p-2 d-flex flex-wrap gap-2">
                                                 <label th:each="ms : ${mauSacSanPham}" class="border rounded px-3 py-1">
-                                                    <span th:text="${ms.maMauSac}"
-                                                          th:style="'background-color:' + ${ms.maMauSac}"
-                                                          style="width: 30px; height: 30px; flex-shrink: 0; opacity: 0;"
-                                                          class="rounded border border-secondary shadow">
+                                                    <span th:text="${ms.tenMauSac}" class="rounded border border-secondary shadow">
                                                     </span>
                                                 </label>
                                             </div>
@@ -239,10 +231,7 @@
                                                 <input type="checkbox" name="mauSacIds" class="mau-sac me-2"
                                                        th:value="${ms.id}"
                                                        th:attr="data-mau-sac=${ms.id}">
-                                                <div th:text="${ms.maMauSac}"
-                                                     th:style="'background-color:' + ${ms.maMauSac}"
-                                                     style="width: 30px; height: 30px;" class="rounded border border-secondary shadow">
-                                                </div>
+                                                <div th:text="${ms.tenMauSac}" class="rounded border border-secondary shadow"></div>
                                             </label>
                                         </div>
 
@@ -299,7 +288,7 @@
                                                    oninput="checkForm(this)">
                                         </td>
                                         <td>
-                                            <button th:value="${chiTiet.id}" th:class=" ${chiTiet.trangThai == 'Còn Hàng' ? 'badge bg-success updateStatusProductDetail' : 'badge bg-danger updateStatusProductDetail'} "
+                                            <button th:value="${chiTiet.id}" th:class=" ${chiTiet.trangThai == 'Còn Hàng' ? 'badge bg-success ' : 'badge bg-danger '} "
                                                     th:text="${chiTiet.trangThai}">
                                             </button>
 
@@ -588,57 +577,6 @@
 
         });
 
-        $(".updateStatusProductDetail").click(function(){
-            let id = $(this).val();
-            let item = {
-                id:id
-            };
-
-            fetch('/api/san-pham/update-product-detail-status' , {
-                method: 'PUT',
-                body: JSON.stringify(item, null, 2),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(response => response.json().then(data => ({ status: response.status, body: data })))
-                .then(({ status, body }) => {
-                    if (status === 200) {
-                        Swal.fire({
-                            title: "Thành công!",
-                            text: "Cập nhật sản phẩm thành công!",
-                            icon: "success",
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
-                    } else {
-                        let errorMessage = body.error || "Có lỗi xảy ra!";
-                        switch (status) {
-                            case 400:
-                                errorMessage = "Lỗi dữ liệu! " + errorMessage;
-                                break;
-                            case 409:
-                                errorMessage = "Xung đột dữ liệu! " + errorMessage;
-                                break;
-                            case 500:
-                                errorMessage = "Lỗi hệ thống! " + errorMessage;
-                                break;
-                        }
-                        throw new Error(errorMessage);
-                    }
-                })
-                .catch(error => {
-                    console.error("Lỗi cập nhật:", error);
-                    Swal.fire({
-                        title: "Thất bại!",
-                        text: error.message,
-                        icon: "error",
-                        confirmButtonText: "OK"
-                    });
-                });
-
-
-        });
     });
 </script>
 
@@ -999,6 +937,8 @@
         });
     });
 </script>
-
+<script src="/js/main.js"></script>
+<script src="/js/DangNhap/login.js"></script>
+<script src="/js/DangNhap/logout.js"></script>
 </body>
 </html>

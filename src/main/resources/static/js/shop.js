@@ -1,42 +1,38 @@
-// Tạo hóa đơn
-function createHoaDon() {
-    fetch('/create', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'}
-    })
-        .then(response => {
-            if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.id) {
-                // Lưu hóa đơn vào sessionStorage
-                sessionStorage.setItem('selectedHoaDonId', data.id);
-                console.log("Hóa đơn ID đã được lưu vào sessionStorage:", data.id);
-
-                // Hiển thị thông báo thành công
-                Swal.fire({
-                    title: "Thành công!",
-                    text: "Hóa đơn đã được tạo thành công.",
-                    icon: "success",
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                // Thêm hóa đơn vào UI sau 1.5 giây
-                setTimeout(() => addHoaDonToUI(data), 1500);
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: "Lỗi!",
-                text: "Không thể tạo hóa đơn.",
-                icon: "error"
-            });
+async function createHoaDon() {
+    try {
+        const response = await fetch(`/create`, {
+            method: 'POST',
+            credentials: 'include' // Quan trọng để gửi session cookie
         });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Lỗi khi tạo hóa đơn');
+        }
+
+        // Hiển thị thông báo thành công
+        Swal.fire({
+            title: 'Tạo hóa đơn thành công!',
+            text: `Mã hóa đơn: ${result.maHoaDon}`,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+        addHoaDonToUI(result);
+    } catch (error) {
+        console.error('Lỗi:', error);
+
+        // Hiển thị thông báo lỗi
+        Swal.fire({
+            title: 'Lỗi!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonText: 'Đóng'
+        });
+    }
 }
 
-// Thêm hóa đơn mới vào danh sách hiển thị
 function addHoaDonToUI(hoaDon) {
     const container = document.querySelector(".row.g-4");
 
@@ -59,7 +55,7 @@ function addHoaDonToUI(hoaDon) {
                     <div class="card-body text-center">
                         <p class="card-text text-muted">
                             <i class="fas fa-shopping-cart"></i> Số lượng Sản Phẩm:
-                            <strong>${hoaDon.tongSanPham}</strong>
+                            <strong th:text="${hoaDon.tongSanPham != null ? hoaDon.tongSanPham : 0}"></strong>
                         </p>
                     </div>
                     <div class="card-footer bg-light text-center">
@@ -414,15 +410,10 @@ document.addEventListener("DOMContentLoaded", () => {
 <!--API Phiếu Giảm Giá-->
 function applyPhieuGiamGia(button) {
     const hoaDonId = document.getElementById("hoaDonId").value;
-    const tenPhieuGiamGia = document.getElementById("tenPhieuGiamGia").value;
+    const tenPhieuGiamGia = document.getElementById("tenPhieuGiamGia").value || ""; // Cho phép bỏ chọn
 
     if (!hoaDonId || isNaN(hoaDonId)) {
         Swal.fire("Lỗi!", "ID hóa đơn không hợp lệ!", "error");
-        return;
-    }
-
-    if (!tenPhieuGiamGia) {
-        Swal.fire("Cảnh báo!", "Vui lòng chọn phiếu giảm giá.", "warning");
         return;
     }
 
@@ -438,7 +429,7 @@ function applyPhieuGiamGia(button) {
         .then(data => {
             Swal.fire({
                 title: data.success ? "Thành công!" : "Lỗi!",
-                text: data.success ? "Phiếu giảm giá đã được áp dụng!" : (data.error || "Lỗi khi áp dụng phiếu giảm giá!"),
+                text: data.success ? data.message : (data.error || "Lỗi khi áp dụng phiếu giảm giá!"),
                 icon: data.success ? "success" : "error"
             }).then(() => {
                 if (data.success) {
@@ -472,8 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const hoaDonId = formData.get("hoaDonId");
         const nguoiNhan = formData.get("nguoiNhan").trim();
         const soDienThoai = formData.get("soDienThoai").trim();
-        const soNha = formData.get("soNha").trim();
-        const tenDuong = formData.get("tenDuong").trim();
+        const diaChiCuThe = formData.get("diaChiCuThe").trim();
         const thanhPho = formData.get("thanhPho").trim();
         const huyen = formData.get("huyen").trim();
         const phuong = formData.get("phuong").trim();
@@ -481,8 +471,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Xóa thông báo lỗi trước khi kiểm tra
         document.getElementById("shippingNguoiNhanError").textContent = "";
         document.getElementById("shippingSoDienThoaiError").textContent = "";
-        document.getElementById("soNhaError").textContent = "";
-        document.getElementById("tenDuongError").textContent = "";
+        document.getElementById("diaChiCuTheError").textContent = "";
         document.getElementById("thanhPhoError").textContent = "";
         document.getElementById("huyenError").textContent = "";
         document.getElementById("phuongError").textContent = "";
@@ -521,18 +510,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Kiểm tra địa chỉ
-        // Kiểm tra số nhà (chỉ được chứa số)
-        const soNhaRegex = /^[0-9]+$/;
-        if (!soNha) {
-            document.getElementById("soNhaError").textContent = "Số nhà không được để trống!";
-            isValid = false;
-        } else if (!soNhaRegex.test(soNha)) {
-            document.getElementById("soNhaError").textContent = "Số nhà chỉ được chứa số!";
-            isValid = false;
-        }
 
-        if (!tenDuong) {
-            document.getElementById("tenDuongError").textContent = "Tên đường không được để trống!";
+        if (!diaChiCuThe) {
+            document.getElementById("diaChiCuTheError").textContent = "Đia chỉ cụ thể không được để trống!";
             isValid = false;
         }
         if (!thanhPho) {
@@ -812,58 +792,44 @@ function saveHoaDonIdFromURL() {
     const hoaDonId = urlParams.get('hoaDonId');
 
     if (hoaDonId && !sessionStorage.getItem('selectedHoaDonId')) {
-        sessionStorage.setItem('selectedHoaDonId', hoaDonId);
+        localStorage.setItem('selectedHoaDonId', hoaDonId);
         console.log("HoaDonId từ URL đã lưu:", hoaDonId);
     }
 }
 
 // Lưu hoaDonId vào sessionStorage khi chọn hóa đơn
 function saveHoaDonId(hoaDonId) {
-    sessionStorage.setItem('selectedHoaDonId', hoaDonId);
+    localStorage.setItem('selectedHoaDonId', hoaDonId);
     console.log("HoaDonId đã lưu:", hoaDonId);
 }
 
 // API Thêm Sản Phẩm
 function addProductOrder(button) {
     const row = button.closest('tr');
-    if (!row) {
-        console.error("Không tìm thấy hàng sản phẩm.");
-        return;
-    }
-
     const sanPhamChiTietId = parseInt(row.querySelector('td:first-child')?.textContent.trim(), 10);
     const soLuong = parseInt(row.querySelector('input[name="soLuong"]')?.value, 10);
-    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
+    let hoaDonId = parseInt(row.querySelector('input[name="hoaDonId"]')?.value, 10);
 
-    // Kiểm tra hoaDonId
     if (!hoaDonId || isNaN(hoaDonId)) {
-        // Nếu không có trong sessionStorage, thử lấy từ URL
         const urlParams = new URLSearchParams(window.location.search);
         hoaDonId = urlParams.get('hoaDonId');
 
         if (!hoaDonId || isNaN(hoaDonId)) {
-            Swal.fire({
-                title: "Lỗi!",
-                text: "Không tìm thấy hóa đơn hợp lệ! Vui lòng chọn hóa đơn trước.",
-                icon: "error"
-            });
+            Swal.fire({ title: "Lỗi!", text: "Không tìm thấy hóa đơn hợp lệ!", icon: "error" });
             return;
         }
     }
 
     hoaDonId = parseInt(hoaDonId, 10);
-    console.log("Gửi yêu cầu thêm sản phẩm:", {sanPhamChiTietId, hoaDonId, soLuong});
+    console.log("Gửi yêu cầu thêm sản phẩm:", { sanPhamChiTietId, hoaDonId, soLuong });
 
     fetch('/add-product-order', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({sanPhamChiTietId, hoaDonId, soLuong})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sanPhamChiTietId, hoaDonId, soLuong })
     })
         .then(response => response.json())
-        .then(response => {
-            console.log("Phản hồi API:", response);
-            handleResponse(response, hoaDonId);
-        })
+        .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
         .catch(handleError);
 }
 
@@ -871,22 +837,17 @@ function addProductOrder(button) {
 function updateQuantityOrder(input) {
     const row = input.closest('tr');
     const hoaDonChiTietId = parseInt(row.querySelector('input[name="hoaDonChiTietId"]').value, 10);
+    const sanPhamChiTietId = parseInt(row.dataset.sanPhamChiTietId, 10); // Giữ ID sản phẩm
     const soLuong = parseInt(input.value, 10);
-    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
+    let hoaDonId = parseInt(row.querySelector('input[name="hoaDonId"]')?.value, 10);
 
-    // Kiểm tra hoaDonId
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId) || isNaN(soLuong) || soLuong < 1) {
-        Swal.fire({
-            title: "Lỗi!",
-            text: "Thông tin không hợp lệ!",
-            icon: "error"
-        });
+        Swal.fire({ title: "Lỗi!", text: "Thông tin không hợp lệ!", icon: "error" });
         return;
     }
 
     hoaDonId = parseInt(hoaDonId, 10);
-
-    const data = {hoaDonChiTietId, hoaDonId, soLuong};
+    const data = { hoaDonChiTietId, hoaDonId, soLuong };
 
     Swal.fire({
         title: "Đang cập nhật...",
@@ -898,11 +859,11 @@ function updateQuantityOrder(input) {
 
     fetch('/update-product-order', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
         .then(response => response.json())
-        .then(response => handleResponse(response, hoaDonId))
+        .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
         .catch(handleError);
 }
 
@@ -910,15 +871,11 @@ function updateQuantityOrder(input) {
 function deleteProductOrder(button) {
     const row = button.closest('tr');
     const hoaDonChiTietId = parseInt(row.querySelector('input[name="hoaDonChiTietId"]').value, 10);
-    let hoaDonId = sessionStorage.getItem('selectedHoaDonId');
+    const sanPhamChiTietId = parseInt(row.dataset.sanPhamChiTietId, 10);
+    let hoaDonId = parseInt(row.querySelector('input[name="hoaDonId"]')?.value, 10);
 
-    // Kiểm tra hoaDonId
     if (isNaN(hoaDonChiTietId) || isNaN(hoaDonId)) {
-        Swal.fire({
-            title: "Lỗi!",
-            text: "Thông tin không hợp lệ!",
-            icon: "error"
-        });
+        Swal.fire({ title: "Lỗi!", text: "Thông tin không hợp lệ!", icon: "error" });
         return;
     }
 
@@ -930,34 +887,23 @@ function deleteProductOrder(button) {
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Xóa",
-        cancelButtonText: "Hủy",
-        reverseButtons: true
+        cancelButtonText: "Hủy"
     }).then((result) => {
         if (result.isConfirmed) {
-            const data = {hoaDonChiTietId, hoaDonId};
-
-            Swal.fire({
-                title: "Đang xóa...",
-                text: "Vui lòng đợi trong giây lát.",
-                icon: "info",
-                showConfirmButton: false,
-                allowOutsideClick: false
-            });
-
             fetch('/delete-product-order', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hoaDonChiTietId, hoaDonId })
             })
                 .then(response => response.json())
-                .then(response => handleResponse(response, hoaDonId))
+                .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
                 .catch(handleError);
         }
     });
 }
 
 // Xử lý phản hồi chung cho các API
-function handleResponse(response, hoaDonId) {
+function handleResponse(response, hoaDonId, sanPhamChiTietId) {
     if (response.successMessage) {
         Swal.fire({
             title: "Thành công!",
@@ -966,8 +912,11 @@ function handleResponse(response, hoaDonId) {
             timer: 1500,
             showConfirmButton: false
         }).then(() => {
-            // Lưu vị trí cuộn trước khi chuyển hướng
+            // Lưu thông tin trước khi redirect
             sessionStorage.setItem('scrollPosition', window.scrollY);
+            sessionStorage.setItem('highlightProductId', sanPhamChiTietId); // Đánh dấu sản phẩm vừa thao tác
+            sessionStorage.setItem('previousUrl', window.location.href); // Lưu URL trước khi chuyển trang
+
             redirectToAppropriatePage(response.trangThai, hoaDonId);
         });
     } else {
@@ -989,9 +938,10 @@ function handleError(error) {
     });
 }
 
-// Chuyển hướng đến trang phù hợp dựa trên trạng thái
+// 🏷️ Chuyển hướng và lưu vị trí cuộn
 function redirectToAppropriatePage(trangThai, hoaDonId) {
     let redirectUrl;
+
     if (trangThai === "Đang Xử Lý") {
         redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
     } else if (trangThai === "Chờ Xác Nhận") {
@@ -1000,15 +950,57 @@ function redirectToAppropriatePage(trangThai, hoaDonId) {
         redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
     }
 
-    // Sau khi chuyển hướng, trang sẽ giữ lại vị trí cuộn
+    // ✅ Lưu vị trí cuộn trước khi chuyển trang
+    localStorage.setItem('scrollPosition', window.scrollY);
+    localStorage.setItem('highlightProductId', hoaDonId);
+
+    // Chuyển hướng
     window.location.href = redirectUrl;
 }
+
+// 🎯 Cuộn lại và highlight sản phẩm
+document.addEventListener("DOMContentLoaded", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Đợi 100ms cho DOM load
+
+    // ✅ Khôi phục vị trí cuộn
+    const savedScrollPosition = localStorage.getItem('scrollPosition');
+    if (savedScrollPosition !== null) {
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: parseInt(savedScrollPosition, 10), behavior: "smooth" });
+            localStorage.removeItem('scrollPosition');
+        });
+    }
+
+    // ✅ Tạo hiệu ứng highlight sản phẩm
+    const highlightProductId = localStorage.getItem('highlightProductId');
+    if (highlightProductId) {
+        const highlightedRow = document.querySelector(`tr[data-sanphamchitietid="${highlightProductId}"]`);
+        if (highlightedRow) {
+            // 🕵️‍♂️ Chỉ highlight nếu phần tử thực sự xuất hiện trên màn hình
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        highlightedRow.style.backgroundColor = "#ffff99"; // Màu vàng nhạt
+                        setTimeout(() => {
+                            highlightedRow.style.transition = "background-color 1s";
+                            highlightedRow.style.backgroundColor = "";
+                        }, 3000);
+                        observer.disconnect(); // Ngừng theo dõi sau khi highlight
+                    }
+                });
+            });
+
+            observer.observe(highlightedRow);
+        }
+        localStorage.removeItem('highlightProductId');
+    }
+});
+
 
 // Đảm bảo khi trang được tải lại, hoaDonId được lấy từ URL nếu chưa có trong sessionStorage
 window.onload = function() {
     saveHoaDonIdFromURL();
 };
-
 
 <!-- Script xử lý thanh toán -->
 document.addEventListener("DOMContentLoaded", function () {
@@ -1023,8 +1015,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.warn("Không tìm thấy phần tử 'confirmPayment' hoặc 'paymentForm'");
     }
 });
-
-
 
 document.addEventListener("DOMContentLoaded", function () {
     let successMessage = document.getElementById("successMessage")?.value || "";
@@ -1066,6 +1056,7 @@ function selectHoaDon(card) {
     const hoaDonId = card.querySelector('input[name="hoaDonId"]').value;
     localStorage.setItem("selectedHoaDonId", hoaDonId);
 }
+
 // Khi trang load lại, kiểm tra và giữ trạng thái sáng cho hóa đơn đã chọn
 document.addEventListener("DOMContentLoaded", function () {
     const hoaDonIdFromUrl = getQueryParam("hoaDonId"); // Lấy ID từ URL
@@ -1089,7 +1080,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 $(document).ready(function () {
-    $('#productTable').DataTable({
+    var table1 = $('#productTable').DataTable({
         "paging": true,
         "lengthMenu": [5, 10, 20],
         "pageLength": 5,
@@ -1111,4 +1102,50 @@ $(document).ready(function () {
             }
         }
     });
+
+    var table2 = $('#productTable1').DataTable({
+        "paging": true,
+        "lengthMenu": [5, 10, 20],
+        "pageLength": 5,
+        "autoWidth": false,
+        "responsive": true,
+        "language": {
+            "sProcessing": "Đang xử lý...",
+            "sLengthMenu": "Hiển thị _MENU_ dòng",
+            "sZeroRecords": "Không tìm thấy dữ liệu",
+            "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+            "sInfoEmpty": "Không có dữ liệu để hiển thị",
+            "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+            "sSearch": "Tìm kiếm:",
+            "oPaginate": {
+                "sFirst": "Đầu",
+                "sPrevious": "Trước",
+                "sNext": "Tiếp",
+                "sLast": "Cuối"
+            }
+        }
+    });
+
+    // Lọc theo kích thước
+    $('#filterKichThuoc').on('change', function () {
+        var value = $(this).val();
+        table1.column(2).search(value).draw();
+    });
+
+    // Lọc theo màu sắc
+    $('#filterMauSac').on('change', function () {
+        var value = $(this).val();
+        table1.column(2).search(value).draw(); // Cột màu sắc có thể ở vị trí khác, kiểm tra lại index
+    });
+
+
+    // Giữ modal mở khi lọc
+    $('#addProductModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            if ($('.modal-backdrop').length) {
+                $('body').addClass('modal-open');
+            }
+        }, 100);
+    });
+
 });

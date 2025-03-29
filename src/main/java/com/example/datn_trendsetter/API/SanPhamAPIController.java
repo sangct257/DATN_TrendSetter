@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.SanPham;
 import com.example.datn_trendsetter.Repository.SanPhamRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -98,8 +99,8 @@ public class SanPhamAPIController {
 
     @PostMapping("/add")
     @ResponseBody
-    public ResponseEntity<?> addSanPham(@RequestBody SanPhamDTO sanPhamDTO) {
-        return sanPhamService.addSanPham(sanPhamDTO);
+    public ResponseEntity<?> addSanPham(@RequestBody SanPhamDTO sanPhamDTO, HttpSession session) {
+        return sanPhamService.addSanPham(sanPhamDTO,session);
     }
 
     @PutMapping("/update-san-pham/{id}")
@@ -171,28 +172,6 @@ public class SanPhamAPIController {
 
         sanPhamChiTietRepository.saveAll(sanPhamChiTiets);
         capNhatSoLuongTonKhoSanPham(sanPhamChiTiets.get(0).getSanPham());
-        return response("Cập nhật chi tiết sản phẩm thành công!",true);
-    }
-
-    @PutMapping("/update-product-detail-status")
-    public ResponseEntity<?> updateProductDetails(@RequestBody SanPhamChiTietDTO request) {
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
-        if (sanPhamChiTiet == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
-        }
-
-        if ("Còn Hàng".equals(sanPhamChiTiet.getTrangThai())) {
-            sanPhamChiTiet.setTrangThai("Hết Hàng");
-            sanPhamChiTiet.setDeleted(true);
-        }else if ("Hết Hàng".equals(sanPhamChiTiet.getTrangThai())) {
-            sanPhamChiTiet.setTrangThai("Còn Hàng");
-            sanPhamChiTiet.setDeleted(false);
-        }
-
-        sanPhamChiTietRepository.save(sanPhamChiTiet);
-
-
-        capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
         return response("Cập nhật chi tiết sản phẩm thành công!",true);
     }
 

@@ -34,8 +34,8 @@ public class HoaDon {
     @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")
     private KhachHang khachHang;
 
-    @ManyToOne
-    @JoinColumn(name = "id_nhan_vien",referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_nhan_vien")
     private NhanVien nhanVien;
 
     @ManyToOne
@@ -64,11 +64,8 @@ public class HoaDon {
     @Column(name = "email",columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "so_nha")
-    private Integer soNha;
-
     @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
-    private String tenDuong;
+    private String diaChiCuThe;
 
     @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
     private String huyen;
@@ -121,69 +118,60 @@ public class HoaDon {
     @Transient // Không lưu vào cơ sở dữ liệu
     private int tongSanPham;
 
+    @Transient
+    private Float soTienDaThanhToan;
+
 
     @PreUpdate
     @PrePersist
     public void updatePhiShip() {
         if ("Tại Quầy".equals(this.loaiHoaDon)) {
-            this.phiShip = null;
+            this.phiShip = 0F; // Tại quầy không có phí ship
+            this.tinhTongTienHoaDon();
         } else if ("Giao Hàng".equals(this.loaiHoaDon)) {
-            this.phiShip = tinhPhiShip(this.thanhPho, this.huyen);
+            this.phiShip = tinhPhiShip(); // Chỉ tính phí ship nếu là Giao Hàng
+            this.tinhTongTienHoaDon();
         }
-        // Tính tổng tiền
-        this.tongTien = tinhTongTienHoaDon();
+        // "Online" không cần tính phí ship
     }
 
-    private float tinhPhiShip(String thanhPho, String huyen) {
-        if (thanhPho == null || thanhPho.isEmpty() || huyen == null || huyen.isEmpty()) {
-            return 0.0F;
+    private float tinhPhiShip() {
+        if (this.nguoiNhan != null && !this.nguoiNhan.isEmpty()
+                && this.soDienThoai != null && !this.soDienThoai.isEmpty()
+                && this.diaChiCuThe != null && !this.diaChiCuThe.isEmpty()
+                && this.huyen != null && !this.huyen.isEmpty()
+                && this.phuong != null && !this.phuong.isEmpty()
+                && this.thanhPho != null && !this.thanhPho.isEmpty()) {
+            return 30000.0F; // Nếu có đầy đủ thông tin → tính phí ship
         }
-
-        float phiShip = 50000.0F; // Mặc định phí ship tỉnh khác
-
-        if ("Hà Nội".equalsIgnoreCase(thanhPho) || "Hồ Chí Minh".equalsIgnoreCase(thanhPho)) {
-            phiShip = 30000.0F;
-
-            List<String> quanTrungTamHN = List.of("Quận Hoàn Kiếm", "Quận Ba Đình", "Quận Đống Đa", "Quận Hai Bà Trưng");
-            List<String> quanTrungTamHCM = List.of("Quận 1", "Quận 3", "Quận 5", "Quận 10");
-
-            if (("Hà Nội".equalsIgnoreCase(thanhPho) && quanTrungTamHN.contains(huyen)) ||
-                    ("Hồ Chí Minh".equalsIgnoreCase(thanhPho) && quanTrungTamHCM.contains(huyen))) {
-                phiShip = 20000.0F;
-            }
-        }
-
-        return phiShip;
+        return 0F; // Nếu thiếu thông tin → miễn phí ship
     }
 
-    private float tinhTongTienHoaDon() {
-        // Tính tổng tiền sản phẩm từ danh sách chi tiết hóa đơn
+    private void tinhTongTienHoaDon() {
         float tongTienSanPham = (float) hoaDonChiTiet.stream()
                 .mapToDouble(HoaDonChiTiet::getThanhTien)
                 .sum();
 
         float giaTriGiam = 0F;
 
-        // Kiểm tra phiếu giảm giá (nếu có) và điều kiện áp dụng
         if (phieuGiamGia != null && phieuGiamGia.getDieuKien() != null) {
             if (tongTienSanPham >= phieuGiamGia.getDieuKien()) {
                 giaTriGiam = Objects.requireNonNullElse(phieuGiamGia.getGiaTriGiam(), 0F);
             } else {
-                // Nếu không đủ điều kiện, không áp dụng phiếu giảm giá
                 this.phieuGiamGia = null;
             }
         }
 
-        // Nếu tổng tiền sản phẩm (trước khi trừ giảm giá) >= 1.000.000 thì miễn phí ship
         if (tongTienSanPham >= 500_000) {
-            this.phiShip = 0F;  // Cập nhật phí ship thành 0
+            this.phiShip = 0F;
         }
 
         float phiShip = Objects.requireNonNullElse(this.phiShip, 0F);
 
-        // Tổng tiền hóa đơn
-        return Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
+        // **Gán giá trị tổng tiền vào thuộc tính `tongTien`**
+        this.tongTien = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
     }
+
 
 
 

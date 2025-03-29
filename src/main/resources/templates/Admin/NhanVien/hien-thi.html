@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="admin/fragments/head :: head"></head>
+<style>
+    .is-invalid {
+        border: 1px solid red !important;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+    }
+</style>
 <body class="hold-transition skin-blue sidebar-mini">
 <!-- Site wrapper -->
 <div class="wrapper">
@@ -18,14 +28,8 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Blank page
-                <small>it all starts here</small>
+                Nhân Viên
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Examples</a></li>
-                <li class="active">Blank page</li>
-            </ol>
         </section>
 
         <!-- Main content -->
@@ -34,7 +38,208 @@
             <!-- Default box -->
             <div class="box">
                 <div class="box-body">
-                    <h1>Danh sach nhan vien</h1>
+
+                    <!-- Nút mở modal -->
+                    <div class="d-flex justify-content-end mb-3">
+                        <button class="btn btn-primary fw-bold" data-bs-toggle="modal"
+                                data-bs-target="#modalAddNhanVien">
+                            <i class="bi bi-person-plus"></i> Thêm Nhân Viên
+                        </button>
+                    </div>
+
+                    <!-- Modal Thêm Nhân Viên -->
+                    <div class="modal fade" id="modalAddNhanVien" tabindex="-1" aria-labelledby="addNhanVienLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title" id="addNhanVienLabel"><i class="bi bi-person-plus"></i> Thêm
+                                        Nhân Viên</h5>
+                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="addNhanVienForm" enctype="multipart/form-data">
+                                        <div class="row">
+                                            <!-- Cột 1: Avatar (Canh giữa) -->
+                                            <div class="col-md-4 d-flex flex-column align-items-center justify-content-center">
+                                                <img id="avatarPreview" class="rounded-circle border shadow mb-3" width="150" height="150">
+                                                <input type="file" class="form-control mt-2" id="hinhAnh"
+                                                       accept="image/*" onchange="previewImage(event)">
+                                                <div class="error-message" id="hinhAnhError"></div>
+                                            </div>
+                                            <!-- Cột 2: Thông tin nhân viên -->
+                                            <div class="col-md-8">
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-person"></i> Họ
+                                                        Tên</label>
+                                                    <input type="text" class="form-control" id="hoTen"
+                                                           placeholder="Nhập họ tên" required>
+                                                    <div class="error-message" id="hoTenError"></div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-person-circle"></i>
+                                                            Username</label>
+                                                        <input type="text" class="form-control" id="username"
+                                                               placeholder="Nhập username" required>
+                                                        <div class="error-message" id="usernameError"></div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-key"></i> Mật
+                                                            khẩu</label>
+                                                        <div class="input-group">
+                                                            <input type="password" class="form-control border-end-0"
+                                                                   id="password" placeholder="Nhập mật khẩu" required>
+                                                            <button class="btn btn-outline-secondary border-start-0"
+                                                                    type="button" id="togglePassword">
+                                                                <i class="bi bi-eye"></i>
+                                                            </button>
+                                                        </div>
+                                                        <div class="text-danger mt-1 small" id="passwordError"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-envelope"></i>
+                                                        Email</label>
+                                                    <input type="email" class="form-control" id="email"
+                                                           placeholder="Nhập email" required>
+                                                    <div class="error-message" id="emailError"></div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-house"></i> Địa
+                                                        Chỉ</label>
+                                                    <input type="text" class="form-control" id="diaChi"
+                                                           placeholder="Nhập địa chỉ">
+                                                    <div class="error-message" id="diaChiError"></div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-gender-ambiguous"></i>
+                                                            Giới Tính</label>
+                                                        <select class="form-select" id="gioiTinh">
+                                                            <option value="true">Nam</option>
+                                                            <option value="false">Nữ</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-calendar"></i> Ngày
+                                                            Sinh</label>
+                                                        <input type="date" class="form-control" id="ngaySinh">
+                                                        <div class="error-message" id="ngaySinhError"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-toggle-on"></i> Trạng Thái</label>
+                                                    <select class="form-select" id="trangThai">
+                                                        <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                                        <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="btnSave" onclick="saveNhanVien()">
+                                        <i class="bi bi-save"></i> Lưu
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table id="productTable" class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                        <tr class="text-center">
+                            <th class="text-center">#</th>
+                            <th class="text-center">Ảnh</th>
+                            <th class="text-center">Tên Nhân Viên</th>
+                            <th class="text-center">Ngày Sinh</th>
+                            <th class="text-center">Giới Tính</th>
+                            <th class="text-center">Vai Trò</th>
+                            <th class="text-center">Trạng Thái</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="nhanVienBody">
+                        <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+                        </tbody>
+                    </table>
+                    <!-- Modal Sửa Nhan Viên -->
+                    <div class="modal fade" id="modalUpdateNhanVien" tabindex="-1" aria-labelledby="updateNhanVienLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title" id="updateNhanVienLabel"><i class="bi bi-person-plus"></i> Sửa Nhân Viên</h5>
+                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="updateNhanVienForm">
+                                        <input type="hidden" name="id" id="nhanVienId">
+                                        <div class="row">
+                                            <!-- Cột 1: Avatar -->
+                                            <div class="col-md-4 d-flex flex-column align-items-center justify-content-center">
+                                                <img id="avatarPreview1" class="rounded-circle border shadow mb-3" width="150" height="150" alt="Ảnh Nhân Viên">
+                                                <input type="file" class="form-control mt-2" accept="image/*" name="hinhAnh" onchange="previewImage(event)">
+                                            </div>
+                                            <!-- Cột 2: Thông tin nhân viên -->
+                                            <div class="col-md-8">
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-person"></i> Họ Tên</label>
+                                                    <input type="text" class="form-control" name="hoTen" placeholder="Nhập họ tên" required>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-person-circle"></i> Username</label>
+                                                        <input type="text" class="form-control" name="username" placeholder="Nhập username" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-key"></i> Mật Khẩu</label>
+                                                        <input type="password" class="form-control" name="password" placeholder="Nhập mật khẩu" required>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-envelope"></i> Email</label>
+                                                    <input type="email" class="form-control" name="email" placeholder="Nhập email" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-house"></i> Địa Chỉ</label>
+                                                    <input type="text" class="form-control" name="diaChi" placeholder="Nhập địa chỉ">
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-gender-ambiguous"></i> Giới Tính</label>
+                                                        <select class="form-select" name="gioiTinh">
+                                                            <option value="true">Nam</option>
+                                                            <option value="false">Nữ</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label"><i class="bi bi-calendar"></i> Ngày Sinh</label>
+                                                        <input type="date" class="form-control" name="ngaySinh">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><i class="bi bi-toggle-on"></i> Trạng Thái</label>
+                                                    <select class="form-select" name="trangThai">
+                                                        <option value="Đang Hoạt Động">Đang Hoạt Động</option>
+                                                        <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-primary" id="btnUpdate" onclick="updateNhanVien()">Lưu</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- /.box -->
@@ -53,6 +258,329 @@
 <!-- jQuery 3 -->
 
 <div th:replace="admin/fragments/script :: script"></div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Hàm chuyển đổi ngày sang định dạng Việt Nam (dd/MM/yyyy)
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            return date.toLocaleDateString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+        }
 
+        fetch('http://localhost:8080/api/nhan-vien')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('nhanVienBody');
+                tbody.innerHTML = ""; // Xóa dữ liệu cũ trước khi thêm mới
+
+                data.forEach((nhanVien, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td class="text-center">${index + 1}</td>
+                    <td class="text-center"><img src="${nhanVien.hinhAnh}" alt="Ảnh Nhân Viên" width="50"></td>
+                    <td class="text-center">${nhanVien.hoTen}</td>
+                    <td class="text-center">${formatDate(nhanVien.ngaySinh)}</td>
+                    <td class="text-center">${nhanVien.gioiTinh ? "Nam" : "Nữ"}</td>
+                    <td class="text-center">${nhanVien.vaiTro}</td>
+                    <td class="text-center">${nhanVien.trangThai}</td>
+                    <td class="text-center">
+                        <button class="btn btn-primary" onclick="editNhanVien(${nhanVien.id})">Sửa</button>
+                    </td>
+                `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Lỗi khi tải dữ liệu:', error));
+    });
+
+    function previewImage(event) {
+        const input = event.target;
+        const preview = document.getElementById('avatarPreview');
+        const preview1 = document.getElementById('avatarPreview1');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview1.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Hàm mở modal và điền thông tin nhân viên vào form
+    function editNhanVien(id) {
+        // Tìm nhân viên theo ID (bạn cần gọi API hoặc sử dụng dữ liệu đã có)
+        fetch(`http://localhost:8080/api/nhan-vien/${id}`)
+            .then(response => response.json())
+            .then(nhanVien => {
+                // Cập nhật các trường thông tin trong form modal
+                document.querySelector('#modalUpdateNhanVien input[name="hoTen"]').value = nhanVien.hoTen;
+                document.querySelector('#modalUpdateNhanVien input[name="username"]').value = nhanVien.username;
+                document.querySelector('#modalUpdateNhanVien input[name="email"]').value = nhanVien.email;
+                document.querySelector('#modalUpdateNhanVien input[name="diaChi"]').value = nhanVien.diaChi;
+                document.querySelector('#modalUpdateNhanVien select[name="gioiTinh"]').value = nhanVien.gioiTinh ? "true" : "false";
+                document.querySelector('#modalUpdateNhanVien input[name="ngaySinh"]').value = nhanVien.ngaySinh;
+                document.querySelector('#modalUpdateNhanVien select[name="trangThai"]').value = nhanVien.trangThai;
+                document.querySelector('#modalUpdateNhanVien img#avatarPreview1').src = nhanVien.hinhAnh;
+
+                // Gán giá trị id vào trường ẩn
+                document.querySelector('#modalUpdateNhanVien #nhanVienId').value = nhanVien.id;
+
+                // Mở modal
+                new bootstrap.Modal(document.getElementById('modalUpdateNhanVien')).show();
+            })
+            .catch(error => console.error('Lỗi khi tải thông tin nhân viên:', error));
+    }
+
+    // Hàm lưu thông tin đã chỉnh sửa
+    function validateForm() {
+        let isValid = true;
+
+        function showError(id, message) {
+            const element = document.getElementById(id);
+            element.classList.add("is-invalid");
+            document.getElementById(id + "Error").innerText = message;
+            isValid = false;
+        }
+
+        function clearError(id) {
+            const element = document.getElementById(id);
+            element.classList.remove("is-invalid");
+            document.getElementById(id + "Error").innerText = "";
+        }
+
+        // Validate các trường văn bản
+        const fields = ["hoTen", "username", "password", "email", "diaChi", "ngaySinh"];
+        fields.forEach(field => {
+            const value = document.getElementById(field).value.trim();
+            if (!value) showError(field, "Trường này không được để trống");
+            else clearError(field);
+        });
+
+        // Validate ngày sinh
+        const ngaySinh = document.getElementById("ngaySinh").value.trim();
+        const dateRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
+        if (!dateRegex.test(ngaySinh)) {
+            showError("ngaySinh", "Ngày sinh không hợp lệ");
+            return false;
+        }
+
+        // Validate email
+        const email = document.getElementById("email").value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email && !emailRegex.test(email)) {
+            showError("email", "Email không hợp lệ");
+        }
+
+        // Validate mật khẩu
+        const password = document.getElementById("password").value;
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+        if (password && !passwordRegex.test(password)) {
+            showError("password", "Mật khẩu phải có ít nhất 6 ký tự, gồm cả chữ và số");
+        }
+
+        // Validate hình ảnh
+        const fileInput = document.getElementById("hinhAnh");
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+            if (!validTypes.includes(file.type)) {
+                showError("hinhAnh", "Chỉ chấp nhận ảnh JPG, PNG, JPEG");
+            } else if (file.size > 2 * 1024 * 1024) { // 2MB
+                showError("hinhAnh", "Ảnh không được vượt quá 2MB");
+            } else {
+                clearError("hinhAnh");
+            }
+        }
+
+        return isValid;
+    }
+
+    async function updateNhanVien() {
+        const btnSubmit = document.getElementById("btnUpdate");
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+        const form = document.getElementById('updateNhanVienForm');
+        const updatedNhanVien = {
+            id: form.querySelector('input[name="id"]').value,
+            hoTen: form.querySelector('input[name="hoTen"]').value,
+            username: form.querySelector('input[name="username"]').value,
+            email: form.querySelector('input[name="email"]').value,
+            diaChi: form.querySelector('input[name="diaChi"]').value,
+            gioiTinh: form.querySelector('select[name="gioiTinh"]').value === "true",
+            ngaySinh: form.querySelector('input[name="ngaySinh"]').value,
+            trangThai: form.querySelector('select[name="trangThai"]').value,
+            password: form.querySelector('input[name="password"]').value
+        };
+
+        const formData = new FormData();
+        formData.append('id', updatedNhanVien.id);
+        formData.append('hoTen', updatedNhanVien.hoTen);
+        formData.append('username', updatedNhanVien.username);
+        formData.append('email', updatedNhanVien.email);
+        formData.append('diaChi', updatedNhanVien.diaChi);
+        formData.append('gioiTinh', updatedNhanVien.gioiTinh);
+        formData.append('ngaySinh', updatedNhanVien.ngaySinh);
+        formData.append('trangThai', updatedNhanVien.trangThai);
+        formData.append('password', updatedNhanVien.password);
+
+        // Thêm ảnh nếu có
+        const fileInput = form.querySelector('input[name="hinhAnh"]');
+        if (fileInput.files && fileInput.files[0]) {
+            formData.append('file', fileInput.files[0]);
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/nhan-vien/update/${updatedNhanVien.id}`, {
+                method: 'PUT',
+                body: formData
+            });
+            if (response.ok) {
+                Swal.fire({
+                    title: "Cập nhật thành công!",
+                    text: "Thông tin nhân viên đã được cập nhật.",
+                    icon: "success",
+                    confirmButtonText: "OK"
+                }).then(() => location.reload());
+            } else {
+                throw new Error("Lỗi khi cập nhật thông tin nhân viên.");
+            }
+        } catch (error) {
+            Swal.fire({
+                title: "Lỗi!",
+                text: error.message,
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `Cập nhật Nhân Viên`;
+        }
+    }
+
+    async function saveNhanVien() {
+        if (!validateForm()) {
+            Swal.fire({
+                title: "Lỗi!",
+                text: "Vui lòng kiểm tra lại các trường thông tin.",
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+            return;
+        }
+
+        const btnSubmit = document.getElementById("btnSave");
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+        const formData = new FormData();
+        formData.append("hoTen", document.getElementById("hoTen").value);
+        formData.append("username", document.getElementById("username").value);
+        formData.append("password", document.getElementById("password").value);
+        formData.append("email", document.getElementById("email").value);
+        formData.append("diaChi", document.getElementById("diaChi").value);
+        formData.append("gioiTinh", document.getElementById("gioiTinh").value);
+        formData.append("ngaySinh", document.getElementById("ngaySinh").value);
+        formData.append("trangThai", document.getElementById("trangThai").value);
+
+        const fileInput = document.getElementById("hinhAnh");
+        if (fileInput.files.length > 0) {
+            formData.append("file", fileInput.files[0]);
+        }
+
+        try {
+            const response = await fetch("http://localhost:8080/api/nhan-vien/add", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error("Có lỗi xảy ra khi thêm nhân viên.");
+            }
+
+            await Swal.fire({
+                title: "Thành công!",
+                text: "Nhân viên đã được thêm thành công!",
+                icon: "success",
+                confirmButtonText: "OK"
+            });
+
+            setTimeout(() => location.reload(), 1500);
+
+        } catch (error) {
+            Swal.fire({
+                title: "Lỗi!",
+                text: error.message,
+                icon: "error",
+                confirmButtonText: "Thử lại"
+            });
+
+        } finally {
+            setTimeout(() => {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `Thêm nhân viên`;
+            }, 2000);
+        }
+    }
+
+    document.getElementById("togglePassword").addEventListener("click", function () {
+        const passwordInput = document.getElementById("password");
+        const icon = this.querySelector("i");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        }
+    });
+
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('#productTable').DataTable({
+            "paging": true,
+            "lengthMenu": [5, 10, 20],
+            "pageLength": 5,
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "sProcessing": "Đang xử lý...",
+                "sLengthMenu": "Hiển thị _MENU_ dòng",
+                "sZeroRecords": "Không tìm thấy dữ liệu",
+                "sInfo": "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ dòng",
+                "sInfoEmpty": "Không có dữ liệu để hiển thị",
+                "sInfoFiltered": "(lọc từ _MAX_ dòng)",
+                "sSearch": "Tìm kiếm:",
+                "oPaginate": {
+                    "sFirst": "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext": "Tiếp",
+                    "sLast": "Cuối"
+                }
+            }
+        });
+    });
+</script>
+<script src="/js/main.js"></script>
+<script src="/js/DangNhap/login.js"></script>
+<script src="/js/DangNhap/logout.js"></script>
 </body>
 </html>
