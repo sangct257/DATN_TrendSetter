@@ -23,27 +23,27 @@ public class HoaDonApiController {
     @Autowired
     private ShopService shopService;
 
-    @PostMapping("/create-hoa-don")
-    public String createHoaDon(
-            @ModelAttribute HoaDon hoaDon,
-            RedirectAttributes redirectAttributes,
-            HttpSession session
-    ) {
-        try {
-            // Lấy ID nhân viên từ session
-            Map<String, Object> userData = (Map<String, Object>) session.getAttribute("user");
-            Integer nhanVienId = (Integer) ((Map<String, Object>) userData.get("user")).get("id");
-
-            // Gọi service
-            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon, nhanVienId);
-
-            redirectAttributes.addFlashAttribute("successMessage", "Đã tạo hóa đơn thành công");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-        }
-
-        return "redirect:/admin/sell-counter";
-    }
+//    @PostMapping("/create-hoa-don")
+//    public String createHoaDon(
+//            @ModelAttribute HoaDon hoaDon,
+//            RedirectAttributes redirectAttributes,
+//            HttpSession session
+//    ) {
+//        try {
+//            // Lấy ID nhân viên từ session
+//            Map<String, Object> userData = (Map<String, Object>) session.getAttribute("user");
+//            Integer nhanVienId = (Integer) ((Map<String, Object>) userData.get("user")).get("id");
+//
+//            // Gọi service
+//            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon, nhanVienId);
+//
+//            redirectAttributes.addFlashAttribute("successMessage", "Đã tạo hóa đơn thành công");
+//        } catch (Exception e) {
+//            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+//        }
+//
+//        return "redirect:/admin/sell-counter";
+//    }
 
     @PutMapping("/toggle-delivery/{id}")
     public ResponseEntity<Map<String, Object>> toggleDelivery(@PathVariable Integer id) {

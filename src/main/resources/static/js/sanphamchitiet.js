@@ -309,7 +309,16 @@ document.querySelector(".buy-button").addEventListener("click", function (event)
 
     console.log("Giỏ hàng hiện tại:", JSON.parse(localStorage.getItem("cart")));
 });
+function openSizeGuide() {
+    document.getElementById('sizeGuidePopup').style.display = 'flex';
+    document.body.classList.add('no-scroll'); // Chặn cuộn trang
+}
 
-
-
+function closeSizeGuide(event) {
+    let modal = document.getElementById('sizeGuidePopup');
+    if (event.target === modal || event.target.classList.contains('close-btn')) {
+        modal.style.display = 'none';
+        document.body.classList.remove('no-scroll'); // Bật lại cuộn trang
+    }
+}
 

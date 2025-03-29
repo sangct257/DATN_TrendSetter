@@ -213,7 +213,7 @@
         }
 
         function loadCount() {
-            fetch("/api/hoa-don/count")
+            fetch("http://localhost:8080/api/hoa-don/count")
                 .then(response => response.json())
                 .then(counts => {
                     document.getElementById("count-all").innerText = counts["Tất Cả"] || 0;

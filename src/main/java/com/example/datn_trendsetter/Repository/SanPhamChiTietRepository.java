@@ -36,15 +36,15 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     List<SanPhamChiTiet> findByTrangThai(String trangThai, Sort sort);
 
     @Query("SELECT new com.example.datn_trendsetter.DTO.SanPhamViewDTO( " +
-            "sp.id, sp.tenSanPham, MIN(spct.gia), MIN(ha.urlHinhAnh) ) " +
+            "sp.id, sp.tenSanPham, MIN(spct.gia), MIN(ha.urlHinhAnh), sp.trangThai) " +
             "FROM SanPhamChiTiet spct " +
             "JOIN spct.sanPham sp " +
             "LEFT JOIN spct.hinhAnh ha " +
             "WHERE sp.deleted = false " +
-            "GROUP BY sp.id, sp.tenSanPham")
+            "GROUP BY sp.id, sp.tenSanPham, sp.trangThai")
     Page<SanPhamViewDTO> findSanPhamChiTiet(Pageable pageable);
 
-    @Query("SELECT spct.id, sp.tenSanPham, spct.gia, sp.moTa, kt.tenKichThuoc, ms.tenMauSac, ha.urlHinhAnh, spct.soLuong " +
+    @Query("SELECT spct.id, sp.tenSanPham, spct.gia, sp.moTa, kt.tenKichThuoc, ms.tenMauSac, ha.urlHinhAnh, spct.soLuong,spct.trangThai " +
             "FROM SanPhamChiTiet spct " +
             "JOIN spct.sanPham sp " +
             "JOIN spct.kichThuoc kt " +
@@ -63,5 +63,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query("SELECT COALESCE(SUM(spct.soLuong), 0) FROM SanPhamChiTiet spct WHERE spct.sanPham.id = :idSanPham")
     Integer getTotalStock(@Param("idSanPham") Integer idSanPham);
 
+    @Query("SELECT SUM(s.soLuong) FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId")
+    Integer tinhTongSoLuongTheoSanPham(@Param("sanPhamId") Integer sanPhamId);
 
 }

@@ -76,7 +76,7 @@ public class UserDetails {
 
     // Phương thức kiểm tra có phải nhân viên không
     public boolean isNhanVien() {
-        return "NHANVIEN".equals(userType);
+        return "NHANVIEN".equals(userType) && vaiTro == Role.NHANVIEN;
     }
 
     // Phương thức kiểm tra có phải khách hàng không

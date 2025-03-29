@@ -59,13 +59,7 @@ public class PhieuGiamGia {
     @Column(name = "deleted")
     private Boolean deleted;
 
-    // Trường bổ sung
-    @Column(name = "loai_ap_dung", columnDefinition = "NVARCHAR(50)")
-    private String loaiApDung; // "PERCENTAGE" hoặc "FIXED_AMOUNT"
-
     @Column(name = "so_luot_su_dung")
     private Integer soLuotSuDung; // Số lượt có thể sử dụng
 
-    @Column(name = "is_active")
-    private Boolean isActive; // Trạng thái hoạt động
 }

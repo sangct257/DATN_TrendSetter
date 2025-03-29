@@ -6,6 +6,7 @@ import com.example.datn_trendsetter.Repository.SanPhamRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SanPhamService {
@@ -188,6 +190,14 @@ public class SanPhamService {
 
     public Page<SanPhamViewDTO> getSanPhams(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
+        Page<SanPhamViewDTO> allSanPhams = sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
+
+        // Lọc sản phẩm theo trạng thái tại Service
+        List<SanPhamViewDTO> filteredList = allSanPhams.getContent().stream()
+                .filter(sp -> "Đang Hoạt Động".equals(sp.getTrangThai()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredList, pageable, filteredList.size());
     }
+
 }
