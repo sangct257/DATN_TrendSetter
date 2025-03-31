@@ -45,6 +45,39 @@ public class HoaDonApiController {
 //        return "redirect:/admin/sell-counter";
 //    }
 
+
+    @PutMapping("/toggle-delivery/{id}")
+    public ResponseEntity<Map<String, Object>> toggleDelivery(@PathVariable Integer id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(id);
+            if (!optionalHoaDon.isPresent()) {
+                response.put("errorMessage", "Không tìm thấy hóa đơn!");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            HoaDon hoaDon = optionalHoaDon.get();
+
+            // Kiểm tra trạng thái và cập nhật
+            if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
+                hoaDon.setLoaiGiaoDich("Trả Sau");
+                hoaDon.setLoaiHoaDon("Giao Hàng");
+            } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
+                hoaDon.setLoaiGiaoDich("Đã Thanh Toán");
+                hoaDon.setLoaiHoaDon("Tại Quầy");
+            }
+
+            hoaDonRepository.save(hoaDon);
+            response.put("successMessage", "Cập nhật trạng thái hóa đơn thành công!");
+            response.put("loaiHoaDon", hoaDon.getLoaiHoaDon()); // Gửi trạng thái mới về frontend
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("errorMessage", "Lỗi cập nhật hóa đơn!");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     @GetMapping("/list")
     public ResponseEntity<List<Map<String, Object>>> getHoaDonByTrangThai(@RequestParam(required = false) String trangThai) {
         List<HoaDon> hoaDonList;
