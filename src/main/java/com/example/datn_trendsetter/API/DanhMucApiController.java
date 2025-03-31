@@ -1,9 +1,11 @@
 package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.DanhMuc;
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.ThuongHieu;
 import com.example.datn_trendsetter.Repository.DanhMucRepository;
 import com.example.datn_trendsetter.Repository.ThuongHieuRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +23,18 @@ public class DanhMucApiController {
     private DanhMucRepository danhMucRepository;
 
     @PostMapping("add")
-    public ResponseEntity<String> add(@RequestBody DanhMuc danhMucRequest) {
+    public ResponseEntity<String> add(@RequestBody DanhMuc danhMucRequest , HttpSession session) throws Exception {
         // Kiểm tra xem thương hiệu đã tồn tại chưa
         boolean exists = danhMucRepository.existsByTenDanhMuc(danhMucRequest.getTenDanhMuc());
 
         if (exists) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên danh mục đã tồn tại");
+        }
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
         }
 
         // Nếu chưa tồn tại, tạo mới
@@ -35,8 +43,8 @@ public class DanhMucApiController {
         danhMuc.setTenDanhMuc(danhMucRequest.getTenDanhMuc());
         danhMuc.setNgayTao(LocalDate.now());
         danhMuc.setNgaySua(LocalDate.now());
-        danhMuc.setNguoiTao("admin");
-        danhMuc.setNguoiSua("admin");
+        danhMuc.setNguoiTao(nhanVienSession.getHoTen());
+        danhMuc.setNguoiSua(nhanVienSession.getHoTen());
         danhMuc.setDeleted(false);
         danhMuc.setTrangThai(danhMucRequest.getTrangThai());
 
@@ -46,15 +54,22 @@ public class DanhMucApiController {
 
 
     @PutMapping("update")
-    public ResponseEntity<String> update(@RequestBody DanhMuc updatedDanhMuc) {
+    public ResponseEntity<String> update(@RequestBody DanhMuc updatedDanhMuc ,HttpSession session) throws Exception {
         if (updatedDanhMuc == null || updatedDanhMuc.getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Dữ liệu không hợp lệ");
         }
 
         DanhMuc danhMuc = danhMucRepository.findById(updatedDanhMuc.getId()).orElse(null);
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
         if (danhMuc != null) {
             danhMuc.setTenDanhMuc(updatedDanhMuc.getTenDanhMuc()); // ✅ Cập nhật tên danh mục
+            danhMuc.setNguoiSua(nhanVienSession.getHoTen());
             danhMuc.setTrangThai(updatedDanhMuc.getTrangThai());
             danhMuc.setNgaySua(LocalDate.now());
 

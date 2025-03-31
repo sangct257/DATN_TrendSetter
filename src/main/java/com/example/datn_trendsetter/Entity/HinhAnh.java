@@ -41,12 +41,6 @@ public class HinhAnh {
     @Column(name = "ngay_sua")
     private LocalDate ngaySua;
 
-    @Column(name = "nguoi_tao",columnDefinition = "NVARCHAR(255)")
-    private String nguoiTao;
-
-    @Column(name = "nguoi_sua",columnDefinition = "NVARCHAR(255)")
-    private String nguoiSua;
-
     @Column(name = "deleted")
     private Boolean deleted;
 

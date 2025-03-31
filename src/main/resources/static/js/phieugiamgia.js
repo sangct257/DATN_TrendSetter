@@ -291,7 +291,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (ngayBatDauFormatted === todayFormatted) {
                 trangThaiSelect.value = "Đang Hoạt Động";
             } else if (ngayBatDauFormatted > todayFormatted) {
-                trangThaiSelect.value = "Sắp Diễn Ra";
+                trangThaiSelect.value = "Sắp Diễn Ra";
             } else {
                 trangThaiSelect.value = "Ngừng Hoạt Động";
             }
