@@ -1,4 +1,5 @@
-package com.example.datn_trendsetter.Entity;
+package com.example.datn_trendsetter.Component;
+import com.example.datn_trendsetter.Entity.PhieuGiamGia;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;

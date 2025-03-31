@@ -1,7 +1,9 @@
 package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.KichThuoc;
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.KichThuocRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +21,7 @@ public class KichThuocApiController {
     private KichThuocRepository kichThuocRepository;
 
     @PostMapping("add")
-    public ResponseEntity<String> add(@RequestBody KichThuoc kichThuocRequest) {
+    public ResponseEntity<String> add(@RequestBody KichThuoc kichThuocRequest, HttpSession session) throws Exception {
         // Kiểm tra xem thương hiệu đã tồn tại chưa
         boolean exists = kichThuocRepository.existsByTenKichThuoc(kichThuocRequest.getTenKichThuoc());
 
@@ -27,14 +29,19 @@ public class KichThuocApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên kích thước đã tồn tại");
         }
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
         // Nếu chưa tồn tại, tạo mới
         KichThuoc kichThuoc= new KichThuoc();
         kichThuoc.setMaKichThuoc("KT-" + UUID.randomUUID().toString().substring(0, 8)); // Sinh mã ngẫu nhiên
         kichThuoc.setTenKichThuoc(kichThuocRequest.getTenKichThuoc());
         kichThuoc.setNgayTao(LocalDate.now());
         kichThuoc.setNgaySua(LocalDate.now());
-        kichThuoc.setNguoiTao("admin");
-        kichThuoc.setNguoiSua("admin");
+        kichThuoc.setNguoiTao(nhanVienSession.getHoTen());
+        kichThuoc.setNguoiSua(nhanVienSession.getHoTen());
         kichThuoc.setDeleted(false);
         kichThuoc.setTrangThai(kichThuocRequest.getTrangThai());
 
@@ -44,15 +51,21 @@ public class KichThuocApiController {
 
 
     @PutMapping("update")
-    public ResponseEntity<String> update(@RequestBody KichThuoc updatedKichThuoc) {
+    public ResponseEntity<String> update(@RequestBody KichThuoc updatedKichThuoc,HttpSession session) throws Exception {
         KichThuoc kichThuoc = kichThuocRepository.findById(updatedKichThuoc.getId()).orElse(null);
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
         if (kichThuoc != null) {
             kichThuoc.setMaKichThuoc(kichThuoc.getMaKichThuoc());
             kichThuoc.setTenKichThuoc(updatedKichThuoc.getTenKichThuoc());
             kichThuoc.setNgayTao(kichThuoc.getNgayTao());
             kichThuoc.setNgaySua(LocalDate.now());
-            kichThuoc.setNguoiTao(kichThuoc.getNguoiTao());
-            kichThuoc.setNguoiSua(kichThuoc.getNguoiSua());
+            kichThuoc.setNguoiSua(nhanVienSession.getHoTen());
             kichThuoc.setTrangThai(kichThuoc.getTrangThai());
             kichThuoc.setDeleted(kichThuoc.getDeleted());
             kichThuocRepository.save(kichThuoc);

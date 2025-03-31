@@ -121,12 +121,18 @@ public class SanPhamAPIController {
     }
 
     @PostMapping("/add-mau-sac-kich-thuoc")
-    public ResponseEntity<String> addMauSacKichThuoc(@RequestBody ProductDetailDTO request) {
+    public ResponseEntity<String> addMauSacKichThuoc(@RequestBody ProductDetailDTO request ,HttpSession session) throws Exception {
         Optional<SanPham> sanPhamOpt = sanPhamRepository.findById(request.getSanPhamId());
         if (!sanPhamOpt.isPresent()) {
             return ResponseEntity.badRequest().body("Sản phẩm không tồn tại");
         }
         SanPham sanPham = sanPhamOpt.get();
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
 
         for (Integer mauSacId : request.getMauSacIds()) {
             for (Integer kichThuocId : request.getKichThuocIds()) {
@@ -140,6 +146,8 @@ public class SanPhamAPIController {
                     chiTiet.setTrangThai(chiTiet.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
                     chiTiet.setMauSac(mauSacRepository.findById(mauSacId).orElse(null));
                     chiTiet.setKichThuoc(kichThuocRepository.findById(kichThuocId).orElse(null));
+                    chiTiet.setNguoiTao(nhanVienSession.getHoTen());
+                    chiTiet.setNguoiSua(nhanVienSession.getHoTen());
                     sanPhamChiTietRepository.save(chiTiet);
                     capNhatSoLuongTonKhoSanPham(chiTiet.getSanPham());
                 }
@@ -151,7 +159,7 @@ public class SanPhamAPIController {
 
 
     @PutMapping("/update-product-details")
-    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request) {
+    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request,HttpSession session) throws Exception {
         Map<Integer,SanPhamChiTietDTO> idProductAndProduct= request.stream().collect(Collectors.toMap(SanPhamChiTietDTO::getId, Function.identity()));
         List<Integer> idProductDetails= request.stream().map(SanPhamChiTietDTO::getId).toList();
 
@@ -160,11 +168,20 @@ public class SanPhamAPIController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vui lòng chọn sản phẩm chi tiết");
         }
 
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
+
         sanPhamChiTiets.forEach(sanPhamChiTiet -> {
             SanPhamChiTietDTO sanPhamChiTietDTO = idProductAndProduct.getOrDefault(sanPhamChiTiet.getId(),null);
             if (ObjectUtils.isNotEmpty(sanPhamChiTietDTO)){
                 sanPhamChiTiet.setSoLuong(sanPhamChiTietDTO.getSoLuong());
                 sanPhamChiTiet.setGia(sanPhamChiTietDTO.getGia().floatValue());
+                sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
                 sanPhamChiTiet.setTrangThai(sanPhamChiTietDTO.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
             }
 
@@ -176,15 +193,22 @@ public class SanPhamAPIController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request) {
+    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request,HttpSession session) throws Exception {
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
         if (sanPhamChiTiet == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
         }
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
 
         sanPhamChiTiet.setSoLuong(request.getSoLuong());
         sanPhamChiTiet.setGia(request.getGia().floatValue());
+        sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
         sanPhamChiTiet.setTrangThai(request.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 

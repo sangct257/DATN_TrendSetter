@@ -3,8 +3,10 @@ package com.example.datn_trendsetter.Service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.datn_trendsetter.Entity.HinhAnh;
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
 import com.example.datn_trendsetter.Repository.HinhAnhRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +28,7 @@ public class HinhAnhService {
         this.cloudinary = cloudinary;
     }
 
-    public List<HinhAnh> uploadImages(MultipartFile[] files, SanPhamChiTiet sanPhamChiTiet) {
+    public List<HinhAnh> uploadImages(MultipartFile[] files, SanPhamChiTiet sanPhamChiTiet)  {
         List<HinhAnh> images = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -36,6 +38,7 @@ public class HinhAnhService {
                 Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
                 String imageUrl = uploadResult.get("secure_url").toString();
                 String publicId = uploadResult.get("public_id").toString();
+
 
                 HinhAnh hinhAnh = new HinhAnh();
                 hinhAnh.setUrlHinhAnh(imageUrl);

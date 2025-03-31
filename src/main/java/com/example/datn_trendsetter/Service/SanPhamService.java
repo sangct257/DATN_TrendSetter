@@ -64,13 +64,13 @@ public class SanPhamService {
             if (existingSanPhamOpt.isPresent()) {
                 return ResponseEntity
                         .status(HttpStatus.CONFLICT) // 409 Conflict
-                        .body(Map.of("message", "Sản phẩm đã tồn tại trong danh mục và thương hiệu này!"));
+                        .body(Map.of("message", "Sản phẩm đã tồn tại!"));
             }
 
             // Lấy nhân viên từ session
             NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
             if (nhanVienSession == null) {
-                throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+                throw new Exception("Bạn cần đăng nhập.");
             }
 
             SanPham sanPham = new SanPham();

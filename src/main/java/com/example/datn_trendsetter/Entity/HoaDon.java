@@ -162,10 +162,6 @@ public class HoaDon {
             }
         }
 
-        if (tongTienSanPham >= 500_000) {
-            this.phiShip = 0F;
-        }
-
         float phiShip = Objects.requireNonNullElse(this.phiShip, 0F);
 
         // **Gán giá trị tổng tiền vào thuộc tính `tongTien`**

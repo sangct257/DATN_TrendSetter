@@ -16,6 +16,13 @@
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu" data-widget="tree">
 
+            <!-- Thống Kê (Chỉ Admin thấy) -->
+            <li th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+                <a href="/admin/thong-ke">
+                    <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
+                </a>
+            </li>
+
             <!-- Bán Hàng Tại Quầy -->
             <li>
                 <a href="/admin/sell-counter">
@@ -26,24 +33,22 @@
             <!-- Hóa Đơn -->
             <li>
                 <a href="/admin/hoa-don">
-                    <i class="fa fa-file-invoice-dollar"></i> <span>Hóa Đơn</span>
-                </a>
-            </li>
-
-            <!-- Trả Hàng -->
-            <li>
-                <a href="#">
-                    <i class="fa fa-undo-alt"></i> <span>Trả Hàng</span>
+                    <i class="fa fa-file-invoice-dollar"></i> <span>Quản Lý Hóa Đơn</span>
                 </a>
             </li>
 
             <!-- Quản Lý Sản Phẩm -->
+            <li>
+               <a href="/admin/san-pham">
+                   <i class="fa fa-cube"></i> <span> Quản Lý Sản Phẩm </span>
+               </a>
+            </li>
+
             <li class="treeview">
                 <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Quản lý Sản Phẩm</span>
+                    <i class="fa fa-cogs"></i> <span>Quản Lý Thuộc Tính</span>
                 </a>
                 <ul class="treeview-menu">
-                    <li><a href="/admin/san-pham"><i class="fa fa-cube"></i> Sản Phẩm </a></li>
                     <li><a href="/admin/danh-muc"><i class="fa fa-tags"></i> Danh Mục </a></li>
                     <li><a href="/admin/thuong-hieu"><i class="fa fa-industry"></i> Thương Hiệu </a></li>
                     <li><a href="/admin/xuat-xu"><i class="fa fa-globe"></i> Xuất Xứ </a></li>
@@ -52,14 +57,6 @@
                     <li><a href="/admin/chat-lieu"><i class="fa fa-leaf"></i> Chất Liệu </a></li>
                 </ul>
             </li>
-
-            <!-- Thống Kê (Chỉ Admin thấy) -->
-            <li th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
-                <a href="/admin/thong-ke">
-                    <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
-                </a>
-            </li>
-
             <!-- Quản Lý Tài Khoản (Chỉ Admin thấy) -->
             <li class="treeview" th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
                 <a href="#">
@@ -78,16 +75,9 @@
                 </a>
                 <ul class="treeview-menu">
                     <li><a href="/admin/phieu-giam-gia"><i class="fa fa-ticket-alt"></i> Phiếu Giảm Giá </a></li>
-                    <li><a href="/admin/dot-giam-gia"><i class="fa fa-calendar-alt"></i> Đợt Giảm Giá </a></li>
                 </ul>
             </li>
 
-            <!-- Widgets -->
-            <li>
-                <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Widgets</span>
-                </a>
-            </li>
         </ul>
     </section>
 </aside>

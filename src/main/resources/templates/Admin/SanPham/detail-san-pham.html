@@ -4,8 +4,19 @@
 <body class="hold-transition skin-blue sidebar-mini">
 <style>
     .image-wrapper {
-        position: relative;
-        display: inline-block;
+        width: 60px;
+        height: 100px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa; /* Tùy chọn: màu nền nếu ảnh không lấp đầy khung */
+    }
+
+    .image-wrapper img {
+        width: 100%;
+        height: auto;
+        object-fit: contain; /* Hiển thị toàn bộ ảnh mà không bị cắt */
     }
 
     .image-overlay {
@@ -57,7 +68,7 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                <h5>Thêm Sản Phẩm</h5>
+                <h5>Chi Tiết Sản Phẩm</h5>
             </h1>
         </section>
 
@@ -329,9 +340,13 @@
                                                     </div>
                                                 </th:block>
 
-                                                <label class="btn btn-light btn-sm">
-                                                    <input type="file" class="file-input" hidden multiple> Upload
-                                                </label>
+                                                <div class="d-flex justify-content-center">
+                                                    <label class="btn btn-light btn-sm d-flex align-items-center justify-content-center border border-secondary border-dashed rounded p-3"
+                                                           style="width: 60px; height: 60px;">
+                                                        <input type="file" class="file-input" hidden multiple>
+                                                        +
+                                                    </label>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>

@@ -1,6 +1,5 @@
 package com.example.datn_trendsetter.Service;
 
-import com.example.datn_trendsetter.Entity.DotGiamGia;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import org.springframework.stereotype.Service;
@@ -64,16 +63,16 @@ public class HoaDonService {
     }
 
     public Float getDoanhThuNamNay() {
-        return hoaDonRepository.getDoanhThuNamNay(LocalDateTime.now(),"Đã Hoàn Thành");
+        return hoaDonRepository.getDoanhThuNamNay(LocalDateTime.now());
     }
 
     public Float getDoanhThuThangNay() {
-        return hoaDonRepository.getDoanhThuThangNay(LocalDateTime.now(),"Đã Hoàn Thành");
+        return hoaDonRepository.getDoanhThuThangNay(LocalDateTime.now());
     }
 
 
     public Float getDoanhThuNgayNay() {
-        return hoaDonRepository.getDoanhThuNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
+        return hoaDonRepository.getDoanhThuNgayNay(LocalDateTime.now());
     }
 
 
