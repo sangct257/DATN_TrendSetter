@@ -22,6 +22,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     @Query("select hd from HoaDon hd order by hd.id desc")
     List<HoaDon> getAllHoaDon();
 
+    HoaDon findByMaHoaDon(String maHoaDon);
     boolean existsByMaHoaDon(String maHoaDon);
 
     @Query("SELECT COALESCE(SUM(h.tongTien - COALESCE(h.phiShip, 0) + COALESCE(h.phieuGiamGia.giaTriGiam, 0)), 0) " +
