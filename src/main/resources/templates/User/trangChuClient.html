@@ -56,11 +56,12 @@
         <!-- Ô nhập mã hóa đơn (Giữ vừa) -->
         <div class="col-lg-2 col-6 text-center">
             <div class="input-group shadow-sm">
-                <input type="text" class="form-control border-primary rounded-start px-2"
-                       placeholder="Nhập mã hóa đơn" style="border-right: none; box-shadow: none;">
-                <div class="input-group-append">
-                    <a href="don-hang" id="searchOrderBtn" class="btn btn-primary rounded-end px-3">Tra cứu</a>
-                </div>
+                <form action="/don-hang" method="GET" class="input-group shadow-sm">
+                    <input type="text" class="form-control border-primary rounded-start px-2"
+                           name="maHoaDon" id="maHoaDonInput" placeholder="Nhập mã hóa đơn"
+                           style="border-right: none; box-shadow: none;" required>
+                    <button type="submit" class="btn btn-primary rounded-end px-3">Tra cứu</button>
+                </form>
             </div>
         </div>
 
@@ -126,22 +127,18 @@
                     </div>
                     <div class="navbar-nav ml-auto py-0">
                         <!-- Nếu chưa đăng nhập -->
-                        <a th:if="${session.user == null}" href="/auth/home" class="nav-item nav-link">Đăng nhập</a>
+                        <a href="/auth/trendsetter" class="nav-item nav-link" th:if="${session.userKhachHang == null}">Đăng nhập</a>
 
                         <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
-                        <li th:if="${session.user != null and session.roles != null and #lists.contains(session.roles, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle d-flex align-items-center"
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                                <img th:src="${session.user.hinhAnh}" class="rounded-circle user-image" alt="User Image"
-                                     width="40" height="40">
-                                <span class="d-none d-md-inline ms-2" th:text="${session.user.hoTen}"></span>
+                        <li th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle user-image" alt="User Image" width="40" height="40">
+                                <span class="d-none d-md-inline ms-2" th:text="${session.userKhachHang.hoTen}"></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
                                 <li class="dropdown-header text-center">
-                                    <img th:src="${session.user.hinhAnh}" class="rounded-circle" alt="User Image"
-                                         width="80" height="80">
-                                    <p class="mt-3 mb-0 text-dark fw-bold"
-                                       th:text="${session.user.hoTen + ' ( ' + session.user.username + ' )'}"></p>
+                                    <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle" alt="User Image" width="80" height="80">
+                                    <p class="mt-3 mb-0 text-dark fw-bold" th:text="${session.userKhachHang.hoTen + ' ( ' + session.userKhachHang.username + ' )'}"></p>
                                 </li>
                                 <li>
                                     <hr class="dropdown-divider">

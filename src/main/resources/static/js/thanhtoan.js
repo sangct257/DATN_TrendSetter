@@ -230,7 +230,7 @@ async function placeOrder() {
                 cancelButtonText: "Về trang chủ"
             }).then((res) => {
                 if (res.isConfirmed) {
-                    window.location.href = "/don-hang";
+                    window.location.href = `/don-hang?maHoaDon=${result.maHoaDon}`;
                 } else {
                     window.location.href = "/";
                 }

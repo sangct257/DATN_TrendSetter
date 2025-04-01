@@ -31,7 +31,7 @@ public class XuatXuApiController {
         }
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }
@@ -56,7 +56,7 @@ public class XuatXuApiController {
     public ResponseEntity<String> update(@RequestBody XuatXu updatedXuatXu,HttpSession session) throws Exception {
         XuatXu xuatXu = xuatXuRepository.findById(updatedXuatXu.getId()).orElse(null);
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }

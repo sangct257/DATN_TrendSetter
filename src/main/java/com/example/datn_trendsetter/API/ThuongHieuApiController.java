@@ -31,7 +31,7 @@ public class ThuongHieuApiController {
         }
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }
@@ -44,7 +44,7 @@ public class ThuongHieuApiController {
         thuongHieu.setNguoiTao(nhanVienSession.getHoTen());
         thuongHieu.setNguoiSua(nhanVienSession.getHoTen());
         thuongHieu.setTrangThai(thuongHieuRequest.getTrangThai());
-
+        thuongHieu.setDeleted(false);
         thuongHieuRepository.save(thuongHieu);
         return ResponseEntity.ok("Thêm thương hiệu thành công");
     }
@@ -54,7 +54,7 @@ public class ThuongHieuApiController {
     public ResponseEntity<String> updateThuongHieu(@RequestBody ThuongHieu updatedBrand,HttpSession session) throws Exception {
         ThuongHieu thuongHieu = thuongHieuRepository.findById(updatedBrand.getId()).orElse(null);
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }

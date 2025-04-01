@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.Component;
 
+import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,9 +15,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession();
-        NhanVien user = (NhanVien) session.getAttribute("user");
-
-        if (user == null) {
+        NhanVien userNhanVien = (NhanVien) session.getAttribute("userNhanVien");
+        KhachHang userKhachHang = (KhachHang) session.getAttribute("user");
+        if (userNhanVien == null) {
             String requestURI = request.getRequestURI();
 
             if (requestURI.startsWith("/auth/home") || requestURI.startsWith("/admin")) {

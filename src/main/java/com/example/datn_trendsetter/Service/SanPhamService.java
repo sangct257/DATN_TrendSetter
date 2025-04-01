@@ -68,7 +68,7 @@ public class SanPhamService {
             }
 
             // Lấy nhân viên từ session
-            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
                 throw new Exception("Bạn cần đăng nhập.");
             }

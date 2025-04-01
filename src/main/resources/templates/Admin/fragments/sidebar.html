@@ -1,23 +1,12 @@
 <aside class="main-sidebar" th:fragment="sidebar">
     <br>
     <section class="sidebar">
-        <!-- Search Form -->
-        <form action="#" method="get" class="sidebar-form">
-            <div class="input-group">
-                <input type="text" name="q" class="form-control" placeholder="Search...">
-                <span class="input-group-btn">
-                    <button type="submit" name="search" id="search-btn" class="btn btn-flat">
-                        <i class="fa fa-search"></i>
-                    </button>
-                </span>
-            </div>
-        </form>
 
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu" data-widget="tree">
 
             <!-- Thống Kê (Chỉ Admin thấy) -->
-            <li th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+            <li th:if="${session.userNhanVien != null and #lists.contains(session.rolesNhanVien, 'ROLE_ADMIN')}">
                 <a href="/admin/thong-ke">
                     <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
                 </a>
@@ -58,7 +47,7 @@
                 </ul>
             </li>
             <!-- Quản Lý Tài Khoản (Chỉ Admin thấy) -->
-            <li class="treeview" th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+            <li class="treeview" th:if="${session.userNhanVien != null and #lists.contains(session.rolesNhanVien, 'ROLE_ADMIN')}">
                 <a href="#">
                     <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>
                 </a>
@@ -69,7 +58,7 @@
             </li>
 
             <!-- Giảm Giá (Chỉ Admin thấy) -->
-            <li class="treeview" th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+            <li class="treeview" th:if="${session.userNhanVien != null and #lists.contains(session.rolesNhanVien, 'ROLE_ADMIN')}">
                 <a href="#">
                     <i class="fa fa-percentage"></i> <span>Giảm Giá</span>
                 </a>

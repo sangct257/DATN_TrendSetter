@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.apache.commons.lang3.ObjectUtils;
 
+import java.time.LocalDate;
 import java.util.List;
 import com.example.datn_trendsetter.DTO.ProductDetailDTO;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
@@ -129,7 +130,7 @@ public class SanPhamAPIController {
         SanPham sanPham = sanPhamOpt.get();
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }
@@ -148,6 +149,9 @@ public class SanPhamAPIController {
                     chiTiet.setKichThuoc(kichThuocRepository.findById(kichThuocId).orElse(null));
                     chiTiet.setNguoiTao(nhanVienSession.getHoTen());
                     chiTiet.setNguoiSua(nhanVienSession.getHoTen());
+                    chiTiet.setNgayTao(LocalDate.now());
+                    chiTiet.setNgaySua(LocalDate.now());
+                    chiTiet.setDeleted(false);
                     sanPhamChiTietRepository.save(chiTiet);
                     capNhatSoLuongTonKhoSanPham(chiTiet.getSanPham());
                 }
@@ -170,7 +174,7 @@ public class SanPhamAPIController {
 
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }
@@ -183,6 +187,7 @@ public class SanPhamAPIController {
                 sanPhamChiTiet.setGia(sanPhamChiTietDTO.getGia().floatValue());
                 sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
                 sanPhamChiTiet.setTrangThai(sanPhamChiTietDTO.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+                sanPhamChiTiet.setNgaySua(LocalDate.now());
             }
 
         });
@@ -200,7 +205,7 @@ public class SanPhamAPIController {
         }
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }
@@ -210,6 +215,7 @@ public class SanPhamAPIController {
         sanPhamChiTiet.setGia(request.getGia().floatValue());
         sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
         sanPhamChiTiet.setTrangThai(request.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+        sanPhamChiTiet.setNgaySua(LocalDate.now());
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 
 
