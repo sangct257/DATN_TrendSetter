@@ -62,7 +62,7 @@ public class PhieuGiamGiaService {
 
     public PhieuGiamGia addPhieuGiamGiaForMultipleCustomers(PhieuGiamGiaDTO dto, HttpSession session) throws Exception {
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }
@@ -114,7 +114,7 @@ public class PhieuGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }

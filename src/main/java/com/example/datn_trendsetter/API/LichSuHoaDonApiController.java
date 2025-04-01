@@ -51,7 +51,7 @@ public class LichSuHoaDonApiController {
         if (optionalHoaDon.isPresent()) {
 
             // Lấy nhân viên từ session
-            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
                 throw new Exception("Bạn cần đăng nhập.");
             }
@@ -72,7 +72,7 @@ public class LichSuHoaDonApiController {
     private void luuLichSuHoaDon(HoaDon hoaDon, String hanhDong, String ghiChu,HttpSession session) throws Exception {
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
             throw new Exception("Bạn cần đăng nhập.");
         }
@@ -86,6 +86,7 @@ public class LichSuHoaDonApiController {
         lichSu.setNguoiTao(nhanVienSession.getHoTen());
         lichSu.setNguoiTao(nhanVienSession.getHoTen());
         lichSu.setGhiChu(ghiChu);
+        lichSu.setDeleted(false);
         lichSuHoaDonRepository.save(lichSu);
     }
 
@@ -129,9 +130,9 @@ public class LichSuHoaDonApiController {
 
 
             // Lấy nhân viên từ session
-            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
-                throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+                throw new Exception("Bạn cần đăng nhập.");
             }
 
             // Nếu chưa thanh toán đủ, xử lý thanh toán phần còn thiếu

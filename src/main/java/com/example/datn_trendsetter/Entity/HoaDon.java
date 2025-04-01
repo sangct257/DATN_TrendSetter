@@ -49,9 +49,6 @@ public class HoaDon {
     @Column(name = "ma_hoa_don",columnDefinition = "NVARCHAR(255)")
     private String maHoaDon;
 
-    @Column(name = "ma_giao_dich",columnDefinition = "NVARCHAR(255)")
-    private String maGiaoDich;
-
     @Column(name = "tong_tien")
     private Float tongTien;
 
@@ -64,7 +61,7 @@ public class HoaDon {
     @Column(name = "email",columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "dia_chi_cu_the",columnDefinition = "NVARCHAR(255)")
     private String diaChiCuThe;
 
     @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
@@ -93,9 +90,6 @@ public class HoaDon {
 
     @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
-
-    @Column(name = "qr_image",columnDefinition = "NVARCHAR(255)")
-    private String qrImage;
 
     @Column(name = "ghi_chu",columnDefinition = "NVARCHAR(255)")
     private String ghiChu;

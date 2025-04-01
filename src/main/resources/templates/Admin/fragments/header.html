@@ -14,19 +14,19 @@
                 <!-- User Account Dropdown -->
                 <li class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img th:src="${session.user != null ? session.user.hinhAnh : ''}" class="rounded-circle user-image" alt="User Image" width="40" height="40">
-                        <span class="d-none d-md-inline ms-2" th:text="${session.user != null ? session.user.hoTen : ''}"></span>
+                        <img th:src="${session.userNhanVien != null ? session.userNhanVien.hinhAnh : ''}" class="rounded-circle user-image" alt="User Image" width="40" height="40">
+                        <span class="d-none d-md-inline ms-2" th:text="${session.userNhanVien != null ? session.userNhanVien.hoTen : ''}"></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
                         <li class="dropdown-header text-center">
                             <!-- Hình ảnh người dùng -->
-                            <img th:src="${session.user != null ? session.user.hinhAnh : ''}" class="rounded-circle" alt="User Image" width="80" height="80">
+                            <img th:src="${session.userNhanVien != null ? session.userNhanVien.hinhAnh : ''}" class="rounded-circle" alt="User Image" width="80" height="80">
 
                             <!-- Họ tên và Biệt danh (username) trên dòng mới -->
-                            <p class="mt-3 mb-0 text-dark fw-bold" th:text="${session.user != null ? session.user.hoTen + ' ( ' + session.user.username + ' )' : ''}"></p>
+                            <p class="mt-3 mb-0 text-dark fw-bold" th:text="${session.userNhanVien != null ? session.userNhanVien.hoTen + ' ( ' + session.userNhanVien.username + ' )' : ''}"></p>
 
                             <!-- Vai trò ở dòng tiếp theo -->
-                            <p class="text-muted mt-2 mb-0" th:text="${session.user != null ? session.user.vaiTro : ''}"></p>
+                            <p class="text-muted mt-2 mb-0" th:text="${session.userNhanVien != null ? session.userNhanVien.vaiTro : ''}"></p>
                         </li>
 
                         <li><hr class="dropdown-divider"></li>

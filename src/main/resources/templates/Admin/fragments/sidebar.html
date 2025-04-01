@@ -6,7 +6,7 @@
         <ul class="sidebar-menu" data-widget="tree">
 
             <!-- Thống Kê (Chỉ Admin thấy) -->
-            <li th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+            <li th:if="${session.userNhanVien != null and #lists.contains(session.rolesNhanVien, 'ROLE_ADMIN')}">
                 <a href="/admin/thong-ke">
                     <i class="fa fa-chart-pie"></i> <span>Thống Kê</span>
                 </a>
@@ -47,7 +47,7 @@
                 </ul>
             </li>
             <!-- Quản Lý Tài Khoản (Chỉ Admin thấy) -->
-            <li class="treeview" th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+            <li class="treeview" th:if="${session.userNhanVien != null and #lists.contains(session.rolesNhanVien, 'ROLE_ADMIN')}">
                 <a href="#">
                     <i class="fa fa-user-shield"></i> <span>Quản Lý Tài Khoản</span>
                 </a>
@@ -58,7 +58,7 @@
             </li>
 
             <!-- Giảm Giá (Chỉ Admin thấy) -->
-            <li class="treeview" th:if="${session.user != null and #lists.contains(session.roles, 'ROLE_ADMIN')}">
+            <li class="treeview" th:if="${session.userNhanVien != null and #lists.contains(session.rolesNhanVien, 'ROLE_ADMIN')}">
                 <a href="#">
                     <i class="fa fa-percentage"></i> <span>Giảm Giá</span>
                 </a>
