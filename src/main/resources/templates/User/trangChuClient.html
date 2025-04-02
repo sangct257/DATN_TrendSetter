@@ -14,8 +14,9 @@
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
@@ -117,6 +118,7 @@
                         <div th:if="${session.userKhachHang == null}" class="nav-item">
                             <a href="#" class="nav-link text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#authModal">Đăng nhập</a>
                         </div>
+
                         <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
                         <div th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
@@ -224,7 +226,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </nav>
             <div id="header-carousel" class="carousel slide" data-ride="carousel">

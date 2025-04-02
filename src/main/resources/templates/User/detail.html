@@ -282,6 +282,7 @@
             </div>
         </div>
 
+
         <!-- Nút giỏ hàng (Hợp lý) -->
         <div class="col-lg-2 col-6 text-right">
             <a href="gio-hang" class="btn border">
@@ -313,7 +314,8 @@
         <div class="col-lg-9">
             <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
                 <a href="" class="text-decoration-none d-block d-lg-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+                    <h1 class="m-0 display-5 font-weight-semi-bold"><span
+                            class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
                 </a>
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
                     <span class="navbar-toggler-icon"></span>
@@ -332,6 +334,7 @@
                         </div>
                         <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
                         <div th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
+
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle user-image" alt="User Image" width="40" height="40">
                                 <span class="d-none d-md-inline ms-2" th:text="${session.userKhachHang.hoTen}"></span>
@@ -712,6 +715,7 @@
 <script src="js/DangNhap/logout.js"></script>
 <script src="js/sanphamchitiet.js"></script>
 <script src="js/sanpham.js"></script>
+
 <script src="js/giohang.js"></script>
 </body>
 
