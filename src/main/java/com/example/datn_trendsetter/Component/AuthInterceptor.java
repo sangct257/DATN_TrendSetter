@@ -16,7 +16,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession();
         NhanVien userNhanVien = (NhanVien) session.getAttribute("userNhanVien");
-        KhachHang userKhachHang = (KhachHang) session.getAttribute("user");
+        KhachHang userKhachHang = (KhachHang) session.getAttribute("userKhachHang");
+
+        // Kiểm tra nếu userNhanVien là null
         if (userNhanVien == null) {
             String requestURI = request.getRequestURI();
 
@@ -27,6 +29,21 @@ public class AuthInterceptor implements HandlerInterceptor {
             }
             return false;
         }
+
+//        // Kiểm tra nếu userKhachHang là null và người dùng đang truy cập các trang yêu cầu
+//        if (userKhachHang == null) {
+//            String requestURI = request.getRequestURI();
+//
+//            if (requestURI.startsWith("/trang-chu") ||
+//                    requestURI.startsWith("/don-hang") ||
+//                    requestURI.startsWith("/thong-tin") ||
+//                    requestURI.startsWith("/dia-chi")) {
+//                response.sendRedirect("/trang-chu");
+//            } else {
+//                response.sendRedirect("/trang-chu");
+//            }
+//            return false;
+//        }
 
         // Kiểm tra phân quyền nếu cần
         return true;

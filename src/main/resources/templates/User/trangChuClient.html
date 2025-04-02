@@ -15,9 +15,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
           rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQG3aB4Zf4iQ6W5n6TDe6zQe2+V52Df84G4ScIpe1fow+3tB5k5S7u6j5Y" crossorigin="anonymous">
 
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
@@ -127,8 +128,9 @@
                     </div>
                     <div class="navbar-nav ml-auto py-0">
                         <!-- Nếu chưa đăng nhập -->
-                        <a href="/auth/trendsetter" class="nav-item nav-link" th:if="${session.userKhachHang == null}">Đăng nhập</a>
-
+                        <li th:if="${session.userKhachHang == null}" class="nav-item">
+                            <a href="#" class="nav-link text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#authModal">Đăng nhập</a>
+                        </li>
                         <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
                         <li th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
@@ -150,6 +152,93 @@
                             </ul>
                         </li>
                     </div>
+
+                    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="authModalLabel">Tài khoản</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i> <!-- Thay vì biểu tượng x mặc định -->
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Tabs -->
+                                    <ul class="nav nav-tabs" id="authTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Đăng nhập</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Đăng ký</button>
+                                        </li>
+                                    </ul>
+
+                                    <div class="tab-content mt-3">
+                                        <!-- Tab Đăng nhập -->
+                                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                                            <form id="loginForm">
+                                                <input type="hidden" name="userType" value="KHACHHANG">
+                                                <div class="mb-3">
+                                                    <label for="login-email" class="form-label">Email</label>
+                                                    <input type="text" class="form-control" id="login-email" placeholder="Email" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="login-password" class="form-label">Mật khẩu</label>
+                                                    <input type="password" class="form-control" id="login-password" placeholder="Mật khẩu" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+                                            </form>
+                                            <div class="text-center mt-2">
+                                                <a href="#" class="text-danger" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">Quên mật khẩu?</a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tab Đăng ký -->
+                                        <div class="tab-pane fade" id="register" role="tabpanel">
+                                            <form id="registerForm">
+                                                <input type="hidden" name="userType" value="KHACHHANG">
+                                                <div class="mb-3">
+                                                    <label for="register-name" class="form-label">Họ và tên</label>
+                                                    <input type="text" class="form-control" id="register-name" placeholder="Họ và tên" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="register-email" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="register-email" placeholder="Email" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="register-password" class="form-label">Mật khẩu</label>
+                                                    <input type="password" class="form-control" id="register-password" placeholder="Mật khẩu" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-success w-100">Đăng ký</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Quên mật khẩu -->
+                    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Quên mật khẩu</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="forgotPasswordForm">
+                                        <div class="mb-3">
+                                            <label for="forgot-email" class="form-label">Nhập email để khôi phục mật khẩu</label>
+                                            <input type="email" class="form-control" id="forgot-email" placeholder="Email" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-warning w-100">Gửi yêu cầu</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </nav>
             <div id="header-carousel" class="carousel slide" data-ride="carousel">
@@ -561,6 +650,7 @@
 <script src="/js/main.js"></script>
 <script src="/js/DangNhap/login.js"></script>
 <script src="/js/DangNhap/logout.js"></script>
+<script src="js/giohang.js"></script>
 <script src="js/sanphamchitiet.js"></script>
 </body>
 
