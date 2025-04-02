@@ -10,5 +10,4 @@ public class SanPhamViewDTO {
     private String tenSanPham;
     private Float gia;
     private String urlHinhAnh;
-    private String trangThai;
 }

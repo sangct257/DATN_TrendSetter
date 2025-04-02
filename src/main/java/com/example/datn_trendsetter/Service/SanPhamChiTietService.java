@@ -1,6 +1,8 @@
 package com.example.datn_trendsetter.Service;
 
 import com.example.datn_trendsetter.DTO.SanPhamChiTietViewDTO;
+import com.example.datn_trendsetter.DTO.StockUpdateRequest;
+import com.example.datn_trendsetter.Entity.SanPham;
 import com.example.datn_trendsetter.Entity.SanPhamChiTiet;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import com.example.datn_trendsetter.Repository.SanPhamRepository;
@@ -8,10 +10,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class SanPhamChiTietService {
@@ -27,69 +26,108 @@ public class SanPhamChiTietService {
 
     public List<SanPhamChiTietViewDTO> getChiTietSanPhamById(Integer idSanPham) {
         List<Object[]> results = sanPhamChiTietRepository.findSanPhamChiTietWithImages(idSanPham);
+
+        // Map để nhóm theo ID sản phẩm chi tiết
         Map<Integer, SanPhamChiTietViewDTO> sanPhamMap = new LinkedHashMap<>();
 
+        // Lặp qua kết quả và xử lý
         for (Object[] row : results) {
-            Integer idSanPhamChiTiet = (Integer) row[0];
-            String tenSanPham = (String) row[1];
-            Float gia = (Float) row[2];
-            String moTa = (String) row[3];
-            String tenKichThuoc = (String) row[4];
-            String tenMauSac = (String) row[5];
-            String hinhAnh = (String) row[6];
-            Integer soLuong = (Integer) row[7];
-            String trangThai = (String) row[8]; // Thêm trạng thái từ DB
+            Integer idSanPhamChiTiet = (Integer) row[0];  // ID sản phẩm chi tiết
+            String tenSanPham = (String) row[1];  // Tên sản phẩm
+            Float gia = (Float) row[2];  // Giá
+            String moTa = (String) row[3];  // Mô tả
+            String tenKichThuoc = (String) row[4];  // Kích thước
+            String tenMauSac = (String) row[5];  // Màu sắc
+            String hinhAnh = (String) row[6];  // Hình ảnh
+            Integer soLuong = (Integer) row[7];  // Số lượng
 
-            // Chỉ lấy sản phẩm có trạng thái "Còn Hàng" hoặc "Đang Hoạt Động"
-            if (("Còn Hàng".equals(trangThai) || "Đang Hoạt Động".equals(trangThai)) && soLuong > 0) {
-                if (!sanPhamMap.containsKey(idSanPhamChiTiet)) {
-                    SanPhamChiTietViewDTO dto = new SanPhamChiTietViewDTO(idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong);
-                    sanPhamMap.put(idSanPhamChiTiet, dto);
-                } else {
-                    SanPhamChiTietViewDTO dto = sanPhamMap.get(idSanPhamChiTiet);
+            // Nếu sản phẩm chi tiết chưa có trong danh sách, thêm mới
+            if (!sanPhamMap.containsKey(idSanPhamChiTiet)) {
+                SanPhamChiTietViewDTO newDTO = new SanPhamChiTietViewDTO(
+                        idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong);
+                sanPhamMap.put(idSanPhamChiTiet, newDTO);
+            }
 
-                    // Thêm size nếu chưa có
-                    if (!dto.getSizes().contains(tenKichThuoc)) {
-                        dto.getSizes().add(tenKichThuoc);
-                        dto.getSoLuongTheoSize().put(tenKichThuoc, soLuong);
-                    }
+            // Lấy DTO hiện tại
+            SanPhamChiTietViewDTO dto = sanPhamMap.get(idSanPhamChiTiet);
 
-                    // Cập nhật hình ảnh nếu chưa có
-                    if (!dto.getHinhAnh().contains(hinhAnh)) {
-                        dto.getHinhAnh().add(hinhAnh);
-                    }
-                }
+            // Thêm kích thước và số lượng nếu chưa có
+            if (!dto.getSizes().contains(tenKichThuoc)) {
+                dto.getSizes().add(tenKichThuoc);
+                dto.getSoLuongTheoSize().put(tenKichThuoc, soLuong);
+            }
+
+            // Thêm hình ảnh nếu chưa có (hình ảnh không trùng)
+            if (hinhAnh != null && !dto.getHinhAnh().contains(hinhAnh)) {
+                dto.getHinhAnh().add(hinhAnh);
             }
         }
+
         return new ArrayList<>(sanPhamMap.values());
     }
 
     @Transactional
-    public boolean reduceStock(Integer idSanPhamChiTiet, Integer soLuong) {
-        int updatedRows = sanPhamChiTietRepository.reduceStock(idSanPhamChiTiet, soLuong);
+    public Map<String, String> reduceStock(List<StockUpdateRequest> stockUpdates) {
+        Map<String, String> results = new HashMap<>();
 
-        if (updatedRows > 0) {
-            // Lấy sản phẩm chi tiết
-            SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet).orElse(null);
-            if (spct != null) {
-                // Cập nhật trạng thái dựa vào số lượng tồn kho
-                if (spct.getSoLuong() <= 0) {
-                    spct.setTrangThai("Hết Hàng");
-                } else {
-                    spct.setTrangThai("Còn Hàng");
+        for (StockUpdateRequest request : stockUpdates) {
+            Integer idSanPhamChiTiet = request.getIdSanPhamChiTiet();
+            Integer soLuong = request.getSoLuong();
+
+            int updatedRows = sanPhamChiTietRepository.reduceStock(idSanPhamChiTiet, soLuong);
+
+            if (updatedRows > 0) {
+                // ✅ Lấy sản phẩm chi tiết và cập nhật trạng thái
+                SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet).orElse(null);
+                if (spct != null) {
+                    spct.setTrangThai(spct.getSoLuong() <= 0 ? "Hết Hàng" : "Còn Hàng");
+                    sanPhamChiTietRepository.save(spct);
                 }
-                sanPhamChiTietRepository.save(spct); // Lưu thay đổi
+
+                // ✅ Cập nhật số lượng tổng cho sản phẩm chính
+                Integer idSanPham = sanPhamChiTietRepository.findSanPhamIdByChiTietId(idSanPhamChiTiet);
+                updateSanPhamStock(idSanPham);
+
+                // ✅ Kiểm tra lại trạng thái sản phẩm chính
+                updateSanPhamStatus(idSanPham);
+
+                results.put("Sản phẩm ID " + idSanPhamChiTiet, "Giảm thành công");
+            } else {
+                results.put("Sản phẩm ID " + idSanPhamChiTiet, "Không đủ hàng hoặc lỗi");
             }
-
-            // Cập nhật số lượng tổng cho sản phẩm chính
-            Integer idSanPham = sanPhamChiTietRepository.findSanPhamIdByChiTietId(idSanPhamChiTiet);
-            updateSanPhamStock(idSanPham);
-
-            return true;
         }
-        return false;
+
+        return results;
     }
 
+    private void updateSanPhamStatus(Integer idSanPham) {
+        // Lấy tất cả các sản phẩm chi tiết của sản phẩm chính
+        List<SanPhamChiTiet> sanPhamChiTiets = sanPhamChiTietRepository.findBySanPhamId(idSanPham);
+
+        // Tính toán lại số lượng tồn kho của sản phẩm chính
+        int totalStock = sanPhamChiTiets.stream().mapToInt(SanPhamChiTiet::getSoLuong).sum();
+        updateSanPhamStock(idSanPham, totalStock);
+
+        // Kiểm tra nếu tất cả sản phẩm chi tiết đều hết hàng
+        boolean allOutOfStock = sanPhamChiTiets.stream()
+                .allMatch(spct -> spct.getSoLuong() <= 0);
+
+        // Cập nhật trạng thái sản phẩm chính
+        SanPham sanPham = sanPhamRepository.findById(idSanPham).orElse(null);
+        if (sanPham != null) {
+            sanPham.setTrangThai(allOutOfStock ? "Không Hoạt Động" : "Đang Hoạt Động");
+            sanPhamRepository.save(sanPham);
+        }
+    }
+
+    private void updateSanPhamStock(Integer idSanPham, int totalStock) {
+        // Cập nhật số lượng tổng của sản phẩm chính
+        SanPham sanPham = sanPhamRepository.findById(idSanPham).orElse(null);
+        if (sanPham != null) {
+            sanPham.setSoLuong(totalStock);
+            sanPhamRepository.save(sanPham);
+        }
+    }
 
     @Transactional
     public void updateSanPhamStock(Integer idSanPham) {

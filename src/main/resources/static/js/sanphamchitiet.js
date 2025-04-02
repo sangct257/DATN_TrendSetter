@@ -16,6 +16,25 @@ async function fetchProductDetails(productId) {
         }
 
         updateProductDetails(productList);
+
+        // 🚀 Tự động chọn màu sắc và size đầu tiên có sẵn
+        const availableColor = productList.find(p => p.soLuongTheoSize && Object.values(p.soLuongTheoSize).some(q => q > 0));
+        if (availableColor) {
+            const firstAvailableColor = availableColor.tenMauSac;
+            const firstColorElement = document.querySelector(`.color-swatch[data-color="${firstAvailableColor}"]`);
+            if (firstColorElement) {
+                selectColor(firstColorElement, firstAvailableColor);
+            }
+
+            const availableSizes = Object.keys(availableColor.soLuongTheoSize).filter(size => availableColor.soLuongTheoSize[size] > 0);
+            if (availableSizes.length > 0) {
+                const firstAvailableSize = availableSizes[0];
+                const firstSizeElement = document.querySelector(`.size-swatch[data-size="${firstAvailableSize}"]`);
+                if (firstSizeElement) {
+                    selectSize(firstSizeElement, firstAvailableSize);
+                }
+            }
+        }
     } catch (error) {
         console.error('Lỗi khi tải sản phẩm:', error);
     }
@@ -36,45 +55,47 @@ function updateProductDetails(products) {
 
     // 🚀 Hiển thị màu sắc
     const colors = [...new Set(products.map(p => p.tenMauSac))];
-    let firstAvailableColor = null;
+    let firstAvailableColor = colors[0];
+
     const colorOptions = document.getElementById('color-options');
     colorOptions.innerHTML = colors.map((color) => {
-        const isDisabled = !products.some(p => p.tenMauSac === color);
-        if (!isDisabled && !firstAvailableColor) firstAvailableColor = color;
-
+        const availableProducts = products.filter(p => p.tenMauSac === color);
+        const available = availableProducts.some(p => p.soLuongTheoSize && Object.values(p.soLuongTheoSize).some(q => q > 0));
         return `
-            <div class="swatch-1-s color-swatch ${isDisabled ? 'disabled' : ''}" 
-                 data-color="${color}">${color}</div>
+            <div class="swatch-1-s color-swatch ${!available ? 'disabled' : ''}" data-color="${color}">${color}</div>
         `;
     }).join('');
 
-    // 🚀 Hiển thị size
-    const sizes = [...new Set(products.flatMap(p => p.sizes))];
-    let firstAvailableSize = null;
-    const sizeOptions = document.getElementById('size-options');
-    sizeOptions.innerHTML = sizes.map((size) => {
-        const isDisabled = !products.some(p => p.sizes.includes(size));
-        if (!isDisabled && !firstAvailableSize) firstAvailableSize = size;
-
-        return `
-            <div class="swatch-1-s size-swatch ${isDisabled ? 'disabled' : ''}" 
-                 data-size="${size}">${size}</div>
-        `;
-    }).join('');
-
-    // 🔥 Gán sự kiện chọn màu bằng addEventListener
     document.querySelectorAll('.color-swatch').forEach(el => {
         el.addEventListener('click', function () {
-            if (!this.classList.contains('disabled')) {
+            if (!el.classList.contains('disabled')) {
                 selectColor(this, this.dataset.color);
             }
         });
     });
 
-    // 🔥 Gán sự kiện chọn size bằng addEventListener
+    // Nếu có màu sắc hợp lệ, chọn màu đầu tiên
+    if (firstAvailableColor) {
+        const firstColorElement = document.querySelector(`.color-swatch[data-color="${firstAvailableColor}"]`);
+        if (firstColorElement && !firstColorElement.classList.contains('disabled')) {
+            selectColor(firstColorElement, firstAvailableColor);
+        }
+    }
+
+    // 🚀 Hiển thị tất cả size hợp lệ
+    const sizes = [...new Set(products.flatMap(p => p.sizes))];
+    const sizeOptions = document.getElementById('size-options');
+    sizeOptions.innerHTML = sizes.map((size) => {
+        const availableProducts = products.filter(p => p.sizes.includes(size));
+        const available = availableProducts.some(p => p.soLuongTheoSize && p.soLuongTheoSize[size] > 0);
+        return `
+            <div class="swatch-1-s size-swatch ${!available ? 'disabled' : ''}" data-size="${size}">${size}</div>
+        `;
+    }).join('');
+
     document.querySelectorAll('.size-swatch').forEach(el => {
         el.addEventListener('click', function () {
-            if (!this.classList.contains('disabled')) {
+            if (!el.classList.contains('disabled')) {
                 selectSize(this, this.dataset.size);
             }
         });
@@ -85,45 +106,34 @@ function updateProductDetails(products) {
 
     updatePrice();
 }
-// 🚀 Chọn màu sắc
+
 // 🚀 Chọn màu sắc
 function selectColor(element, color) {
-    if (element.classList.contains('disabled')) return;
-
-    // Xóa chọn màu cũ
     document.querySelectorAll('.color-swatch').forEach(el => el.classList.remove('selected'));
     element.classList.add('selected');
     selectedColor = color;
 
-    // Lọc danh sách size hợp lệ cho màu mới
+    // Lọc danh sách size hợp lệ
     const availableProducts = productList.filter(p => p.tenMauSac === selectedColor);
     const availableSizes = availableProducts.flatMap(p => p.sizes);
 
-    // Cập nhật danh sách size
     let firstAvailableSize = null;
     document.querySelectorAll('.size-swatch').forEach(el => {
         const size = el.dataset.size;
-        if (availableSizes.includes(size)) {
+        const available = availableProducts.some(p => p.sizes.includes(size) && p.soLuongTheoSize[size] > 0);
+        if (available) {
             el.classList.remove('disabled');
-            el.addEventListener("click", function () {
-                selectSize(el, size);
-            });
-
-            if (!firstAvailableSize) firstAvailableSize = size; // Lấy size đầu tiên còn hàng
+            if (!firstAvailableSize) firstAvailableSize = size;
         } else {
             el.classList.add('disabled');
-            el.removeEventListener("click", function () {
-                selectSize(el, size);
-            });
         }
     });
 
-    // Nếu size cũ không hợp lệ, chọn size đầu tiên còn hàng
+    // Nếu size đã chọn không còn hợp lệ, chọn lại size đầu tiên hợp lệ
     if (!availableSizes.includes(selectedSize)) {
         selectedSize = firstAvailableSize;
     }
 
-    // Cập nhật giao diện size
     document.querySelectorAll('.size-swatch').forEach(el => {
         el.classList.remove('selected');
         if (el.dataset.size === selectedSize) {
@@ -134,20 +144,18 @@ function selectColor(element, color) {
     // 🚀 Cập nhật ảnh theo màu sắc
     const colorImages = availableProducts.flatMap(p => p.hinhAnh);
     if (colorImages.length > 0) {
-        document.getElementById('mainImage').src = colorImages[0]; // Lấy ảnh đầu tiên
+        document.getElementById('mainImage').src = colorImages[0];
     }
+
+    document.querySelector('.thumbnails').innerHTML = colorImages.map((img, index) => `
+        <img src="${img}" alt="Thumbnail ${index}" onclick="changeImage('${img}')">
+    `).join('');
 
     updatePrice();
 }
 
-
-
-
-
 // 🚀 Chọn size
 function selectSize(element, size) {
-    if (element.classList.contains('disabled')) return;
-
     document.querySelectorAll('.size-swatch').forEach(el => el.classList.remove('selected'));
     element.classList.add('selected');
     selectedSize = size;
@@ -159,9 +167,11 @@ function selectSize(element, size) {
 function updatePrice() {
     const selectedProduct = productList.find(p => p.tenMauSac === selectedColor && p.sizes.includes(selectedSize));
 
-    if (selectedProduct) {
+    if (selectedProduct && selectedProduct.soLuongTheoSize[selectedSize] > 0) {
         document.querySelector('.product-price').textContent =
             `${selectedProduct.gia.toLocaleString('vi-VN')} VNĐ`;
+    } else {
+        document.querySelector('.product-price').textContent = "Hết hàng";
     }
 }
 
@@ -321,4 +331,32 @@ function closeSizeGuide(event) {
         document.body.classList.remove('no-scroll'); // Bật lại cuộn trang
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetch("http://localhost:8080/api/danh-muc")
+        .then(response => response.json())
+        .then(data => {
+            let danhMucContainer = document.getElementById("danh-muc-list");
+            danhMucContainer.innerHTML = ""; // Xóa danh mục cũ
+
+            data.forEach(danhMuc => {
+                let danhMucElement = document.createElement("a");
+                danhMucElement.href = "/san-pham"; // Chuyển hướng tới trang sản phẩm
+                danhMucElement.className = "nav-item nav-link";
+                danhMucElement.textContent = danhMuc.tenDanhMuc;
+
+                // Khi nhấn vào danh mục, lưu giá trị vào sessionStorage
+                danhMucElement.addEventListener("click", function (event) {
+                    event.preventDefault(); // Ngăn chặn hành động mặc định
+
+                    sessionStorage.setItem("selectedCategory", danhMuc.tenDanhMuc); // Lưu danh mục vào sessionStorage
+
+                    window.location.href = "/san-pham"; // Chuyển hướng tới trang sản phẩm
+                });
+
+                danhMucContainer.appendChild(danhMucElement);
+            });
+        })
+        .catch(error => console.error("Lỗi tải danh mục:", error));
+});
 

@@ -1,6 +1,7 @@
 package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.DTO.SanPhamChiTietViewDTO;
+import com.example.datn_trendsetter.DTO.StockUpdateRequest;
 import com.example.datn_trendsetter.Service.SanPhamChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/san-pham-chi-tiet")
@@ -25,14 +27,10 @@ public class SanPhamChiTietRest {
         return ResponseEntity.ok(chiTietSanPham);
     }
 
-    @PostMapping("/reduce-stock/{id}")
-    public ResponseEntity<String> reduceStock(@PathVariable("id") Integer idSanPhamChiTiet, @RequestParam("quantity") Integer soLuong) {
-        boolean success = sanPhamChiTietService.reduceStock(idSanPhamChiTiet, soLuong);
-
-        if (success) {
-            return ResponseEntity.ok("Giảm số lượng thành công.");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không đủ hàng trong kho.");
-        }
+    @PostMapping("/reduce-stock")
+    public ResponseEntity<Map<String, String>> reduceStock(@RequestBody List<StockUpdateRequest> stockUpdates) {
+        Map<String, String> results = sanPhamChiTietService.reduceStock(stockUpdates);
+        return ResponseEntity.ok(results);
     }
+
 }

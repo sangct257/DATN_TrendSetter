@@ -122,14 +122,13 @@ public class LichSuHoaDonService {
             // Lấy danh sách chi tiết hóa đơn
             List<HoaDonChiTiet> hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
 
-
             // Lấy danh sách tất cả sản phẩm chi tiết có trạng thái "Còn Hàng"
             List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
-// Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
+            // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
             Set<String> seenImages = new HashSet<>();
 
-// Danh sách sản phẩm không trùng hình ảnh
+            // Danh sách sản phẩm không trùng hình ảnh
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
@@ -158,6 +157,19 @@ public class LichSuHoaDonService {
 
             hoaDon.setSoTienDaThanhToan(soTienDaThanhToan);
 
+            // Tính số tiền còn lại
+            float soTienConLai = 0;
+            if (hoaDon.getTongTien() != null && hoaDon.getSoTienDaThanhToan() != null) {
+                soTienConLai = hoaDon.getTongTien() - hoaDon.getSoTienDaThanhToan();
+            }
+            model.addAttribute("soTienConLai", soTienConLai);
+
+            double tongThanhTien = hoaDonChiTiet.stream()
+                    .mapToDouble(HoaDonChiTiet::getThanhTien)
+                    .sum();
+            model.addAttribute("tongThanhTien", tongThanhTien);
+
+            // Lấy danh sách khách hàng, phương thức thanh toán
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
 
@@ -175,16 +187,19 @@ public class LichSuHoaDonService {
             } else {
                 model.addAttribute("listPhieuGiamGia", new ArrayList<>()); // Không có phiếu giảm giá nào
             }
+
+            // Lấy lịch sử hóa đơn và thanh toán
             List<LichSuHoaDon> listLichSuHoaDon = lichSuHoaDonRepository.findByHoaDonId(hoaDon.getId());
             List<LichSuThanhToan> listLichSuThanhToan = lichSuThanhToanRepository.findByHoaDonId(hoaDon.getId());
-            // Lọc danh sách phiếu giảm giá dựa trên tổng tiền
+
             model.addAttribute("hoaDon", hoaDon);
-            model.addAttribute("listLichSuThanhToan",listLichSuThanhToan);
+            model.addAttribute("listLichSuThanhToan", listLichSuThanhToan);
             model.addAttribute("listLichSuHoaDon", listLichSuHoaDon);
             model.addAttribute("danhSachHoaDonChiTiet", hoaDonChiTiet);
             model.addAttribute("hoaDon", hoaDon);
         }
     }
+
 
     public Map<String, Object> xacNhanHoaDon(Integer hoaDonId) {
         Map<String, Object> response = new HashMap<>();

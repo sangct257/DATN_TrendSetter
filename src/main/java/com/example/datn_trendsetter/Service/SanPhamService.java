@@ -190,14 +190,18 @@ public class SanPhamService {
 
     public Page<SanPhamViewDTO> getSanPhams(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<SanPhamViewDTO> allSanPhams = sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
-
-        // Lọc sản phẩm theo trạng thái tại Service
-        List<SanPhamViewDTO> filteredList = allSanPhams.getContent().stream()
-                .filter(sp -> "Đang Hoạt Động".equals(sp.getTrangThai()))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(filteredList, pageable, filteredList.size());
+        return sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
     }
+
+
+    public Page<SanPhamViewDTO> searchSanPhams(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return sanPhamChiTietRepository.searchSanPham(keyword, pageable);
+    }
+    public Page<SanPhamViewDTO> filterSanPhams(String danhMuc, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return sanPhamChiTietRepository.filterSanPham(danhMuc, pageable);
+    }
+
 
 }

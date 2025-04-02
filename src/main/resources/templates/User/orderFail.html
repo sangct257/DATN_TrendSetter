@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán Thất Bại</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        .fail-container {
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f8d7da;
+            color: #721c24;
+            max-width: 400px;
+            border: 1px solid #f5c6cb;
+        }
+        .fail-container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .fail-container p {
+            margin: 5px 0;
+        }
+        .button {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            background-color: #dc3545;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+<div class="fail-container">
+    <h1>Thanh Toán Thất Bại</h1>
+    <p>Giao dịch không thành công. Vui lòng thử lại sau.</p>
+    <a class="button" th:href="@{/khach-hang/trang-chu}">Về trang chủ</a>
+</div>
+</body>
+</html>

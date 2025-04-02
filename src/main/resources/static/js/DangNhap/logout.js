@@ -13,7 +13,7 @@ document.getElementById("logout-btn").addEventListener("click", async function (
         if (sessionResponse.ok) {
             const sessionData = await sessionResponse.json();
             console.log("Session Data:", sessionData); // Debug thông tin session
-            const roles = sessionData.roles || [];
+            const roles = sessionData.role || [];
 
             if (roles.includes("ROLE_KHACHHANG")) {
                 redirectUrl = "http://localhost:8080/trang-chu";

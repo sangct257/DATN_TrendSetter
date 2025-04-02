@@ -282,19 +282,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!ngayBatDauInput.value) return;
 
-        const ngayBatDau = new Date(ngayBatDauInput.value);
-        const today = new Date();
-        const ngayBatDauFormatted = ngayBatDau.toISOString().split("T")[0];
-        const todayFormatted = today.toISOString().split("T")[0];
+        const ngayBatDau = new Date(ngayBatDauInput.value + "T00:00:00"); // Fix lỗi múi giờ
+        if (isNaN(ngayBatDau.getTime())) return; // Kiểm tra ngày hợp lệ
 
-        if (!trangThaiSelect.value || trangThaiSelect.value === "Sắp Diễn Ra") {
-            if (ngayBatDauFormatted === todayFormatted) {
-                trangThaiSelect.value = "Đang Hoạt Động";
-            } else if (ngayBatDauFormatted > todayFormatted) {
-                trangThaiSelect.value = "Sắp Diễn Ra";
-            } else {
-                trangThaiSelect.value = "Ngừng Hoạt Động";
-            }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Đặt giờ về 00:00 để so sánh chính xác
+
+        if (ngayBatDau.getTime() === today.getTime()) {
+            trangThaiSelect.value = "Đang Hoạt Động";
+        } else if (ngayBatDau.getTime() > today.getTime()) {
+            trangThaiSelect.value = "Sắp Diễn Ra";
+        } else {
+            trangThaiSelect.value = "Ngừng Hoạt Động";
         }
     }
 
