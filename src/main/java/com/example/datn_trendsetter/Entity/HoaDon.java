@@ -49,9 +49,6 @@ public class HoaDon {
     @Column(name = "ma_hoa_don",columnDefinition = "NVARCHAR(255)")
     private String maHoaDon;
 
-    @Column(name = "ma_giao_dich",columnDefinition = "NVARCHAR(255)")
-    private String maGiaoDich;
-
     @Column(name = "tong_tien")
     private Float tongTien;
 
@@ -64,7 +61,7 @@ public class HoaDon {
     @Column(name = "email",columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "dia_chi_cu_the",columnDefinition = "NVARCHAR(255)")
     private String diaChiCuThe;
 
     @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
@@ -93,9 +90,6 @@ public class HoaDon {
 
     @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
-
-    @Column(name = "qr_image",columnDefinition = "NVARCHAR(255)")
-    private String qrImage;
 
     @Column(name = "ghi_chu",columnDefinition = "NVARCHAR(255)")
     private String ghiChu;
@@ -126,12 +120,13 @@ public class HoaDon {
     @PrePersist
     public void updatePhiShip() {
         if ("Tại Quầy".equals(this.loaiHoaDon)) {
-            this.phiShip = null;
+            this.phiShip = 0F; // Tại quầy không có phí ship
+            this.tinhTongTienHoaDon();
         } else if ("Giao Hàng".equals(this.loaiHoaDon)) {
-            this.phiShip = tinhPhiShip();
+            this.phiShip = tinhPhiShip(); // Chỉ tính phí ship nếu là Giao Hàng
+            this.tinhTongTienHoaDon();
         }
-        // Tính tổng tiền
-        this.tongTien = tinhTongTienHoaDon();
+        // "Online" không cần tính phí ship
     }
 
     private float tinhPhiShip() {
@@ -141,40 +136,32 @@ public class HoaDon {
                 && this.huyen != null && !this.huyen.isEmpty()
                 && this.phuong != null && !this.phuong.isEmpty()
                 && this.thanhPho != null && !this.thanhPho.isEmpty()) {
-            return 30000.0F; // Nếu có đầy đủ người nhận và số điện thoại → tính phí ship
+            return 30000.0F; // Nếu có đầy đủ thông tin → tính phí ship
         }
-        return 0F; // Nếu thiếu thông tin người nhận hoặc số điện thoại → miễn phí ship
+        return 0F; // Nếu thiếu thông tin → miễn phí ship
     }
 
-
-    private float tinhTongTienHoaDon() {
-        // Tính tổng tiền sản phẩm từ danh sách chi tiết hóa đơn
+    private void tinhTongTienHoaDon() {
         float tongTienSanPham = (float) hoaDonChiTiet.stream()
                 .mapToDouble(HoaDonChiTiet::getThanhTien)
                 .sum();
 
         float giaTriGiam = 0F;
 
-        // Kiểm tra phiếu giảm giá (nếu có) và điều kiện áp dụng
         if (phieuGiamGia != null && phieuGiamGia.getDieuKien() != null) {
             if (tongTienSanPham >= phieuGiamGia.getDieuKien()) {
                 giaTriGiam = Objects.requireNonNullElse(phieuGiamGia.getGiaTriGiam(), 0F);
             } else {
-                // Nếu không đủ điều kiện, không áp dụng phiếu giảm giá
                 this.phieuGiamGia = null;
             }
         }
 
-        // Nếu tổng tiền sản phẩm (trước khi trừ giảm giá) >= 1.000.000 thì miễn phí ship
-        if (tongTienSanPham >= 500_000) {
-            this.phiShip = 0F;  // Cập nhật phí ship thành 0
-        }
-
         float phiShip = Objects.requireNonNullElse(this.phiShip, 0F);
 
-        // Tổng tiền hóa đơn
-        return Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
+        // **Gán giá trị tổng tiền vào thuộc tính `tongTien`**
+        this.tongTien = Math.max(0, tongTienSanPham + phiShip - giaTriGiam);
     }
+
 
 
 

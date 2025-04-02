@@ -1,37 +1,66 @@
 document.addEventListener("DOMContentLoaded", function () {
-    let cartData = sessionStorage.getItem("checkoutCart");
-    let orderItemsContainer = document.getElementById("order-items");
-    let subtotalElement = document.getElementById("subtotal");
-    let totalElement = document.getElementById("total");
-    let shippingFee = 30000; // Phí vận chuyển cố định
+    validateCartBeforeCheckout();
+    loadCheckoutCart();
+});
 
-    if (!cartData) {
-        orderItemsContainer.innerHTML = "<p>Giỏ hàng trống.</p>";
-        subtotalElement.innerText = "0 VND";
-        totalElement.innerText = "0 VND";
+function validateCartBeforeCheckout() {
+    let currentCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    if (currentCart.length === 0) {
+        console.log("🛒 Giỏ hàng trống! Xoá dữ liệu thanh toán...");
+        sessionStorage.removeItem("checkoutCart"); // Xoá dữ liệu cũ
+    }
+}
+
+function loadCheckoutCart() {
+    let checkoutData = JSON.parse(sessionStorage.getItem("checkoutCart"));
+
+    if (!checkoutData || !checkoutData.cart || checkoutData.cart.length === 0) {
+        document.getElementById("order-items").innerHTML = "<p>Không có sản phẩm nào trong giỏ hàng.</p>";
+        document.getElementById("subtotal").innerText = "0 VND";
+        document.getElementById("shipping-fee").innerText = "0 VND";
+        document.getElementById("total").innerText = "0 VND";
+        document.getElementById("discount-container").style.display = "none";
         return;
     }
 
-    let cart = JSON.parse(cartData);
+    let cart = checkoutData.cart;
+    let orderItemsContainer = document.getElementById("order-items");
     let subtotal = 0;
+
     orderItemsContainer.innerHTML = "";
 
-    cart.forEach(item => {
+    cart.forEach((item) => {
         let price = Number(item.price.toString().replace(/\D/g, ""));
         let total = price * item.quantity;
         subtotal += total;
 
         orderItemsContainer.innerHTML += `
             <div class="d-flex justify-content-between">
-                <p>${item.name} (x${item.quantity})</p>
+                <p>${item.name} (${item.size}, ${item.color}) x ${item.quantity}</p>
                 <p>${total.toLocaleString('vi-VN')} VND</p>
             </div>
         `;
     });
 
-    subtotalElement.innerText = subtotal.toLocaleString('vi-VN') + " VND";
-    totalElement.innerText = (subtotal + shippingFee).toLocaleString('vi-VN') + " VND";
-});
+    let shippingFee = Number(checkoutData.shippingFee.replace(/\D/g, ""));
+    let discount = checkoutData.discount.value || 0;
+    let totalAmount = subtotal + shippingFee - discount;
+
+    document.getElementById("subtotal").innerText = `${subtotal.toLocaleString('vi-VN')} VND`;
+    document.getElementById("shipping-fee").innerText = `${shippingFee.toLocaleString('vi-VN')} VND`;
+    document.getElementById("total").innerHTML = `<span style="color: red; font-weight: bold;">${totalAmount.toLocaleString('vi-VN')} VND</span>`;
+
+    if (discount > 0) {
+        document.getElementById("discount-container").style.display = "flex";
+        document.getElementById("discount-display").innerText = `-${discount.toLocaleString('vi-VN')} VND`;
+    } else {
+        document.getElementById("discount-container").style.display = "none";
+    }
+}
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
     loadProvinces(); // Tải danh sách tỉnh/thành khi trang tải
 
@@ -106,43 +135,18 @@ function clearErrors() {
     });
 }
 
-function validateForm() {
-    let isValid = true;
-    clearErrors();
-
-    const fields = [
-        { id: "fullName", message: "Vui lòng nhập họ và tên." },
-        { id: "phoneNumber", message: "Vui lòng nhập số điện thoại hợp lệ.", validate: v => /^\d{10}$/.test(v) },
-        { id: "email", message: "Vui lòng nhập email hợp lệ.", validate: v => v.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
-        { id: "specific-address", message: "Vui lòng nhập địa chỉ cụ thể." },
-        { id: "province", message: "Vui lòng chọn Tỉnh/Thành phố." },
-        { id: "district", message: "Vui lòng chọn Quận/Huyện." },
-        { id: "ward", message: "Vui lòng chọn Phường/Xã." }
-    ];
-
-    fields.forEach(field => {
-        const value = document.getElementById(field.id)?.value.trim();
-
-        if (!value && field.id !== "email") {
-            showError(field.id, field.message);
-            isValid = false;
-        } else if (field.validate && !field.validate(value)) {
-            showError(field.id, field.message);
-            isValid = false;
-        }
-    });
-
-    return isValid;
-}
-
-
 async function placeOrder() {
-    if (!validateForm()) {
-        return;
-    }
+    console.log("🔹 [DEBUG] Bắt đầu đặt hàng...");
+
+    //
+    // if (!validateForm()) {
+    //     console.log("❌ [DEBUG] Form không hợp lệ!");
+    //     return;
+    // }
 
     let cartData = localStorage.getItem("cart");
     if (!cartData || JSON.parse(cartData).length === 0) {
+        console.log("❌ [DEBUG] Giỏ hàng trống!");
         Swal.fire({
             icon: "error",
             title: "Giỏ hàng trống!",
@@ -152,72 +156,100 @@ async function placeOrder() {
     }
 
     let cart = JSON.parse(cartData);
+    console.log("🛒 [DEBUG] Dữ liệu giỏ hàng:", cart);
 
-    // ✅ Giảm số lượng sản phẩm trước khi xác nhận đơn hàng
-    for (let item of cart) {
-        try {
-            let response = await fetch(`/api/san-pham-chi-tiet/reduce-stock/${item.idSanPhamChiTiet}?quantity=${item.quantity}`, {
-                method: "POST"
+    // ✅ Chuyển đổi giá từ chuỗi thành số trước khi tính toán
+    let subtotal = cart.reduce((sum, item) => {
+        let price = Number(item.price.toString().replace(/\D/g, "")); // Chuyển "450.000" -> 450000
+        return sum + (price * item.quantity);
+    }, 0);
+
+    let shippingFee = 30000; // Giả sử phí ship là 30,000 VND
+
+    // ✅ Kiểm tra mã giảm giá
+    let discount = 0;
+    let discountId = null;
+    let discountData = JSON.parse(sessionStorage.getItem("checkoutCart"));
+    if (discountData && discountData.discount) {
+        discount = Number(discountData.discount.value) || 0;
+        discountId = discountData.discount.id || null;
+    }
+
+    let totalAmount = subtotal + shippingFee - discount;
+
+    console.log("💰 [DEBUG] Tổng tiền hàng:", subtotal.toLocaleString('vi-VN'), "VND");
+    console.log("🚚 [DEBUG] Phí vận chuyển:", shippingFee.toLocaleString('vi-VN'), "VND");
+    console.log("🎁 [DEBUG] Giảm giá:", discount.toLocaleString('vi-VN'), "VND");
+    console.log("💵 [DEBUG] Tổng tiền cuối cùng:", totalAmount.toLocaleString('vi-VN'), "VND");
+
+    // ✅ Chuẩn bị dữ liệu để gửi lên API
+    let orderInfo = {
+        nguoiNhan: document.getElementById("fullName").value.trim(),
+        soDienThoai: document.getElementById("phoneNumber").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        diaChiCuThe: document.getElementById("specific-address").value.trim(),
+        thanhPho: document.getElementById("province").options[document.getElementById("province").selectedIndex].text,
+        huyen: document.getElementById("district").options[document.getElementById("district").selectedIndex].text,
+        phuong: document.getElementById("ward").options[document.getElementById("ward").selectedIndex].text,
+        tongTien: totalAmount,
+        phiShip: shippingFee,
+        idPhuongThucThanhToan: document.getElementById("cod").checked ? 1 : 2, // 1: COD, 2: Chuyển khoản
+        idPhieuGiamGia: discountId, // ✅ Gửi mã giảm giá nếu có
+        hoaDonChiTiet: cart.map(item => ({
+            idSanPhamChiTiet: item.idSanPhamChiTiet,
+            soLuong: item.quantity,
+            gia: Number(item.price.toString().replace(/\D/g, "")) // Chuyển đổi giá chính xác
+        }))
+    };
+    console.log("📦 [DEBUG] Dữ liệu gửi lên API hóa đơn:", JSON.stringify(orderInfo, null, 2));
+    console.log("📦 [DEBUG] Dữ liệu gửi lên API hóa đơn:", orderInfo);
+
+    try {
+        let response = await fetch("/api/hoa-don/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderInfo)
+        });
+
+        let result = await response.json();
+
+        if (response.ok) {
+            console.log("✅ [DEBUG] Đặt hàng thành công! ID hóa đơn:", result.id);
+            console.log("📜 [DEBUG] Mã hóa đơn:", result.maHoaDon);
+
+            // ✅ Xóa giỏ hàng sau khi đặt hàng thành công
+            localStorage.removeItem("cart");
+            sessionStorage.removeItem("checkoutCart");
+
+            Swal.fire({
+                icon: "success",
+                title: "Đặt hàng thành công!",
+                text: `Mã hóa đơn của bạn: ${result.maHoaDon}`,
+                showCancelButton: true,
+                confirmButtonText: "Xem đơn hàng",
+                cancelButtonText: "Về trang chủ"
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location.href = `/don-hang?maHoaDon=${result.maHoaDon}`;
+                } else {
+                    window.location.href = "/";
+                }
             });
-
-            if (!response.ok) {
-                let errorMessage = await response.text();
-                Swal.fire({
-                    icon: "error",
-                    title: "Lỗi khi cập nhật kho!",
-                    text: errorMessage
-                });
-                return; // Nếu có lỗi, dừng việc đặt hàng
-            }
-        } catch (error) {
-            console.error("Lỗi khi giảm số lượng:", error);
+        } else {
+            console.error("❌ [ERROR] Lỗi từ API hóa đơn:", result.message);
             Swal.fire({
                 icon: "error",
-                title: "Lỗi hệ thống!",
-                text: "Không thể giảm số lượng sản phẩm, vui lòng thử lại."
+                title: "Lỗi đặt hàng!",
+                text: result.message || "Đã có lỗi xảy ra, vui lòng thử lại."
             });
-            return;
         }
-    }
-
-    // ✅ Nếu cập nhật thành công, tiếp tục xử lý đơn hàng
-    let orderInfo = {
-        fullName: document.getElementById("fullName").value.trim(),
-        phoneNumber: document.getElementById("phoneNumber").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        addressDetail: document.getElementById("specific-address").value.trim(),
-        province: document.getElementById("province").value.trim(),
-        district: document.getElementById("district").value.trim(),
-        ward: document.getElementById("ward").value.trim(),
-        cart: cart,
-        paymentMethod: document.getElementById("cod").checked ? "COD" : "Bank Transfer"
-    };
-
-    localStorage.setItem("orderInfo", JSON.stringify(orderInfo));
-
-    // ✅ Xóa giỏ hàng sau khi đặt hàng thành công
-    localStorage.removeItem("cart");
-    sessionStorage.removeItem("checkoutCart");
-
-    if (orderInfo.paymentMethod === "COD") {
+    } catch (error) {
+        console.error("❌ [ERROR] Lỗi hệ thống khi gửi hóa đơn:", error);
         Swal.fire({
-            icon: "success",
-            title: "Đặt hàng thành công!",
-            text: "Bạn có muốn xem đơn hàng của mình không?",
-            showCancelButton: true,
-            confirmButtonText: "Xem đơn hàng",
-            cancelButtonText: "Về trang chủ"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "don-hang";
-            } else {
-                window.location.href = "trang-chu";
-            }
+            icon: "error",
+            title: "Lỗi hệ thống!",
+            text: "Không thể kết nối đến máy chủ, vui lòng thử lại sau."
         });
-    } else {
-        window.location.href = "thanh-toan-online";
     }
 }
-
-
 

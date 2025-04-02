@@ -160,9 +160,10 @@
         loadTable(""); // Load tất cả sản phẩm ban đầu
         loadCount();
 
-        document.querySelectorAll(".filter-btn").forEach(button => {
+        document.querySelectorAll("[data-status]").forEach(button => {
             button.addEventListener("click", function () {
                 let trangThai = this.getAttribute("data-status");
+                console.log("Lọc theo trạng thái:", trangThai);
                 loadTable(trangThai);
             });
         });
@@ -212,8 +213,9 @@
                 .catch(error => console.error("Lỗi JSON:", error));
         }
 
+
         function loadCount() {
-            fetch("/api/hoa-don/count")
+            fetch("http://localhost:8080/api/hoa-don/count")
                 .then(response => response.json())
                 .then(counts => {
                     document.getElementById("count-all").innerText = counts["Tất Cả"] || 0;

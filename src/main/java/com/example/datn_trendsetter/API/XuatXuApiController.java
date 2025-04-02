@@ -1,8 +1,10 @@
 package com.example.datn_trendsetter.API;
 
 
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.XuatXu;
 import com.example.datn_trendsetter.Repository.XuatXuRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +22,18 @@ public class XuatXuApiController {
     private XuatXuRepository xuatXuRepository;
 
     @PostMapping("add")
-    public ResponseEntity<String> add(@RequestBody XuatXu xuatXuRequest) {
+    public ResponseEntity<String> add(@RequestBody XuatXu xuatXuRequest, HttpSession session) throws Exception {
         // Kiểm tra xem thương hiệu đã tồn tại chưa
         boolean exists = xuatXuRepository.existsByQuocGia(xuatXuRequest.getQuocGia());
 
         if (exists) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên quốc gia đã tồn tại");
+        }
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
         }
 
         // Nếu chưa tồn tại, tạo mới
@@ -34,8 +42,8 @@ public class XuatXuApiController {
         xuatXu.setQuocGia(xuatXuRequest.getQuocGia());
         xuatXu.setNgayTao(LocalDate.now());
         xuatXu.setNgaySua(LocalDate.now());
-        xuatXu.setNguoiTao("admin");
-        xuatXu.setNguoiSua("admin");
+        xuatXu.setNguoiTao(nhanVienSession.getHoTen());
+        xuatXu.setNguoiSua(nhanVienSession.getHoTen());
         xuatXu.setDeleted(false);
         xuatXu.setTrangThai(xuatXuRequest.getTrangThai());
 
@@ -45,15 +53,19 @@ public class XuatXuApiController {
 
 
     @PutMapping("update")
-    public ResponseEntity<String> update(@RequestBody XuatXu updatedXuatXu) {
+    public ResponseEntity<String> update(@RequestBody XuatXu updatedXuatXu,HttpSession session) throws Exception {
         XuatXu xuatXu = xuatXuRepository.findById(updatedXuatXu.getId()).orElse(null);
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
         if (xuatXu != null) {
             xuatXu.setMaXuatXu(xuatXu.getMaXuatXu());
             xuatXu.setQuocGia(updatedXuatXu.getQuocGia());
             xuatXu.setNgayTao(xuatXu.getNgayTao());
             xuatXu.setNgaySua(LocalDate.now());
-            xuatXu.setNguoiTao(xuatXu.getNguoiTao());
-            xuatXu.setNguoiSua(xuatXu.getNguoiSua());
+            xuatXu.setNguoiSua(nhanVienSession.getHoTen());
             xuatXu.setTrangThai(updatedXuatXu.getTrangThai());
             xuatXu.setDeleted(xuatXu.getDeleted());
             xuatXuRepository.save(xuatXu);

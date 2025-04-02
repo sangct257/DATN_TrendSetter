@@ -26,28 +26,6 @@ public class ShopController {
         return "Admin/Shop/dashboard"; // Return to the page where the form is rendered
     }
 
-    @PostMapping("/create-hoa-don")
-    public String createHoaDon(
-            @ModelAttribute HoaDon hoaDon,
-            RedirectAttributes redirectAttributes,
-            HttpSession session
-    ) {
-        try {
-            // Lấy ID nhân viên từ session
-            Map<String, Object> userData = (Map<String, Object>) session.getAttribute("user");
-            Integer nhanVienId = (Integer) ((Map<String, Object>) userData.get("user")).get("id");
-
-            // Gọi service
-            HoaDon createdHoaDon = shopService.createHoaDon(hoaDon, nhanVienId);
-
-            redirectAttributes.addFlashAttribute("successMessage", "Đã tạo hóa đơn thành công");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-        }
-
-        return "redirect:/admin/sell-counter";
-    }
-
     @PostMapping("confirm-payment")
     public String confirmPayment(@RequestParam("hoaDonId") Integer hoaDonId,
                                  RedirectAttributes redirectAttributes) {

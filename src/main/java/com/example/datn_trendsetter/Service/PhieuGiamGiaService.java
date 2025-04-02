@@ -1,8 +1,10 @@
 package com.example.datn_trendsetter.Service;
 
 import com.example.datn_trendsetter.DTO.PhieuGiamGiaDTO;
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,13 @@ public class PhieuGiamGiaService {
         );
     }
 
-    public PhieuGiamGia addPhieuGiamGiaForMultipleCustomers(PhieuGiamGiaDTO dto) {
+    public PhieuGiamGia addPhieuGiamGiaForMultipleCustomers(PhieuGiamGiaDTO dto, HttpSession session) throws Exception {
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         PhieuGiamGia phieuGiamGia = new PhieuGiamGia();
@@ -80,6 +88,10 @@ public class PhieuGiamGiaService {
             phieuGiamGia.setNgayKetThuc(LocalDate.parse(dto.getNgayKetThuc(), formatter));
         }
 
+        phieuGiamGia.setNgayTao(LocalDate.now());
+        phieuGiamGia.setNgaySua(LocalDate.now());
+        phieuGiamGia.setNguoiTao(nhanVienSession.getHoTen());
+        phieuGiamGia.setNguoiSua(nhanVienSession.getHoTen());
         phieuGiamGia = phieuGiamGiaRepository.save(phieuGiamGia);
 
         return phieuGiamGia;
@@ -97,9 +109,16 @@ public class PhieuGiamGiaService {
     }
 
     @Transactional
-    public PhieuGiamGia updatePhieuGiamGia(Integer id, Map<String, Object> requestBody) {
+    public PhieuGiamGia updatePhieuGiamGia(Integer id, Map<String, Object> requestBody ,HttpSession session) throws Exception {
         PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
 
         Map<String, Object> dto = (Map<String, Object>) requestBody.get("phieuGiamGia");
 
@@ -121,6 +140,8 @@ public class PhieuGiamGiaService {
             phieuGiamGia.setNgayKetThuc(LocalDate.parse((String) dto.get("ngayKetThuc"), formatter));
         }
 
+        phieuGiamGia.setNgaySua(LocalDate.now());
+        phieuGiamGia.setNguoiSua(nhanVienSession.getHoTen());
         phieuGiamGia = phieuGiamGiaRepository.save(phieuGiamGia);
         return phieuGiamGia;
     }

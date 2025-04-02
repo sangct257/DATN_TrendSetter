@@ -25,10 +25,8 @@ public class SanPhamChiTietService {
         return sanPhamChiTietRepository.findLowStockProducts(); // soLuong < 10 và deleted = false
     }
 
-
     public List<SanPhamChiTietViewDTO> getChiTietSanPhamById(Integer idSanPham) {
         List<Object[]> results = sanPhamChiTietRepository.findSanPhamChiTietWithImages(idSanPham);
-        // Map để nhóm theo ID sản phẩm chi tiết
         Map<Integer, SanPhamChiTietViewDTO> sanPhamMap = new LinkedHashMap<>();
 
         for (Object[] row : results) {
@@ -39,30 +37,30 @@ public class SanPhamChiTietService {
             String tenKichThuoc = (String) row[4];
             String tenMauSac = (String) row[5];
             String hinhAnh = (String) row[6];
-            Integer soLuong = (Integer) row[7]; // Lấy số lượng
+            Integer soLuong = (Integer) row[7];
+            String trangThai = (String) row[8]; // Thêm trạng thái từ DB
 
-            // Nếu sản phẩm chưa có trong danh sách, thêm mới
-            if (!sanPhamMap.containsKey(idSanPhamChiTiet)) {
-                sanPhamMap.put(idSanPhamChiTiet, new SanPhamChiTietViewDTO(idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong));
-            } else {
-                // Nếu đã có, cập nhật danh sách size, số lượng và hình ảnh
-                SanPhamChiTietViewDTO dto = sanPhamMap.get(idSanPhamChiTiet);
+            // Chỉ lấy sản phẩm có trạng thái "Còn Hàng" hoặc "Đang Hoạt Động"
+            if (("Còn Hàng".equals(trangThai) || "Đang Hoạt Động".equals(trangThai)) && soLuong > 0) {
+                if (!sanPhamMap.containsKey(idSanPhamChiTiet)) {
+                    SanPhamChiTietViewDTO dto = new SanPhamChiTietViewDTO(idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong);
+                    sanPhamMap.put(idSanPhamChiTiet, dto);
+                } else {
+                    SanPhamChiTietViewDTO dto = sanPhamMap.get(idSanPhamChiTiet);
 
-                // Thêm size nếu chưa có
-                if (!dto.getSizes().contains(tenKichThuoc)) {
-                    dto.getSizes().add(tenKichThuoc);
-                    dto.getSoLuongTheoSize().put(tenKichThuoc, soLuong);
+                    // Thêm size nếu chưa có
+                    if (!dto.getSizes().contains(tenKichThuoc)) {
+                        dto.getSizes().add(tenKichThuoc);
+                        dto.getSoLuongTheoSize().put(tenKichThuoc, soLuong);
+                    }
+
+                    // Cập nhật hình ảnh nếu chưa có
+                    if (!dto.getHinhAnh().contains(hinhAnh)) {
+                        dto.getHinhAnh().add(hinhAnh);
+                    }
                 }
-
-                // Cập nhật hình ảnh nếu chưa có
-                if (!dto.getHinhAnh().contains(hinhAnh)) {
-                    dto.getHinhAnh().add(hinhAnh);
-                }
-
             }
-
         }
-
         return new ArrayList<>(sanPhamMap.values());
     }
 
