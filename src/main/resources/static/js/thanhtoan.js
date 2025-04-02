@@ -113,6 +113,38 @@ async function loadWards() {
         wardSelect.appendChild(option);
     });
 }
+function validateForm() {
+    clearErrors();
+    let isValid = true;
+
+    let requiredFields = [
+        { id: "fullName", message: "Vui lòng nhập họ tên." },
+        { id: "phoneNumber", message: "Vui lòng nhập số điện thoại." },
+        { id: "specific-address", message: "Vui lòng nhập địa chỉ cụ thể." },
+        { id: "province", message: "Vui lòng chọn tỉnh/thành phố." },
+        { id: "district", message: "Vui lòng chọn quận/huyện." },
+        { id: "ward", message: "Vui lòng chọn phường/xã." }
+    ];
+
+    requiredFields.forEach(field => {
+        let element = document.getElementById(field.id);
+        if (!element || element.value.trim() === "") {
+            showError(field.id, field.message);
+            isValid = false;
+        }
+    });
+
+    // Kiểm tra email (có thể để trống nhưng nếu nhập phải hợp lệ)
+    let emailField = document.getElementById("email");
+    if (emailField.value.trim() !== "" && !isValidEmail(emailField.value)) {
+        showError("email", "Vui lòng nhập email hợp lệ.");
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+// ⚠️ Hiển thị lỗi bên dưới input
 function showError(inputId, message) {
     const inputElement = document.getElementById(inputId);
     if (!inputElement) return;
@@ -126,6 +158,7 @@ function showError(inputId, message) {
     inputElement.insertAdjacentHTML("afterend", `<div class="invalid-feedback">${message}</div>`);
 }
 
+// ✅ Xóa lỗi khi người dùng nhập lại
 function clearErrors() {
     document.querySelectorAll(".is-invalid").forEach(element => {
         element.classList.remove("is-invalid");
@@ -135,54 +168,36 @@ function clearErrors() {
     });
 }
 
-async function placeOrder() {
-    console.log("🔹 [DEBUG] Bắt đầu đặt hàng...");
+// 📧 Hàm kiểm tra email hợp lệ
+function isValidEmail(email) {
+    let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
 
-    //
-    // if (!validateForm()) {
-    //     console.log("❌ [DEBUG] Form không hợp lệ!");
-    //     return;
-    // }
+// 📌 Xử lý đặt hàng
+async function placeOrder() {
+    if (!validateForm()) return;
 
     let cartData = localStorage.getItem("cart");
     if (!cartData || JSON.parse(cartData).length === 0) {
-        console.log("❌ [DEBUG] Giỏ hàng trống!");
-        Swal.fire({
-            icon: "error",
-            title: "Giỏ hàng trống!",
-            text: "Vui lòng thêm sản phẩm vào giỏ trước khi đặt hàng."
-        });
+        Swal.fire({ icon: "error", title: "Giỏ hàng trống!", text: "Vui lòng thêm sản phẩm vào giỏ trước khi đặt hàng." });
         return;
     }
 
     let cart = JSON.parse(cartData);
-    console.log("🛒 [DEBUG] Dữ liệu giỏ hàng:", cart);
-
-    // ✅ Chuyển đổi giá từ chuỗi thành số trước khi tính toán
-    let subtotal = cart.reduce((sum, item) => {
-        let price = Number(item.price.toString().replace(/\D/g, "")); // Chuyển "450.000" -> 450000
-        return sum + (price * item.quantity);
-    }, 0);
-
-    let shippingFee = 30000; // Giả sử phí ship là 30,000 VND
-
-    // ✅ Kiểm tra mã giảm giá
+    let subtotal = cart.reduce((sum, item) => sum + (Number(item.price.replace(/\D/g, "")) * item.quantity), 0);
+    let shippingFee = 30000;
     let discount = 0;
     let discountId = null;
+
     let discountData = JSON.parse(sessionStorage.getItem("checkoutCart"));
-    if (discountData && discountData.discount) {
+    if (discountData?.discount) {
         discount = Number(discountData.discount.value) || 0;
         discountId = discountData.discount.id || null;
     }
 
     let totalAmount = subtotal + shippingFee - discount;
 
-    console.log("💰 [DEBUG] Tổng tiền hàng:", subtotal.toLocaleString('vi-VN'), "VND");
-    console.log("🚚 [DEBUG] Phí vận chuyển:", shippingFee.toLocaleString('vi-VN'), "VND");
-    console.log("🎁 [DEBUG] Giảm giá:", discount.toLocaleString('vi-VN'), "VND");
-    console.log("💵 [DEBUG] Tổng tiền cuối cùng:", totalAmount.toLocaleString('vi-VN'), "VND");
-
-    // ✅ Chuẩn bị dữ liệu để gửi lên API
     let orderInfo = {
         nguoiNhan: document.getElementById("fullName").value.trim(),
         soDienThoai: document.getElementById("phoneNumber").value.trim(),
@@ -193,63 +208,101 @@ async function placeOrder() {
         phuong: document.getElementById("ward").options[document.getElementById("ward").selectedIndex].text,
         tongTien: totalAmount,
         phiShip: shippingFee,
-        idPhuongThucThanhToan: document.getElementById("cod").checked ? 1 : 2, // 1: COD, 2: Chuyển khoản
-        idPhieuGiamGia: discountId, // ✅ Gửi mã giảm giá nếu có
+        idPhuongThucThanhToan: document.getElementById("cod").checked ? 1 : 2,
+        idPhieuGiamGia: discountId,
         hoaDonChiTiet: cart.map(item => ({
             idSanPhamChiTiet: item.idSanPhamChiTiet,
             soLuong: item.quantity,
-            gia: Number(item.price.toString().replace(/\D/g, "")) // Chuyển đổi giá chính xác
+            gia: Number(item.price.replace(/\D/g, ""))
         }))
     };
-    console.log("📦 [DEBUG] Dữ liệu gửi lên API hóa đơn:", JSON.stringify(orderInfo, null, 2));
-    console.log("📦 [DEBUG] Dữ liệu gửi lên API hóa đơn:", orderInfo);
 
-    try {
-        let response = await fetch("/api/hoa-don/create", {
+    // 🔹 Nếu thanh toán COD → tạo hóa đơn ngay
+    if (orderInfo.idPhuongThucThanhToan === 1) {
+        try {
+            // 🔥 Chuẩn bị danh sách sản phẩm cần giảm số lượng
+            let stockUpdates = orderInfo.hoaDonChiTiet.map(item => ({
+                idSanPhamChiTiet: item.idSanPhamChiTiet,
+                soLuong: item.soLuong
+            }));
+
+            // 🔥 Gửi 1 request duy nhất để giảm số lượng nhiều sản phẩm cùng lúc
+            let stockResponse = await fetch("/api/san-pham-chi-tiet/reduce-stock", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(stockUpdates)
+            });
+
+            let stockResult = await stockResponse.json();
+
+            if (!stockResponse.ok) {
+                Swal.fire({ icon: "error", title: "Lỗi giảm số lượng!", text: "Không thể giảm số lượng sản phẩm." });
+                return;
+            }
+
+            // ✅ Kiểm tra phản hồi từ server
+            let failedProducts = Object.entries(stockResult)
+                .filter(([_, message]) => message.includes("Không đủ hàng"))
+                .map(([productId]) => productId);
+
+            if (failedProducts.length > 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Không đủ hàng!",
+                    text: `Sản phẩm không đủ hàng: ${failedProducts.join(", ")}`
+                });
+                return;
+            }
+
+            // ✅ Nếu giảm số lượng thành công, tiếp tục tạo hóa đơn
+            let response = await fetch("/api/hoa-don/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderInfo)
+            });
+
+            let result = await response.json();
+
+            if (response.ok) {
+                localStorage.removeItem("cart");
+                sessionStorage.removeItem("checkoutCart");
+                sessionStorage.removeItem("discountCode");
+                localStorage.removeItem("discountCode");
+                Swal.fire({
+                    icon: "success",
+                    title: "Đặt hàng thành công!",
+                    text: `Mã hóa đơn của bạn: ${result.maHoaDon}`,
+                    showCancelButton: true,
+                    confirmButtonText: "Xem đơn hàng",
+                    cancelButtonText: "Về trang chủ"
+                }).then((res) => {
+                    window.location.href = res.isConfirmed
+                        ? `/don-hang?maHoaDon=${result.maHoaDon}` // Chuyển hướng tới trang "don-hang" với tham số maHoaDon
+                        : "/trang-chu"; // Nếu không confirmed, chuyển hướng về trang chủ
+                });
+            } else {
+                Swal.fire({ icon: "error", title: "Lỗi!", text: result.message || "Đã có lỗi xảy ra." });
+            }
+        } catch (error) {
+            Swal.fire({ icon: "error", title: "Lỗi hệ thống!", text: "Không thể kết nối đến máy chủ." });
+        }
+    }
+    // 🔹 Nếu thanh toán VNPay → chuyển hướng tới VNPay
+    else {
+        sessionStorage.setItem("pendingOrder", JSON.stringify(orderInfo));
+
+        let vnpayResponse = await fetch("/api/payment/create-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orderInfo)
+            body: JSON.stringify({ orderId: Date.now(), amount: totalAmount })
         });
 
-        let result = await response.json();
+        let vnpayData = await vnpayResponse.json();
 
-        if (response.ok) {
-            console.log("✅ [DEBUG] Đặt hàng thành công! ID hóa đơn:", result.id);
-            console.log("📜 [DEBUG] Mã hóa đơn:", result.maHoaDon);
-
-            // ✅ Xóa giỏ hàng sau khi đặt hàng thành công
-            localStorage.removeItem("cart");
-            sessionStorage.removeItem("checkoutCart");
-
-            Swal.fire({
-                icon: "success",
-                title: "Đặt hàng thành công!",
-                text: `Mã hóa đơn của bạn: ${result.maHoaDon}`,
-                showCancelButton: true,
-                confirmButtonText: "Xem đơn hàng",
-                cancelButtonText: "Về trang chủ"
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    window.location.href = `/don-hang?maHoaDon=${result.maHoaDon}`;
-                } else {
-                    window.location.href = "/";
-                }
-            });
+        if (vnpayResponse.ok) {
+            window.location.href = vnpayData.paymentUrl; // 🔥 Chuyển hướng tới VNPay
         } else {
-            console.error("❌ [ERROR] Lỗi từ API hóa đơn:", result.message);
-            Swal.fire({
-                icon: "error",
-                title: "Lỗi đặt hàng!",
-                text: result.message || "Đã có lỗi xảy ra, vui lòng thử lại."
-            });
+            Swal.fire({ icon: "error", title: "Lỗi VNPay!", text: vnpayData.message || "Không thể tạo thanh toán VNPay." });
         }
-    } catch (error) {
-        console.error("❌ [ERROR] Lỗi hệ thống khi gửi hóa đơn:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Lỗi hệ thống!",
-            text: "Không thể kết nối đến máy chủ, vui lòng thử lại sau."
-        });
     }
 }
-

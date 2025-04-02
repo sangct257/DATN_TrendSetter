@@ -72,7 +72,7 @@ public class PhieuGiamGiaApiController {
         PhieuGiamGia pgg = phieuGiamGiaOpt.get();
 
         // Lấy danh sách vai trò từ session
-        List<String> userRoles = (List<String>) session.getAttribute("roles");
+        List<String> userRoles = (List<String>) session.getAttribute("rolesNhanVien");
 
         // Nếu không có vai trò, đặt mặc định là NHANVIEN
         if (userRoles == null) {

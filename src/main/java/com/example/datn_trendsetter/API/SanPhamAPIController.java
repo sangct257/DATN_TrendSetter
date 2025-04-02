@@ -163,15 +163,14 @@ public class SanPhamAPIController {
 
 
     @PutMapping("/update-product-details")
-    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request,HttpSession session) throws Exception {
-        Map<Integer,SanPhamChiTietDTO> idProductAndProduct= request.stream().collect(Collectors.toMap(SanPhamChiTietDTO::getId, Function.identity()));
-        List<Integer> idProductDetails= request.stream().map(SanPhamChiTietDTO::getId).toList();
+    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request, HttpSession session) throws Exception {
+        Map<Integer, SanPhamChiTietDTO> idProductAndProduct = request.stream().collect(Collectors.toMap(SanPhamChiTietDTO::getId, Function.identity()));
+        List<Integer> idProductDetails = request.stream().map(SanPhamChiTietDTO::getId).toList();
 
         List<SanPhamChiTiet> sanPhamChiTiets = sanPhamChiTietRepository.findAllByIdIn(idProductDetails);
         if (sanPhamChiTiets.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vui lòng chọn sản phẩm chi tiết");
         }
-
 
         // Lấy nhân viên từ session
         NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
@@ -179,26 +178,37 @@ public class SanPhamAPIController {
             throw new Exception("Bạn cần đăng nhập.");
         }
 
+        // Kiểm tra số lượng trước khi cập nhật
+        for (SanPhamChiTietDTO sanPhamChiTietDTO : request) {
+            if (sanPhamChiTietDTO.getSoLuong() < 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Số lượng sản phẩm chi tiết không thể nhỏ hơn 0.");
+            }
+        }
 
+        // Cập nhật sản phẩm chi tiết
         sanPhamChiTiets.forEach(sanPhamChiTiet -> {
-            SanPhamChiTietDTO sanPhamChiTietDTO = idProductAndProduct.getOrDefault(sanPhamChiTiet.getId(),null);
-            if (ObjectUtils.isNotEmpty(sanPhamChiTietDTO)){
+            SanPhamChiTietDTO sanPhamChiTietDTO = idProductAndProduct.getOrDefault(sanPhamChiTiet.getId(), null);
+            if (ObjectUtils.isNotEmpty(sanPhamChiTietDTO)) {
                 sanPhamChiTiet.setSoLuong(sanPhamChiTietDTO.getSoLuong());
                 sanPhamChiTiet.setGia(sanPhamChiTietDTO.getGia().floatValue());
                 sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
                 sanPhamChiTiet.setTrangThai(sanPhamChiTietDTO.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
                 sanPhamChiTiet.setNgaySua(LocalDate.now());
             }
-
         });
 
         sanPhamChiTietRepository.saveAll(sanPhamChiTiets);
         capNhatSoLuongTonKhoSanPham(sanPhamChiTiets.get(0).getSanPham());
-        return response("Cập nhật chi tiết sản phẩm thành công!",true);
+        return response("Cập nhật chi tiết sản phẩm thành công!", true);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request,HttpSession session) throws Exception {
+    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request, HttpSession session) throws Exception {
+        // Kiểm tra số lượng không được nhỏ hơn 0
+        if (request.getSoLuong() < 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Số lượng sản phẩm không thể nhỏ hơn 0.");
+        }
+
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
         if (sanPhamChiTiet == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
@@ -210,7 +220,7 @@ public class SanPhamAPIController {
             throw new Exception("Bạn cần đăng nhập.");
         }
 
-
+        // Cập nhật thông tin chi tiết sản phẩm
         sanPhamChiTiet.setSoLuong(request.getSoLuong());
         sanPhamChiTiet.setGia(request.getGia().floatValue());
         sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
@@ -218,7 +228,7 @@ public class SanPhamAPIController {
         sanPhamChiTiet.setNgaySua(LocalDate.now());
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 
-
+        // Cập nhật tồn kho sản phẩm chính
         capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
         return ResponseEntity.ok("Cập nhật chi tiết sản phẩm thành công!");
     }

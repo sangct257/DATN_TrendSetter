@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -91,4 +92,8 @@ public class DanhMucApiController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy danh mục");
     }
 
+    @GetMapping
+    public ResponseEntity<List<DanhMuc>> getAllDanhMuc() {
+        return ResponseEntity.ok(danhMucRepository.findAll());
+    }
 }

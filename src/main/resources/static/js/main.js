@@ -102,3 +102,82 @@
 
 })(jQuery);
 
+async function fetchProducts() {
+    const apiUrl = `http://localhost:8080/api/sanpham?page=0`;  // Lấy sản phẩm từ API (không cần phân trang).
+
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Lỗi API! Mã trạng thái: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data || !data.content) {
+            throw new Error("API không trả về dữ liệu hợp lệ");
+        }
+
+        renderProducts(data.content); // Hiển thị sản phẩm lên trang
+    } catch (error) {
+        console.error("Lỗi khi tải sản phẩm:", error);
+    }
+}
+
+function renderProducts(products) {
+    const productListContainer = document.getElementById('product-list');
+    productListContainer.innerHTML = ''; // Xóa sản phẩm cũ
+
+    products.forEach(product => {
+        const productElement = document.createElement('div');
+        productElement.classList.add('col-lg-4', 'col-md-6', 'col-sm-12', 'pb-1');
+        productElement.innerHTML = `
+            <div class="card product-item border-0 mb-4" data-id="${product.id}">
+                <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                    <img class="img-fluid w-100" src="${product.urlHinhAnh || 'img/default-product.jpg'}" alt="${product.tenSanPham}">
+                </div>
+                <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                    <h6 class="text-truncate mb-3">${product.tenSanPham}</h6>
+                    <div class="d-flex justify-content-center">
+                        <h6>${product.gia ? product.gia.toLocaleString('vi-VN') + 'đ' : '0đ'}</h6>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between bg-light border">
+                    <a href="#" class="btn btn-sm text-dark p-0 quick-view-btn text-center w-100" data-id="${product.id}">
+                        <i class="fas fa-eye text-primary mr-1"></i>Xem nhanh
+                    </a>
+                </div>
+            </div>
+        `;
+        productListContainer.appendChild(productElement);
+    });
+
+    // Xử lý sự kiện click vào toàn bộ sản phẩm
+    document.querySelectorAll('.product-item').forEach(item => {
+        item.addEventListener('click', function (event) {
+            // Nếu bấm vào vùng "Xem nhanh", không cần xử lý tiếp
+            if (event.target.closest('.quick-view-btn')) return;
+
+            const productId = this.getAttribute('data-id');
+            if (productId) {
+                window.location.href = `/chi-tiet-san-pham?id=${productId}`;
+            }
+        });
+    });
+
+    // Xử lý click riêng cho nút "Xem nhanh"
+    document.querySelectorAll('.quick-view-btn').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            const productId = this.getAttribute('data-id');
+            if (productId) {
+                window.location.href = `/chi-tiet-san-pham?id=${productId}`;
+            }
+        });
+    });
+}
+
+// Khi trang được tải
+document.addEventListener("DOMContentLoaded", function () {
+    fetchProducts(); // Gọi API để lấy danh sách sản phẩm khi trang được tải
+});
+
+

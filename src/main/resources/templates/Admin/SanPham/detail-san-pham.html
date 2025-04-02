@@ -291,7 +291,7 @@
                                         <td>
                                             <input type="hidden" th:value="${chiTiet.id}" class="spct-id">
                                             <input type="number" class="form-control spct-soLuong" name="number"
-                                                   th:value="${chiTiet.soLuong}" oninput="checkForm(this)">
+                                                   th:value="${chiTiet.soLuong}" min="1" step="1" oninput="checkForm(this)">
                                         </td>
                                         <td>
                                             <input type="text" class="form-control spct-gia" name="price"
@@ -533,20 +533,69 @@
     $(document).ready(function(){
         $("#saveDetailProduct").click(function(){
             let selectedData = [];
+            let isValid = true;
+            let isAnySelected = false;  // Biến để kiểm tra xem có sản phẩm nào được chọn không
+
             $("#productTable tbody tr").each(function () {
                 let $row = $(this);
                 let checkbox = $row.find("td:first-child input[type='checkbox']");
 
                 if (checkbox.is(":checked")) {
+                    isAnySelected = true; // Đánh dấu là đã có sản phẩm được chọn
+
+                    let soLuong = $row.find(".spct-soLuong").val();
+                    let gia = $row.find(".spct-gia").val().replace(" VND", "").replace(/,/g, ''); // Loại bỏ định dạng tiền tệ
+
+                    // Kiểm tra số lượng và giá
+                    if (parseInt(soLuong) <= 0) {
+                        isValid = false;
+                        Swal.fire({
+                            title: "Lỗi",
+                            text: "Số lượng không thể nhỏ hơn hoặc bằng 0.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                        return false; // Dừng vòng lặp
+                    }
+
+                    if (parseFloat(gia) <= 0) {
+                        isValid = false;
+                        Swal.fire({
+                            title: "Lỗi",
+                            text: "Giá không thể nhỏ hơn hoặc bằng 0.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                        return false; // Dừng vòng lặp
+                    }
+
                     let item = {
                         id: $row.find(".spct-id").val(),
-                        soLuong: $row.find(".spct-soLuong").val(),
-                        gia: $row.find(".spct-gia").val().replace(" VND", "").replace(/,/g, '') // Loại bỏ định dạng tiền tệ
+                        soLuong: soLuong,
+                        gia: gia
                     };
                     selectedData.push(item);
                 }
             });
-            fetch('/api/san-pham/update-product-details' , {
+
+            // Kiểm tra xem có sản phẩm nào được chọn không
+            if (!isAnySelected) {
+                Swal.fire({
+                    title: "Lỗi",
+                    text: "Vui lòng chọn ít nhất một sản phẩm.",
+                    icon: "warning",
+                    confirmButtonText: "OK"
+                });
+                return; // Dừng việc gửi request nếu không có sản phẩm nào được chọn
+            }
+
+            // Nếu không hợp lệ, không gửi request
+            if (!isValid) {
+                return;
+            }
+
+            // Gửi dữ liệu nếu hợp lệ
+            fetch('/api/san-pham/update-product-details', {
                 method: 'PUT',
                 body: JSON.stringify(selectedData, null, 2),
                 headers: {
@@ -588,10 +637,7 @@
                         confirmButtonText: "OK"
                     });
                 });
-
-
         });
-
     });
 </script>
 
@@ -890,6 +936,33 @@
 
         updateDisabledSizes(); // Gọi lần đầu để cập nhật trạng thái
 
+        // Kiểm tra hợp lệ số lượng và giá
+        function checkValidQuantityAndPrice() {
+            let isValid = true;
+
+            document.querySelectorAll('.spct-soLuong').forEach(input => {
+                let quantity = parseInt(input.value);
+                if (quantity <= 0) {
+                    isValid = false;
+                    alert("Số lượng không thể nhỏ hơn hoặc bằng 0.");
+                    input.focus();
+                    return;
+                }
+            });
+
+            document.querySelectorAll('.spct-gia').forEach(input => {
+                let price = parseFloat(input.value.replace(' VND', '').replace(',', ''));
+                if (price <= 0) {
+                    isValid = false;
+                    alert("Giá không thể nhỏ hơn hoặc bằng 0.");
+                    input.focus();
+                    return;
+                }
+            });
+
+            return isValid;
+        }
+
         // Khi chọn kích thước, kiểm tra màu sắc nào đã tồn tại
         function updateDisabledColors() {
             let selectedSizes = new Set();
@@ -914,6 +987,11 @@
                         }
                     });
                 });
+            }
+
+            // Kiểm tra tính hợp lệ của số lượng và giá khi thay đổi kích thước
+            if (!checkValidQuantityAndPrice()) {
+                return; // Dừng xử lý nếu có lỗi
             }
         }
 

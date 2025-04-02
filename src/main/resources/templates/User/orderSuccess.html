@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh Toán Thành Công</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+    .success-container {
+      margin: 50px auto;
+      padding: 20px;
+      border-radius: 5px;
+      background-color: #fff;
+      color: #155724;
+      max-width: 400px;
+      border: 1px solid #c3e6cb;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .success-header {
+      background-color: #28a745;
+      color: white;
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+      font-size: 24px;
+    }
+    .success-content {
+      padding: 20px;
+      font-size: 16px;
+    }
+    .success-footer {
+      border-top: 1px solid #c3e6cb;
+      padding: 10px;
+      font-size: 14px;
+      color: #155724;
+    }
+    .check-icon {
+      font-size: 60px;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .button {
+      margin-top: 20px;
+      display: inline-block;
+      padding: 10px 20px;
+      color: white;
+      background-color: #28a745;
+      text-decoration: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+<div class="success-container">
+  <div class="success-header">
+    <div class="check-icon">✔</div>
+    Thanh Toán Thành Công
+  </div>
+  <div class="success-content">
+    <p><strong>Thông tin đơn hàng:</strong> <span th:text="${orderId}"></span></p>
+    <p><strong>Tổng tiền:</strong> <span th:text="${totalPrice}"></span> VNĐ</p>
+    <p><strong>Thời gian thanh toán:</strong> <span th:text="${paymentTime}"></span></p>
+    <p><strong>Mã giao dịch:</strong> <span th:text="${transactionId}"></span></p>
+  </div>
+  <div class="success-footer">
+    Thanh toán của bạn đã thành công.<br>Cảm ơn đã tin tưởng sử dụng dịch vụ của chúng tôi
+    <br>
+    <a class="button" th:href="@{/trang-chu}">Về danh sách đặt của bạn</a>
+  </div>
+</div>
+</body>
+<script>
+  async function processOrder() {
+    let params = new URLSearchParams(window.location.search);
+    let responseCode = params.get("vnp_ResponseCode");
+
+    if (responseCode === "00") {
+      let orderInfo = JSON.parse(sessionStorage.getItem("pendingOrder"));
+      if (!orderInfo) {
+        return;
+      }
+
+      try {
+        // 🔥 Chuẩn bị danh sách sản phẩm cần giảm số lượng
+        let stockUpdates = orderInfo.hoaDonChiTiet.map(item => ({
+          idSanPhamChiTiet: item.idSanPhamChiTiet,
+          soLuong: item.soLuong
+        }));
+
+        // 🔥 Gửi 1 request duy nhất để giảm số lượng nhiều sản phẩm cùng lúc
+        let stockResponse = await fetch("/api/san-pham-chi-tiet/reduce-stock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(stockUpdates)
+        });
+
+        let stockResult = await stockResponse.json();
+
+        if (!stockResponse.ok) {
+          Swal.fire({ icon: "error", title: "Lỗi giảm số lượng!", text: "Không thể giảm số lượng sản phẩm." });
+          return;
+        }
+
+        // ✅ Kiểm tra phản hồi từ server
+        let failedProducts = Object.entries(stockResult)
+                .filter(([_, message]) => message.includes("Không đủ hàng"))
+                .map(([productId]) => productId);
+
+        if (failedProducts.length > 0) {
+          Swal.fire({
+            icon: "error",
+            title: "Không đủ hàng!",
+            text: `Sản phẩm không đủ hàng: ${failedProducts.join(", ")}`
+          });
+          return;
+        }
+
+        // ✅ Nếu giảm số lượng thành công, tiếp tục tạo hóa đơn
+        let response = await fetch("/api/hoa-don/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderInfo)
+        });
+
+        if (!response.ok) {
+          Swal.fire({ icon: "error", title: "Lỗi!", text: "Không thể tạo hóa đơn." });
+          return;
+        }
+
+        // 🔹 Xóa toàn bộ dữ liệu liên quan sau khi thanh toán thành công
+        sessionStorage.removeItem("checkoutCart");
+        localStorage.removeItem("cart");
+        sessionStorage.removeItem("discountValue");
+        localStorage.removeItem("discountValue");
+        sessionStorage.removeItem("discountCode");
+        localStorage.removeItem("discountCode");
+        Swal.fire({ icon: "success", title: "Thanh toán thành công!", text: "Đơn hàng của bạn đã được tạo." })
+                .then(() => window.location.href = "/don-hang");
+
+      } catch (error) {
+        console.error("Lỗi xử lý đơn hàng", error);
+        Swal.fire({ icon: "error", title: "Lỗi hệ thống!", text: "Không thể kết nối đến máy chủ." });
+      }
+    } else {
+      window.location.href = "/gio-hang";
+    }
+  }
+
+  processOrder();
+
+</script>
+</html>
