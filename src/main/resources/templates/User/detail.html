@@ -471,7 +471,6 @@
     </div>
     <div class="product-details">
         <h2 class="product-title"></h2>
-        <p class="product-description"></p>
         <div class="product-price"></div>
 
         <!-- Chọn Size -->
@@ -525,6 +524,26 @@
                 <p>Kiểm tra hàng trước khi thanh toán</p>
             </div>
         </div>
+
+        <!-- Accordion cho Chất Liệu, Xuất Xứ, Thương Hiệu, Mô Tả -->
+        <div class="accordion mt-3" id="productAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#productInfo" aria-expanded="true">
+                        Thông Tin Sản Phẩm
+                    </button>
+                </h2>
+                <div id="productInfo" class="accordion-collapse collapse show">
+                    <div class="accordion-body">
+                        <p><strong>Chất Liệu:</strong> <span class="product-chatLieu"></span></p>
+                        <p><strong>Xuất Xứ:</strong> <span class="product-xuatXu"></span></p>
+                        <p><strong>Thương Hiệu:</strong> <span class="product-thuongHieu"></span></p>
+                        <p><strong>Mô Tả:</strong> <span class="product-description"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 

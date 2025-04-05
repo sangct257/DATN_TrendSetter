@@ -24,6 +24,34 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+
+    <style>
+        /* Đảm bảo phần tử bao chứa có thể cuộn */
+        body {
+            height: 100vh; /* Đảm bảo chiều cao của body đủ để có thể cuộn */
+            overflow-y: scroll; /* Hiển thị thanh cuộn theo chiều dọc */
+        }
+
+        /* Container của các thẻ card hóa đơn */
+        #donHangCardsRow {
+            max-height: 80vh; /* Giới hạn chiều cao của container */
+            overflow-y: auto; /* Đảm bảo thanh cuộn chỉ xuất hiện khi có nội dung vượt quá chiều cao */
+        }
+
+        #donHangContainer {
+            display: flex;
+            flex-direction: column;  /* Các thẻ được xếp dọc nhau */
+            gap: 20px;  /* Khoảng cách giữa các thẻ */
+        }
+
+        @media (max-width: 767px) {
+            .card {
+                width: 100%;  /* Đảm bảo mỗi thẻ chiếm hết chiều rộng trên màn hình nhỏ */
+            }
+        }
+
+    </style>
+
 </head>
 
 <body>
@@ -233,7 +261,7 @@
 <!-- Page Header Start -->
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Thông tin</h1>
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Đơn Hàng Của Tôi</h1>
         <div class="d-inline-flex">
             <p class="m-0"><a href="trang-chu">Trang chủ</a></p>
             <p class="m-0 px-2">-</p>
@@ -252,55 +280,27 @@
             <h5 class="fw-bold text-primary">Trung tâm cá nhân</h5>
             <hr>
             <div class="mb-3">
-                <h6 class="fw-bold text-danger"> - Tài khoản của tôi</h6>
+                <h6 class="fw-bold text-dark"> - Tài khoản của tôi</h6>
                 <ul class="list-unstyled p-4">
-                    <li><a href="/thong-tin" class="text-danger">Thông tin</a></li>
+                    <li><a href="/thong-tin" class="text-dark">Thông tin</a></li>
                     <li><a href="/dia-chi" class="text-dark">Địa chỉ</a></li>
                 </ul>
             </div>
             <div class="mb-3">
-                <h6 class="fw-bold text-dark"> - Đơn hàng của tôi</h6>
+                <h6 class="fw-bold text-danger"> - Đơn hàng của tôi</h6>
                 <ul class="list-unstyled p-4">
-                    <li><a href="/list" class="text-dark">Tất cả đơn hàng</a></li>
+                    <li><a href="/list" class="text-danger">Tất cả đơn hàng</a></li>
                 </ul>
             </div>
         </div>
 
-        <!-- Nội dung bên phải: Thông tin khách hàng -->
+        <!-- Nội dung bên phải: Thông tin đơn hàng -->
         <div class="col-md-9 p-4 shadow rounded bg-light">
-            <h5 class="fw-bold text-primary">Thông tin khách hàng</h5>
-            <div class="row g-4">
-                <!-- Cột 1: Avatar -->
-                <div class="col-md-4 d-flex flex-column align-items-center justify-content-center">
-                    <img id="avatarPreview" class="rounded-circle border shadow mb-3" width="150" height="150" alt="Ảnh Nhân Viên">
-                    <input type="file" class="form-control mt-2" accept="image/*" name="hinhAnh" onchange="previewImage(event)">
-                </div>
-                <!-- Cột 2: Thông tin khách hàng -->
-                <div class="col-md-8">
-                    <div class="mb-4">
-                        <label class="form-label"><i class="bi bi-person"></i> Họ Tên</label>
-                        <input type="text" class="form-control" name="hoTen" placeholder="Nhập họ tên" required>
+            <div class="container mt-4">
+                <div id="donHangContainer" class="container">
+                    <div class="row" id="donHangCardsRow">
+                        <!-- Các thẻ đơn hàng sẽ được thêm vào đây -->
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label"><i class="bi bi-envelope"></i> Email</label>
-                        <input type="email" class="form-control" name="email" placeholder="Nhập email" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label"><i class="bi bi-key"></i> Số Điện Thoại</label>
-                        <input type="text" class="form-control" name="soDienThoai" placeholder="Nhập số điện thoại" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label"><i class="bi bi-gender-ambiguous"></i> Giới Tính</label>
-                        <select class="form-select" name="gioiTinh">
-                            <option value="true">Nam</option>
-                            <option value="false">Nữ</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label"><i class="bi bi-calendar"></i> Ngày Sinh</label>
-                        <input type="date" class="form-control" name="ngaySinh">
-                    </div>
-                    <button type="button" class="btn btn-primary mt-3" onclick="updateThongTin()">Cập Nhật</button>
                 </div>
             </div>
         </div>
@@ -413,6 +413,7 @@
 <script src="js/sanpham.js"></script>
 <script src="js/sanphamchitiet.js"></script>
 <script src="js/infoClient.js"></script>
+<script src="js/don-hang.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>

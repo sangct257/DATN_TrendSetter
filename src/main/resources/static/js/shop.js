@@ -563,144 +563,91 @@ document.addEventListener("DOMContentLoaded", function () {
     const huyenHidden = document.getElementById("huyenHidden");
     const phuongHidden = document.getElementById("phuongHidden");
 
-    function fetchProvinces(selectedValue = "") {
-        fetch("/api/ghn/provinces")
-            .then(response => response.json())
-            .then(data => {
-                thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
-                let selectedProvinceId = "";
+    // Fetch Tỉnh/Thành phố
+    async function fetchProvinces(selectedValue = "") {
+        try {
+            let response = await fetch("https://provinces.open-api.vn/api/?depth=1");
+            let data = await response.json();
 
-                data.data.forEach(province => {
-                    const selected = province.ProvinceName === selectedValue ? "selected" : "";
-                    if (selected) selectedProvinceId = province.ProvinceID;
-                    thanhPhoSelect.innerHTML += `<option value="${province.ProvinceName}" data-id="${province.ProvinceID}" ${selected}>${province.ProvinceName}</option>`;
-                });
+            thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+            let selectedProvinceCode = "";
 
-                if (selectedProvinceId) fetchDistricts(selectedProvinceId, huyenHidden.value);
-            })
-            .catch(error => console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error));
+            data.forEach(province => {
+                const selected = province.name === selectedValue ? "selected" : "";
+                if (selected) selectedProvinceCode = province.code;
+                thanhPhoSelect.innerHTML += `<option value="${province.name}" data-code="${province.code}" ${selected}>${province.name}</option>`;
+            });
+
+            // Nếu có tỉnh được chọn, load danh sách quận/huyện
+            if (selectedProvinceCode) {
+                fetchDistricts(selectedProvinceCode, huyenHidden.value);
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error);
+        }
     }
 
-    function fetchDistricts(provinceId, selectedValue = "") {
-        fetch(`/api/ghn/districts?province_id=${provinceId}`)
-            .then(response => response.json())
-            .then(data => {
-                huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-                let selectedDistrictId = "";
+    // Fetch Quận/Huyện
+    async function fetchDistricts(provinceCode, selectedValue = "") {
+        try {
+            let response = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+            let data = await response.json();
 
-                data.data.forEach(district => {
-                    const selected = district.DistrictName === selectedValue ? "selected" : "";
-                    if (selected) selectedDistrictId = district.DistrictID;
-                    huyenSelect.innerHTML += `<option value="${district.DistrictName}" data-id="${district.DistrictID}" ${selected}>${district.DistrictName}</option>`;
-                });
+            huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            let selectedDistrictCode = "";
 
-                if (selectedDistrictId) fetchWards(selectedDistrictId, phuongHidden.value);
-            })
-            .catch(error => console.error("Lỗi khi lấy danh sách quận/huyện:", error));
+            data.districts.forEach(district => {
+                const selected = district.name === selectedValue ? "selected" : "";
+                if (selected) selectedDistrictCode = district.code;
+                huyenSelect.innerHTML += `<option value="${district.name}" data-code="${district.code}" ${selected}>${district.name}</option>`;
+            });
+
+            // Nếu có quận được chọn, load danh sách phường/xã
+            if (selectedDistrictCode) {
+                fetchWards(selectedDistrictCode, phuongHidden.value);
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách quận/huyện:", error);
+        }
     }
 
-    function fetchWards(districtId, selectedValue = "") {
-        fetch(`/api/ghn/wards?district_id=${districtId}`)
-            .then(response => response.json())
-            .then(data => {
-                phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+    // Fetch Phường/Xã
+    async function fetchWards(districtCode, selectedValue = "") {
+        try {
+            let response = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+            let data = await response.json();
 
-                data.data.forEach(ward => {
-                    const selected = ward.WardName === selectedValue ? "selected" : "";
-                    phuongSelect.innerHTML += `<option value="${ward.WardName}" data-id="${ward.WardCode}" ${selected}>${ward.WardName}</option>`;
-                });
-            })
-            .catch(error => console.error("Lỗi khi lấy danh sách phường/xã:", error));
+            phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+            data.wards.forEach(ward => {
+                const selected = ward.name === selectedValue ? "selected" : "";
+                phuongSelect.innerHTML += `<option value="${ward.name}" data-code="${ward.code}" ${selected}>${ward.name}</option>`;
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách phường/xã:", error);
+        }
     }
 
-    // Cập nhật giá trị ẩn khi thay đổi lựa chọn
+    // Gọi hàm fetchProvinces khi load trang
+    fetchProvinces();
+
+    // Khi Tỉnh/Thành phố thay đổi, gọi lại fetchDistricts
     thanhPhoSelect.addEventListener("change", function () {
-        const selectedOption = this.options[this.selectedIndex];
-        const provinceId = selectedOption.getAttribute("data-id");
-
-        thanhPhoHidden.value = selectedOption.value;
-        huyenHidden.value = "";
-        phuongHidden.value = "";
-
-        huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-        phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-        if (provinceId) {
-            fetchDistricts(provinceId);
-        }
+        const provinceCode = this.selectedOptions[0].dataset.code;
+        fetchDistricts(provinceCode);
     });
 
+    // Khi Quận/Huyện thay đổi, gọi lại fetchWards
     huyenSelect.addEventListener("change", function () {
-        const districtId = this.options[this.selectedIndex].getAttribute("data-id");
-        huyenHidden.value = this.value;
-        phuongHidden.value = "";
-        phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-        if (districtId) {
-            fetchWards(districtId);
-            calculateShippingFee(districtId, phuongHidden.value);
-        }
+        const districtCode = this.selectedOptions[0].dataset.code;
+        fetchWards(districtCode);
     });
 
+    // Khi Phường/Xã thay đổi, lưu lại giá trị vào hidden field
     phuongSelect.addEventListener("change", function () {
-        const wardCode = this.options[this.selectedIndex].getAttribute("data-id");
         phuongHidden.value = this.value;
-        calculateShippingFee(huyenSelect.options[huyenSelect.selectedIndex].getAttribute("data-id"), wardCode);
     });
-
-    // Hàm tính phí ship
-    // function calculateShippingFee(districtId, wardCode) {
-    //     if (!districtId || !wardCode) {
-    //         document.getElementById("shippingFee").textContent = "Vui lòng chọn đầy đủ địa chỉ";
-    //         return;
-    //     }
-    //
-    //     fetch("https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee", {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             "Token": "10b65b43-eaf7-11ef-8752-da588d8b708e",
-    //             "ShopId": "5635779"
-    //         },
-    //         body: JSON.stringify({
-    //             service_id: 53321, // Mặc định dịch vụ tiêu chuẩn
-    //             service_type_id: 2, // Nếu service_id không hợp lệ, GHN có thể dùng service_type_id thay thế
-    //             insurance_value: 10000,
-    //             coupon: null,
-    //             from_district_id: 1442,
-    //             to_district_id: parseInt(districtId),
-    //             to_ward_code: wardCode,
-    //             length: 20,
-    //             height: 50,
-    //             weight: 500,
-    //             width: 20,
-    //         })
-    //     })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             if (data.code !== 200 || !data.data?.total) {
-    //                 document.getElementById("shippingFee").textContent = "Không tính được phí ship";
-    //                 return;
-    //             }
-    //
-    //             const fee = data.data.total;
-    //             document.getElementById("shippingFee").textContent = fee.toLocaleString("vi-VN") + " VND";
-    //         })
-    //         .catch(error => {
-    //             console.error("Lỗi khi tính phí ship:", error);
-    //             document.getElementById("shippingFee").textContent = "Không thể tính phí ship";
-    //         });
-    // }
-
-
-    // Nếu có dữ liệu cũ, hiển thị trước rồi cho phép thay đổi
-    if (thanhPhoHidden.value) {
-        fetchProvinces(thanhPhoHidden.value);
-    } else {
-        fetchProvinces();
-    }
 });
-
 <!-- API Update New Khách Hàng -->
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("#addCustomerForm");

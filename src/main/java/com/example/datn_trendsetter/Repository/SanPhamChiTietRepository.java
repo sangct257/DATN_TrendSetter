@@ -65,7 +65,8 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     Page<SanPhamViewDTO> filterSanPham(@Param("danh_muc") String danhMuc, Pageable pageable);
 
 
-    @Query("SELECT spct.id, sp.tenSanPham, spct.gia, sp.moTa, kt.tenKichThuoc, ms.tenMauSac, ha.urlHinhAnh, spct.soLuong " +
+    @Query("SELECT spct.id, sp.tenSanPham, spct.gia, sp.moTa, kt.tenKichThuoc, ms.tenMauSac, ha.urlHinhAnh, spct.soLuong, " +
+            "sp.chatLieu.tenChatLieu, sp.thuongHieu.tenThuongHieu, sp.xuatXu.quocGia " +
             "FROM SanPhamChiTiet spct " +
             "JOIN spct.sanPham sp " +
             "JOIN spct.kichThuoc kt " +

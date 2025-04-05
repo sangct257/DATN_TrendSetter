@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest; // Đừng quên import
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -54,7 +54,7 @@ public class VnPayController {
             return ResponseEntity.ok(Map.of("paymentUrl", paymentUrl));
         } catch (Exception e) {
             System.out.println("❌ Lỗi khi xử lý dữ liệu: " + e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("error", "Dữ liệu không hợp lệ!"));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -79,7 +79,4 @@ public class VnPayController {
 
         return success ? "User/orderSuccess" : "User/orderFail";
     }
-
-
 }
-

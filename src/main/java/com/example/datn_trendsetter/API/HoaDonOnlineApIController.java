@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.API;
 import com.example.datn_trendsetter.DTO.HoaDonDTO;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Service.HoaDonOnlineService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,9 +21,9 @@ public class HoaDonOnlineApIController {
 
     // ✅ API tạo hóa đơn
     @PostMapping("/create")
-    public ResponseEntity<?> createHoaDon(@RequestBody HoaDonDTO hoaDonDTO) {
+    public ResponseEntity<?> createHoaDon(@RequestBody HoaDonDTO hoaDonDTO, HttpSession session) {
         try {
-            HoaDon hoaDon = hoaDonOnlineService.createHoaDon(hoaDonDTO);
+            HoaDon hoaDon = hoaDonOnlineService.createHoaDon(hoaDonDTO,session);
             return ResponseEntity.ok(hoaDon); // Trả về hóa đơn vừa tạo
         } catch (IllegalArgumentException e) {
             e.printStackTrace(); // Ghi log lỗi chi tiết ra console

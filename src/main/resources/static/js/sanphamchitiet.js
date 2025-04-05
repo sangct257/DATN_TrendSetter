@@ -46,6 +46,9 @@ function updateProductDetails(products) {
 
     document.querySelector('.product-title').textContent = firstProduct.tenSanPham || "Không có tên sản phẩm";
     document.querySelector('.product-description').textContent = firstProduct.moTa || "Mô tả chưa cập nhật";
+    document.querySelector('.product-chatLieu').textContent = firstProduct.tenChatLieu || "Chất liệu chưa cập nhật";
+    document.querySelector('.product-xuatXu').textContent = firstProduct.quocGia || "Xuất xứ chưa cập nhật";
+    document.querySelector('.product-thuongHieu').textContent = firstProduct.tenThuongHieu || "Thương hiệu chưa cập nhật";
 
     const allImages = [...new Set(products.flatMap(p => p.hinhAnh))];
     document.getElementById('mainImage').src = allImages[0] || "https://via.placeholder.com/300";

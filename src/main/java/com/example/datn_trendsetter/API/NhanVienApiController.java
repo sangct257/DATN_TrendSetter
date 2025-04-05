@@ -4,6 +4,7 @@ import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.NhanVienRepository;
 import com.example.datn_trendsetter.Service.CloudinaryService;
 import com.example.datn_trendsetter.Service.NhanVienService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -92,8 +94,19 @@ public class NhanVienApiController {
             @RequestParam("gioiTinh") Boolean gioiTinh,
             @RequestParam("ngaySinh") String ngaySinh,
             @RequestParam("trangThai") String trangThai,
-            @RequestParam(value = "file", required = false) MultipartFile file) {
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            HttpSession session) throws Exception {
 
+        // Lấy thông tin nhân viên từ session
+        NhanVien nhanVien = (NhanVien) session.getAttribute("userNhanVien");
+
+        // Kiểm tra xem nhân viên đã đăng nhập chưa
+        if (nhanVien == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(null); // Hoặc có thể trả về message như Map.of("message", "Vui lòng đăng nhập")
+        }
+
+        // Khởi tạo đối tượng nhân viên cập nhật
         NhanVien updatedNhanVien = new NhanVien();
         updatedNhanVien.setHoTen(hoTen);
         updatedNhanVien.setUsername(username);
@@ -109,8 +122,16 @@ public class NhanVienApiController {
         }
 
         try {
+            // Cập nhật nhân viên trong cơ sở dữ liệu
             NhanVien savedNhanVien = nhanVienService.updateNhanVien(id, updatedNhanVien, file);
+
             if (savedNhanVien != null) {
+                // Cập nhật lại session nếu nhân viên là chính mình
+                if (nhanVien.getId().equals(savedNhanVien.getId())) {
+                    session.setAttribute("userNhanVien", savedNhanVien);
+                }
+
+                // Trả về nhân viên đã cập nhật thành công
                 return ResponseEntity.ok(savedNhanVien);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

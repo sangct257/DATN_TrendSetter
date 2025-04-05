@@ -8,6 +8,7 @@ import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
+import com.example.datn_trendsetter.Repository.KhachHangRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import com.example.datn_trendsetter.Service.ShopService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +28,8 @@ public class ShopApiController {
     @Autowired
     private ShopService shopService;
 
+    @Autowired
+    private KhachHangRepository khachHangRepository;
 
     @PostMapping("/create")
     public ResponseEntity<?> createHoaDon(HttpSession session) {
@@ -97,12 +100,18 @@ public class ShopApiController {
                         .body(Map.of("message", "Vui lòng đăng nhập"));
             }
 
-            String message = shopService.addCustomerToInvoice(hoaDonId, khachHangId);
+            // Tìm khách hàng từ khachHangId
+            KhachHang khachHang = khachHangRepository.findById(khachHangId)
+                    .orElseThrow(() -> new IllegalArgumentException("Khách hàng không tồn tại!"));
+
+            // Gọi service để thêm khách hàng vào hóa đơn
+            String message = shopService.addCustomerToInvoice(hoaDonId, khachHang);
             return ResponseEntity.ok(Collections.singletonMap("message", message));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));
         }
     }
+
 
     @PostMapping("/delete-customer")
     public ResponseEntity<Map<String, String>> deleteCustomerToInvoice(@RequestParam("hoaDonId") Integer hoaDonId) {

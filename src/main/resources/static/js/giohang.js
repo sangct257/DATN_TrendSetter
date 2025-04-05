@@ -36,10 +36,17 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         } else if (event.target.classList.contains("btn-remove")) {
             cart = cart.filter(item => !(item.idSanPhamChiTiet == idSanPhamChiTiet && item.size == size && item.color == color));
+            localStorage.setItem("cart", JSON.stringify(cart));
+            renderCart();  // Cập nhật lại giỏ hàng sau khi xóa sản phẩm
+
+            // Cập nhật số lượng giỏ hàng (badge) sau khi xóa sản phẩm
+            updateCartBadge();
         }
 
         localStorage.setItem("cart", JSON.stringify(cart));
         renderCart();
+        fetchCoupons(); // Cập nhật lại phiếu giảm giá sau khi thay đổi giỏ hàng
+        updateCartBadge(); // Cập nhật lại số lượng giỏ hàng ở đây nếu cần
     });
 
     document.getElementById("checkout-button").addEventListener("click", function (event) {
@@ -77,6 +84,15 @@ function renderCart() {
         document.getElementById("subtotal").innerText = "0 VND";
         document.getElementById("total").innerText = "0 VND";
         document.getElementById("shipping-fee").innerText = "0 VND";
+
+        // Xóa phiếu giảm giá nếu giỏ hàng trống
+        localStorage.removeItem("discountCode");
+        localStorage.removeItem("discountValue");
+        localStorage.removeItem("discountId");
+
+        // Cập nhật lại tổng tiền sau khi xóa phiếu giảm giá
+        updateTotal(0);  // Đảm bảo tổng tiền được cập nhật với giá trị giảm giá bằng 0
+        updateCartBadge(); // Cập nhật lại số lượng giỏ hàng khi giỏ hàng trống
         return;
     }
 
@@ -121,7 +137,35 @@ function renderCart() {
     document.getElementById("shipping-fee").innerText = shippingFee.toLocaleString('vi-VN') + " VND";
     document.getElementById("subtotal").innerText = subtotal.toLocaleString('vi-VN') + " VND";
     document.getElementById("total").innerText = (subtotal + shippingFee).toLocaleString('vi-VN') + " VND";
+
+    // Cập nhật lại tổng tiền nếu có giảm giá
+    let savedDiscountValue = localStorage.getItem("discountValue") ? Number(localStorage.getItem("discountValue")) : 0;
+    updateTotal(savedDiscountValue);
+
+    // Cập nhật lại số lượng giỏ hàng trên header
+    updateCartBadge();
 }
+
+function updateTotal(discountValue = 0) {
+    let subtotal = getCartTotal();
+    let shippingFee = Number(document.getElementById("shipping-fee").innerText.replace(/\D/g, ""));
+    let finalTotal = subtotal + shippingFee - discountValue;
+
+    document.getElementById("total").innerText = `${finalTotal.toLocaleString()} VND`;
+
+    const discountContainer = document.getElementById("discount-container");
+    const discountDisplay = document.getElementById("discount-display");
+
+    if (discountValue > 0) {
+        discountContainer.style.display = 'flex';
+        discountDisplay.innerText = `-${discountValue.toLocaleString()} VND`;
+    } else {
+        discountContainer.style.display = 'none';
+        discountDisplay.innerText = "-0 VND";
+    }
+}
+
+
 function getCartTotal() {
     return Number(document.getElementById("subtotal").innerText.replace(/\D/g, ""));
 }
@@ -151,8 +195,6 @@ async function fetchCoupons() {
     }
 }
 
-
-
 function renderCoupons(coupons) {
     const container = document.getElementById('coupon-container');
     container.innerHTML = '';
@@ -160,97 +202,101 @@ function renderCoupons(coupons) {
     let cartTotal = getCartTotal(); // Lấy tổng đơn hàng hiện tại
     console.log("🔹 Tổng đơn hàng:", cartTotal);
 
-    const maxVisibleCoupons = 3;
-    let showAll = false;
+    let savedDiscountCode = localStorage.getItem("discountCode");
+    let savedDiscountValue = localStorage.getItem("discountValue") ? Number(localStorage.getItem("discountValue")) : 0;
+    let savedDiscountId = localStorage.getItem("discountId");
 
-    function updateTotal(discountValue = 0) {
-        let subtotal = getCartTotal();
-        let shippingFee = Number(document.getElementById("shipping-fee").innerText.replace(/\D/g, ""));
-        let finalTotal = subtotal + shippingFee - discountValue;
+    // Tìm phiếu giảm giá đủ điều kiện và sắp xếp giảm dần theo giá trị giảm
+    let eligibleCoupons = coupons.filter(coupon => cartTotal >= coupon.dieuKien);
+    eligibleCoupons.sort((a, b) => b.giaTriGiam - a.giaTriGiam); // Sắp xếp giảm dần theo giá trị giảm
 
-        document.getElementById("total").innerText = `${finalTotal.toLocaleString()} VND`;
-
-        const discountContainer = document.getElementById("discount-container");
-        const discountDisplay = document.getElementById("discount-display");
-
-        if (discountValue > 0) {
-            discountContainer.style.display = 'flex';
-            discountDisplay.innerText = `-${discountValue.toLocaleString()} VND`;
-        } else {
-            // 🚀 Reset về mặc định
-            discountContainer.style.display = 'none';
-            discountDisplay.innerText = "-0 VND";
-        }
+    // Nếu có phiếu giảm giá đủ điều kiện, tự động chọn phiếu giảm giá có giá trị giảm cao nhất
+    let selectedCoupon = null;
+    if (eligibleCoupons.length > 0) {
+        selectedCoupon = eligibleCoupons[0]; // Chọn phiếu có giá trị giảm cao nhất
     }
 
-    function updateView() {
-        container.innerHTML = '';
-        const displayedCoupons = showAll ? coupons : coupons.slice(0, maxVisibleCoupons);
+    // Hiển thị phiếu giảm giá đã chọn
+    coupons.forEach(coupon => {
+        let isEligible = cartTotal >= coupon.dieuKien;
 
-        displayedCoupons.forEach(coupon => {
-            let isEligible = cartTotal >= coupon.dieuKien;
+        const couponElement = document.createElement('div');
+        couponElement.classList.add('coupon');
+        couponElement.innerHTML = `
+            <div class="coupon-left">${coupon.giaTriGiam.toLocaleString()}</div>
+            <div class="coupon-right">
+                <div class="coupon-title">${coupon.tenPhieuGiamGia} - <strong>${coupon.maPhieuGiamGia}</strong></div>
+                <div class="coupon-condition">Đơn hàng từ ${coupon.dieuKien.toLocaleString()} ${coupon.donViTinh}</div>
+            </div>
+            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}" 
+                   data-value="${coupon.giaTriGiam}" ${isEligible ? '' : 'disabled'}
+                   ${coupon.maPhieuGiamGia === (selectedCoupon ? selectedCoupon.maPhieuGiamGia : savedDiscountCode) ? 'checked' : ''}>
+        `;
+        container.appendChild(couponElement);
 
-            const couponElement = document.createElement('div');
-            couponElement.classList.add('coupon');
-            couponElement.innerHTML = `
+        // Nếu phiếu đã lưu trữ được tìm thấy, tự động áp dụng lại
+        if (coupon.maPhieuGiamGia === savedDiscountCode) {
+            updateTotal(savedDiscountValue);
+        }
+
+        couponElement.addEventListener('click', function (event) {
+            let radio = couponElement.querySelector(".coupon-select");
+
+            if (radio.disabled) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Phiếu không đủ điều kiện!",
+                    text: "Giỏ hàng của bạn chưa đủ điều kiện để áp dụng phiếu giảm giá này.",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+
+            if (event.target.classList.contains("coupon-select")) return;
+
+            if (radio.checked) {
+                radio.checked = false;
+                localStorage.removeItem("discountCode");
+                localStorage.removeItem("discountValue");
+                localStorage.removeItem("discountId");
+                updateTotal(0);
+            } else {
+                document.querySelectorAll(".coupon-select").forEach(r => r.checked = false);
+
+                radio.checked = true;
+                localStorage.setItem("discountCode", radio.value);
+                localStorage.setItem("discountValue", radio.getAttribute("data-value"));
+                localStorage.setItem("discountId", coupon.id);
+                updateTotal(Number(radio.getAttribute("data-value")));
+            }
+        });
+    });
+
+    // Hiển thị chỉ 3 phiếu giảm giá tốt nhất còn lại
+    let remainingCoupons = eligibleCoupons.slice(2, 4); // Lấy từ phiếu thứ 2 đến thứ 4
+
+    remainingCoupons.forEach(coupon => {
+        const couponElement = document.createElement('div');
+        couponElement.classList.add('coupon');
+        couponElement.innerHTML = `
             <div class="coupon-left">${coupon.giaTriGiam.toLocaleString()} ${coupon.donViTinh}</div>
             <div class="coupon-right">
                 <div class="coupon-title">${coupon.tenPhieuGiamGia} - <strong>${coupon.maPhieuGiamGia}</strong></div>
                 <div class="coupon-condition">Đơn hàng từ ${coupon.dieuKien.toLocaleString()} ${coupon.donViTinh}</div>
             </div>
-            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}" data-value="${coupon.giaTriGiam}" ${isEligible ? '' : 'disabled'}>
+            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}" 
+                   data-value="${coupon.giaTriGiam}" ${coupon.maPhieuGiamGia === savedDiscountCode ? 'checked' : ''}>
         `;
-            container.appendChild(couponElement);
+        container.appendChild(couponElement);
+    });
 
-            // 🌟 Thêm sự kiện click để chọn/bỏ chọn radio, nhưng chặn nếu radio bị disabled
-            couponElement.addEventListener('click', function (event) {
-                let radio = couponElement.querySelector(".coupon-select");
-
-                if (radio.disabled) {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Phiếu không đủ điều kiện!",
-                        text: "Giỏ hàng của bạn chưa đủ điều kiện để áp dụng phiếu giảm giá này.",
-                        confirmButtonText: "OK"
-                    });
-                    return;
-                }
-
-                if (event.target.classList.contains("coupon-select")) return; // Nếu bấm vào chính radio thì bỏ qua
-
-                if (radio.checked) {
-                    radio.checked = false;
-                    localStorage.removeItem("discountCode");
-                    localStorage.removeItem("discountValue");
-                    localStorage.removeItem("discountId");
-                    updateTotal(0);
-                } else {
-                    // Bỏ chọn các radio khác trước khi chọn cái mới
-                    document.querySelectorAll(".coupon-select").forEach(r => r.checked = false);
-
-                    radio.checked = true;
-                    localStorage.setItem("discountCode", radio.value);
-                    localStorage.setItem("discountValue", radio.getAttribute("data-value"));
-                    localStorage.setItem("discountId", coupon.id);
-                    updateTotal(Number(radio.getAttribute("data-value")));
-                }
-            });
-        });
-
-        // Xử lý nút "Xem thêm"
-        if (coupons.length > maxVisibleCoupons) {
-            const seeMoreButton = document.createElement('div');
-            seeMoreButton.innerText = showAll ? "Thu gọn" : "Xem thêm";
-            seeMoreButton.classList.add("see-more-btn");
-            seeMoreButton.onclick = function () {
-                showAll = !showAll;
-                updateView();
-            };
-            container.appendChild(seeMoreButton);
-        }
+    // Nếu có phiếu giảm giá tự động chọn, cập nhật tổng
+    if (selectedCoupon) {
+        localStorage.setItem("discountCode", selectedCoupon.maPhieuGiamGia);
+        localStorage.setItem("discountValue", selectedCoupon.giaTriGiam);
+        localStorage.setItem("discountId", selectedCoupon.id);
+        updateTotal(selectedCoupon.giaTriGiam);
     }
-
-    updateView();
 }
 
 // Cập nhật danh sách phiếu khi giỏ hàng thay đổi
@@ -264,4 +310,3 @@ document.getElementById("cart-body").addEventListener("click", function () {
         fetchCoupons(); // Cập nhật phiếu khi thay đổi số lượng giỏ hàng
     }, 500);
 });
-

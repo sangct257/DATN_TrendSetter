@@ -40,11 +40,14 @@ public class SanPhamChiTietService {
             String tenMauSac = (String) row[5];  // Màu sắc
             String hinhAnh = (String) row[6];  // Hình ảnh
             Integer soLuong = (Integer) row[7];  // Số lượng
+            String tenChatLieu = (String) row[8];  // Chất liệu
+            String tenThuongHieu = (String) row[9];  // Thương hiệu
+            String quocGia = (String) row[10];  // Xuất xứ
 
             // Nếu sản phẩm chi tiết chưa có trong danh sách, thêm mới
             if (!sanPhamMap.containsKey(idSanPhamChiTiet)) {
                 SanPhamChiTietViewDTO newDTO = new SanPhamChiTietViewDTO(
-                        idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong);
+                        idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong, tenChatLieu, tenThuongHieu, quocGia);
                 sanPhamMap.put(idSanPhamChiTiet, newDTO);
             }
 

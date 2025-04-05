@@ -1,17 +1,23 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.DTO.HoaDonDTO;
+import com.example.datn_trendsetter.DTO.HoaDonResponseDto;
+import com.example.datn_trendsetter.Entity.DiaChi;
 import com.example.datn_trendsetter.Entity.HoaDon;
+import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Service.ShopService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/hoa-don")
@@ -129,6 +135,53 @@ public class HoaDonApiController {
         );
 
         return ResponseEntity.ok().body(coutMap);
+    }
+
+    @GetMapping("/list-all")
+    public ResponseEntity<?> getHoaDonByKhachHang(HttpSession session) {
+        // Kiểm tra đăng nhập
+        KhachHang khachHang = (KhachHang) session.getAttribute("userKhachHang");
+        if (khachHang == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", "Chưa đăng nhập"
+            ));
+        }
+
+        System.out.println("KhachHang ID từ session: " + khachHang.getId());
+
+        // Gọi phương thức tìm kiếm với JOIN FETCH
+        List<HoaDon> danhSachHoaDon = hoaDonRepository.findByKhachHangIdWithKhachHang(khachHang.getId());
+
+        if (danhSachHoaDon.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of(
+                    "success", false,
+                    "message", "Không có hóa đơn nào"
+            ));
+        }
+
+        // Chuyển đổi danh sách HoaDon thành danh sách DTO
+        List<HoaDonDTO> hoaDonDTOList = danhSachHoaDon.stream().map(hoaDon -> new HoaDonDTO(
+                hoaDon.getId(),
+                hoaDon.getMaHoaDon(),
+                hoaDon.getKhachHang().getId(),
+                hoaDon.getNguoiTao(),
+                hoaDon.getLoaiHoaDon(),
+                hoaDon.getNgayTao(),
+                hoaDon.getTongTien(),
+                hoaDon.getPhiShip()
+        )).collect(Collectors.toList());
+
+        // Log danh sách hóa đơn và ID của mỗi hóa đơn
+        for (HoaDonDTO hoaDonDTO : hoaDonDTOList) {
+            System.out.println("Hoa Don ID: " + hoaDonDTO.getMaHoaDon() + ", Khach Hang ID: " + khachHang.getId());
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Lấy danh sách hóa đơn thành công",
+                "data", hoaDonDTOList
+        ));
     }
 
 }
