@@ -1,6 +1,7 @@
 package com.example.datn_trendsetter.Entity;
 
 import com.example.datn_trendsetter.Repository.HoaDonChiTietRepository;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,12 +31,14 @@ public class HoaDon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore // Bỏ qua thuộc tính này khi chuyển thành JSON
     @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")
     private KhachHang khachHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_nhan_vien")
+    @JsonIgnore // Bỏ qua thuộc tính này khi chuyển thành JSON
+    @JoinColumn(name = "id_nhan_vien",referencedColumnName = "id")
     private NhanVien nhanVien;
 
     @ManyToOne

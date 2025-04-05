@@ -108,8 +108,14 @@ public class AuthService {
         if (optionalNhanVien.isPresent()) {
             NhanVien nhanVien = optionalNhanVien.get();
 
+            // Kiểm tra mật khẩu
             if (!passwordEncoder.matches(request.getPassword(), nhanVien.getPassword())) {
                 throw new RuntimeException("Email hoặc mật khẩu không đúng");
+            }
+
+            // Kiểm tra trạng thái "Đang Hoạt Động"
+            if (!"Đang Hoạt Động".equals(nhanVien.getTrangThai())) {
+                throw new RuntimeException("Tài khoản của bạn không còn hoạt động");
             }
 
             System.out.println("Nhân viên đăng nhập thành công, ID: " + nhanVien.getId());
@@ -134,8 +140,14 @@ public class AuthService {
         if (optionalKhachHang.isPresent()) {
             KhachHang khachHang = optionalKhachHang.get();
 
+            // Kiểm tra mật khẩu
             if (!passwordEncoder.matches(request.getPassword(), khachHang.getPassword())) {
                 throw new RuntimeException("Email hoặc mật khẩu không đúng");
+            }
+
+            // Kiểm tra trạng thái "Đang Hoạt Động"
+            if (!"Đang Hoạt Động".equals(khachHang.getTrangThai())) {
+                throw new RuntimeException("Tài khoản của bạn không còn hoạt động");
             }
 
             System.out.println("Khách hàng đăng nhập thành công, ID: " + khachHang.getId());

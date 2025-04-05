@@ -51,4 +51,7 @@ public class KhachHang {
 
     @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
     private List<DiaChi> diaChis = new ArrayList<>();
+
+    @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
+    private List<HoaDon> hoaDons = new ArrayList<>();
 }

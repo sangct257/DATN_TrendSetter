@@ -19,15 +19,23 @@ public class VnPayService {
     public String createPaymentUrl(String orderId, int amount, String ipAddr) {
         System.out.println("📌 Bắt đầu tạo URL thanh toán");
 
+        // Kiểm tra dữ liệu đầu vào
+        if (orderId == null || orderId.trim().isEmpty()) {
+            throw new IllegalArgumentException("orderId không hợp lệ!");
+        }
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Số tiền không hợp lệ!");
+        }
+
         Map<String, String> vnp_Params = new TreeMap<>();
         vnp_Params.put("vnp_Version", "2.1.0");
         vnp_Params.put("vnp_Command", "pay");
         vnp_Params.put("vnp_TmnCode", vnPayConfig.getTmnCode());
-        vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));
+        vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));  // nhân 100 để đúng định dạng VNPay
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", orderId);
         vnp_Params.put("vnp_OrderInfo", "Thanh toán đơn hàng #" + orderId);
-        vnp_Params.put("vnp_OrderType", "other"); // ⚠️ Bổ sung tránh lỗi định dạng
+        vnp_Params.put("vnp_OrderType", "other"); // Đảm bảo tránh lỗi định dạng
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
         vnp_Params.put("vnp_IpAddr", ipAddr);
@@ -56,8 +64,6 @@ public class VnPayService {
         return paymentUrl;
     }
 
-
-
     private String buildQueryString(Map<String, String> params) {
         StringBuilder queryString = new StringBuilder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
@@ -68,7 +74,7 @@ public class VnPayService {
         }
         return queryString.substring(0, queryString.length() - 1);
     }
-    
+
     private String hmacSHA512(String key, String data) {
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
@@ -87,6 +93,4 @@ public class VnPayService {
             throw new RuntimeException("Lỗi mã hóa HMAC-SHA512", e);
         }
     }
-
-
 }

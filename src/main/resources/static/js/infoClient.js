@@ -92,4 +92,3 @@ function previewImage(event) {
     }
 
 }
-

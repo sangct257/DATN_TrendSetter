@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.Repository;
 
+import com.example.datn_trendsetter.DTO.HoaDonResponseDto;
 import com.example.datn_trendsetter.Entity.HoaDon;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -95,5 +96,19 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findByTrangThai(String trangThai, Sort sort);
 
     Integer countByTrangThai(String trangThai);
+
+    @Query("SELECT new com.example.datn_trendsetter.DTO.HoaDonResponseDto(h.id, h.maHoaDon, " +
+            "h.nguoiNhan, h.nguoiTao,h.loaiHoaDon," +
+            "h.ngayTao, h.phieuGiamGia.giaTriGiam, h.tongTien) " +
+            "FROM HoaDon h WHERE h.khachHang.id = :khachHangId")
+    List<HoaDonResponseDto> findHoaDonByKhachHangId(@Param("khachHangId") Integer khachHangId);
+
+    @Query("SELECT h FROM HoaDon h WHERE h.khachHang.id = :khachHangId")
+    List<HoaDon> findByKhachHangId(@Param("khachHangId") Integer khachHangId);
+
+    @Query("SELECT h FROM HoaDon h JOIN FETCH h.khachHang WHERE h.khachHang.id = :khachHangId")
+    List<HoaDon> findByKhachHangIdWithKhachHang(@Param("khachHangId") Integer khachHangId);
+
+    List<HoaDon> findByKhachHang_Id(Integer khachHangId);
 
 }

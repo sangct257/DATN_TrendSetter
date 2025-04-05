@@ -4,6 +4,7 @@ import com.example.datn_trendsetter.DTO.HoaDonChiTietDTO;
 import com.example.datn_trendsetter.DTO.HoaDonDTO;
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.*;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +43,14 @@ public class HoaDonOnlineService {
     private LichSuThanhToanRepository lichSuThanhToanRepository;
 
     @Transactional
-    public HoaDon createHoaDon(HoaDonDTO request) {
+    public HoaDon createHoaDon(HoaDonDTO request, HttpSession session) {
         HoaDon hoaDon = new HoaDon();
+
+        // Kiểm tra khách hàng đã đăng nhập hay chưa
+        KhachHang khachHang = (KhachHang) session.getAttribute("userKhachHang");
+        if (khachHang != null) {
+            hoaDon.setKhachHang(khachHang); // Gán khách hàng vào hóa đơn
+        }
 
         // ✅ Gán thông tin người nhận
         hoaDon.setNguoiNhan(request.getNguoiNhan());
@@ -58,6 +65,7 @@ public class HoaDonOnlineService {
         hoaDon.setLoaiHoaDon("Online");
         hoaDon.setNgayTao(LocalDateTime.now());
         hoaDon.setThoiGianNhanDuKien(LocalDate.now().plusDays(3));
+
         // ✅ Lưu tổng tiền & phí ship
         hoaDon.setTongTien(request.getTongTien());
         hoaDon.setPhiShip(request.getPhiShip());
@@ -121,6 +129,7 @@ public class HoaDonOnlineService {
         return hoaDon;
     }
 
+
     // ✅ Tạo mã hóa đơn duy nhất
     private String generateUniqueMaHoaDon() {
         String maHoaDon;
@@ -138,6 +147,7 @@ public class HoaDonOnlineService {
         lichSu.setHoaDon(hoaDon);
         lichSu.setHanhDong(hoaDon.getTrangThai());
         lichSu.setNgayTao(LocalDateTime.now());
+        lichSu.setDeleted(false);
         lichSu.setGhiChu("Khách hàng đã đặt đơn hàng.");
         lichSuHoaDonRepository.save(lichSu);
         logger.info("Lịch sử hóa đơn đã lưu cho hóa đơn ID: {}", hoaDon.getId());

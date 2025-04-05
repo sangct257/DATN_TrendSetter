@@ -25,6 +25,29 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+    <style>
+        #diaChiContainer {
+            display: flex;
+            flex-wrap: wrap;  /* Đảm bảo các thẻ card xuống dòng khi hết không gian */
+            gap: 20px;        /* Khoảng cách giữa các thẻ card */
+            overflow-y: auto; /* Cho phép cuộn nếu quá nhiều */
+            max-height: 80vh; /* Giới hạn chiều cao của container để hiển thị thanh cuộn */
+        }
+
+
+        .card {
+            flex: 1 1 100%;  /* Mỗi card chiếm toàn bộ chiều rộng của container */
+            min-width: 280px;  /* Đảm bảo mỗi card có một chiều rộng tối thiểu */
+            margin-bottom: 20px;
+        }
+
+        /* Khi màn hình nhỏ hơn, mỗi card vẫn chiếm 100% chiều dài */
+        @media (max-width: 767px) {
+            .card {
+                flex: 1 1 100%;  /* Mỗi card chiếm 100% chiều dài */
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -258,60 +281,38 @@
             <h5 class="fw-bold text-primary">Trung tâm cá nhân</h5>
             <hr>
             <div class="mb-3">
-                <h6 class="fw-bold text-dark"> - Tài khoản của tôi</h6>
+                <h6 class="fw-bold text-danger"> - Tài khoản của tôi</h6>
                 <ul class="list-unstyled p-4">
                     <li><a href="/thong-tin" class="text-dark">Thông tin</a></li>
                     <li><a href="/dia-chi" class="text-danger">Địa chỉ</a></li>
                 </ul>
             </div>
-            <div class="mb-3">
-                <h6 class="fw-bold text-dark"> - Tài sản của tôi</h6>
-                <ul class="list-unstyled p-4">
-                    <li><a href="#" class="text-dark">Phiếu giảm giá</a></li>
-                </ul>
-            </div>
             <div>
                 <h6 class="fw-bold text-dark"> - Đơn hàng của tôi</h6>
                 <ul class="list-unstyled p-4">
-                    <li><a href="#" class="text-dark">Tất cả đơn hàng</a></li>
-                    <li><a href="#" class="text-dark">Đơn hàng xử lý</a></li>
-                    <li><a href="#" class="text-dark">Đơn hàng chờ lấy hàng</a></li>
-                    <li><a href="#" class="text-dark">Đơn hàng đã giao</a></li>
-                    <li><a href="#" class="text-dark">Đơn hàng đã hủy</a></li>
-                    <li><a href="#" class="text-dark">Đơn hàng trả lại</a></li>
+                    <li><a href="/list" class="text-dark">Tất cả đơn hàng</a></li>
                 </ul>
             </div>
         </div>
 
         <!-- Nội dung bên phải: Địa chỉ khách hàng -->
         <div class="col-md-9 p-4 shadow rounded bg-light">
-            <h5 class="fw-bold text-primary">Danh sách Địa Chỉ</h5>
-
-            <!-- Danh sách địa chỉ của khách hàng -->
-            <h6 class="fw-bold text-dark">Danh sách địa chỉ</h6>
-            <div id="diaChiList">
-                <!-- Các địa chỉ sẽ được hiển thị ở đây -->
-                <button class="btn btn-success mb-3" onclick="openModalForAdd()">Thêm Địa Chỉ</button>
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h6>Địa chỉ: 123 Đường ABC, Phường X, Quận Y, Thành phố Z</h6>
-                        <p>Trạng thái: Active</p>
-                        <button class="btn btn-warning" onclick="editDiaChi(1)">Chỉnh sửa</button>
-                        <button class="btn btn-danger" onclick="deleteDiaChi(1)">Xóa</button>
-                    </div>
+            <!-- Nút thêm địa chỉ bên ngoài bảng -->
+            <button class="btn btn-success" onclick="openAddDiaChiModal()">Thêm Địa Chỉ</button>
+            <div class="container mt-4">
+                <div class="row" id="diaChiContainer">
+                    <!-- Các card địa chỉ sẽ được thêm vào đây -->
                 </div>
-                <!-- Thêm các địa chỉ khác nếu có -->
             </div>
 
             <!-- Modal Thêm/Chỉnh Sửa Địa Chỉ -->
-            <div class="modal fade" id="modalDiaChi" tabindex="-1" aria-labelledby="modalDiaChiLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog">
+            <div class="modal fade" id="modalDiaChi" tabindex="-1" aria-labelledby="modalDiaChiLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="modalDiaChiLabel">Thêm/Chỉnh Sửa Địa Chỉ</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                <i class="fas fa-times"></i> <!-- Thay vì biểu tượng x mặc định -->
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
@@ -323,34 +324,30 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Thành Phố</label>
-                                <select class="form-select" id="thanhPho">
+                                <select class="form-control" id="thanhPho">
                                     <option value="">Chọn Tỉnh/Thành phố</option>
                                 </select>
                                 <input type="hidden" id="thanhPhoHidden">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Huyện</label>
-                                <select class="form-select" id="huyen">
+                                <select class="form-control" id="huyen">
                                     <option value="">Chọn Quận/Huyện</option>
                                 </select>
                                 <input type="hidden" id="huyenHidden">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Phường</label>
-                                <select class="form-select" id="phuong">
+                                <select class="form-control" id="phuong">
                                     <option value="">Chọn Phường/Xã</option>
                                 </select>
                                 <input type="hidden" id="phuongHidden">
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                            <button type="button" id="saveDiaChiButton" class="btn btn-success"
-                                    onclick="saveDiaChi()">Lưu
-                            </button>
-                            <button type="button" id="updateDiaChiButton" class="btn btn-primary d-none"
-                                    onclick="updateDiaChi()">Cập Nhật
-                            </button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                            <button type="button" id="saveDiaChiButton" class="btn btn-success" onclick="saveDiaChi()">Lưu</button>
+                            <button type="button" id="updateDiaChiButton" class="btn btn-primary d-none" onclick="updateDiaChi()">Cập Nhật</button>
                         </div>
                     </div>
                 </div>
@@ -439,6 +436,7 @@
 <!-- JavaScript Libraries -->
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+
 <script src="lib/easing/easing.min.js"></script>
 <script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
@@ -451,11 +449,8 @@
 <script src="/js/DangNhap/login.js"></script>
 <script src="/js/DangNhap/logout.js"></script>
 <script src="js/giohang.js"></script>
-<script src="js/thanhtoan.js"></script>
 <script src="js/sanpham.js"></script>
 
-<script src="js/sanphamchitiet.js"></script>
-<script src="js/infoClient.js"></script>
 <script src="js/diaChiClient.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

@@ -23,6 +23,29 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+    <style>
+        #diaChiContainer {
+            display: flex;
+            flex-wrap: wrap;  /* Đảm bảo các thẻ card xuống dòng khi hết không gian */
+            gap: 20px;        /* Khoảng cách giữa các thẻ card */
+            overflow-y: auto; /* Cho phép cuộn nếu quá nhiều */
+            max-height: 80vh; /* Giới hạn chiều cao của container để hiển thị thanh cuộn */
+        }
+
+
+        .card {
+            flex: 1 1 100%;  /* Mỗi card chiếm toàn bộ chiều rộng của container */
+            min-width: 280px;  /* Đảm bảo mỗi card có một chiều rộng tối thiểu */
+            margin-bottom: 20px;
+        }
+
+        /* Khi màn hình nhỏ hơn, mỗi card vẫn chiếm 100% chiều dài */
+        @media (max-width: 767px) {
+            .card {
+                flex: 1 1 100%;  /* Mỗi card chiếm 100% chiều dài */
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -65,6 +88,7 @@
             </div>
         </div>
 
+
         <!-- Nút giỏ hàng (Hợp lý) -->
         <div class="col-lg-2 col-6 text-right">
             <a href="gio-hang" class="btn border">
@@ -92,6 +116,7 @@
                     <!-- Danh mục sẽ được thêm vào đây bằng JavaScript -->
                 </div>
             </nav>
+
         </div>
         <div class="col-lg-9">
             <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
@@ -116,6 +141,7 @@
                         </div>
                         <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
                         <div th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
+
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle user-image" alt="User Image" width="40" height="40">
                                 <span class="d-none d-md-inline ms-2" th:text="${session.userKhachHang.hoTen}"></span>
@@ -250,6 +276,31 @@
         <div class="col-lg-8">
             <div class="mb-4">
                 <h4 class="font-weight-semi-bold mb-4">Thông tin thanh toán</h4>
+                <div class="container mt-4">
+                    <div class="row" id="diaChiContainer">
+                        <!-- Các card địa chỉ sẽ được thêm vào đây -->
+                    </div>
+                </div>
+
+                <!-- Modal để hiển thị danh sách địa chỉ -->
+                <div class="modal fade" id="diaChiModal" tabindex="-1" aria-labelledby="diaChiModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="diaChiModalLabel">Chọn Địa Chỉ Mặc Định</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="modalDiaChiContainer">
+                                <!-- Danh sách địa chỉ sẽ được render ở đây -->
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                <button type="button" class="btn btn-primary" id="saveDiaChiButton">Chọn</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-12 form-group">
                         <label>Họ và tên</label>
@@ -269,14 +320,14 @@
                     </div>
                     <div class="col-md-4 form-group">
                         <label>Tỉnh/Thành phố</label>
-                        <select id="province" class="form-control" onchange="loadDistricts()">
+                        <select id="province" class="form-control" onchange="loadDistrictsByProvince()">
                             <option value="">Chọn Tỉnh/Thành phố</option>
                         </select>
                     </div>
 
                     <div class="col-md-4 form-group">
                         <label>Quận/Huyện</label>
-                        <select id="district" class="form-control" onchange="loadWards()">
+                        <select id="district" class="form-control" onchange="loadWardsByDistrict()">
                             <option value="">Chọn Quận/Huyện</option>
                         </select>
                     </div>
@@ -303,6 +354,10 @@
                         <h6 class="font-weight-medium">Tạm tính</h6>
                         <h6 class="font-weight-medium" id="subtotal">0 VND</h6>
                     </div>
+                    <div id="discount-container" class="d-flex justify-content-between text-danger font-weight-bold" style="display: none;">
+                        <h6>Giảm giá</h6>
+                        <h6 id="discount-display">-0 VND</h6>
+                    </div>
                     <div class="d-flex justify-content-between">
                         <h6 class="font-weight-medium">Phí vận chuyển</h6>
                         <h6 class="font-weight-medium" id="shipping-fee">30,000 VND</h6>
@@ -328,8 +383,8 @@
                     </div>
                     <div class="form-group">
                         <div class="custom-control custom-radio">
-                            <input type="radio" class="custom-control-input" name="payment" id="bank-transfer">
-                            <label class="custom-control-label" for="bank-transfer">Chuyển khoản qua ngân hàng</label>
+                            <input type="radio" class="custom-control-input" name="payment" id="payment-vnpay">
+                            <label class="custom-control-label" for="payment-vnpay">Chuyển khoản qua ngân hàng (VNPay)</label>
                         </div>
                     </div>
                 </div>
@@ -421,6 +476,7 @@
 <!-- JavaScript Libraries -->
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+
 <script src="lib/easing/easing.min.js"></script>
 <script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
@@ -432,7 +488,6 @@
 <script src="/js/main.js"></script>
 <script src="/js/DangNhap/login.js"></script>
 <script src="/js/DangNhap/logout.js"></script>
-<script src="js/giohang.js"></script>
 <script src="js/thanhtoan.js"></script>
 <script src="js/sanpham.js"></script>
 <script src="js/sanphamchitiet.js"></script>

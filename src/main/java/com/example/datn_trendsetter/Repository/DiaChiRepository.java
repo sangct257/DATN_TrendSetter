@@ -19,6 +19,7 @@ public interface DiaChiRepository extends JpaRepository<DiaChi,Integer> {
 
     List<DiaChi> findByKhachHang_Id(Integer khachHangId);
 
+    List<DiaChi> findByKhachHangId(Integer khachHangId);
 
     @Modifying
     @Query("UPDATE DiaChi d SET d.trangThai = 'Không Mặc Định' WHERE d.khachHang.id = :khachHangId")
@@ -27,4 +28,6 @@ public interface DiaChiRepository extends JpaRepository<DiaChi,Integer> {
     boolean existsByKhachHangAndTrangThai(KhachHang khachHang, String trangThai);
 
     Integer countByKhachHangId(Integer idKhachHang);
+
+    DiaChi findByIdAndKhachHangId(Integer id, Integer id1);
 }

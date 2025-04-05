@@ -46,6 +46,7 @@ public class NhanVienService {
 
     public NhanVien updateNhanVien(Integer id, NhanVien updatedNhanVien, MultipartFile file) throws IOException {
         Optional<NhanVien> existingNhanVienOpt = nhanVienRepository.findById(id);
+
         if (existingNhanVienOpt.isPresent()) {
             NhanVien existingNhanVien = existingNhanVienOpt.get();
 

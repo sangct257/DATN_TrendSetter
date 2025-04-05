@@ -874,103 +874,108 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        const thanhPhoSelect = document.getElementById("thanhPho");
-        const huyenSelect = document.getElementById("huyen");
-        const phuongSelect = document.getElementById("phuong");
+    const thanhPhoSelect = document.getElementById("thanhPho");
+    const huyenSelect = document.getElementById("huyen");
+    const phuongSelect = document.getElementById("phuong");
 
-        const thanhPhoHidden = document.getElementById("thanhPhoHidden");
-        const huyenHidden = document.getElementById("huyenHidden");
-        const phuongHidden = document.getElementById("phuongHidden");
+    const thanhPhoHidden = document.getElementById("thanhPhoHidden");
+    const huyenHidden = document.getElementById("huyenHidden");
+    const phuongHidden = document.getElementById("phuongHidden");
 
-        function fetchProvinces(selectedValue = "") {
-            fetch("/api/ghn/provinces")
-                .then(response => response.json())
-                .then(data => {
-                    thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
-                    let selectedProvinceId = "";
+    // Load danh sách tỉnh/thành phố
+    async function fetchProvinces(selectedValue = "") {
+        try {
+            let response = await fetch("https://provinces.open-api.vn/api/p/");
+            let data = await response.json();
 
-                    data.data.forEach(province => {
-                        const selected = province.ProvinceName === selectedValue ? "selected" : "";
-                        if (selected) selectedProvinceId = province.ProvinceID;
-                        thanhPhoSelect.innerHTML += `<option value="${province.ProvinceName}" data-id="${province.ProvinceID}" ${selected}>${province.ProvinceName}</option>`;
-                    });
+            thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+            let selectedProvinceCode = "";
 
-                    if (selectedProvinceId) fetchDistricts(selectedProvinceId, huyenHidden.value);
-                })
-                .catch(error => console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error));
+            data.forEach(province => {
+                const selected = province.name === selectedValue ? "selected" : "";
+                if (selected) selectedProvinceCode = province.code;
+                thanhPhoSelect.innerHTML += `<option value="${province.name}" data-code="${province.code}" ${selected}>${province.name}</option>`;
+            });
+
+            if (selectedProvinceCode) {
+                fetchDistricts(selectedProvinceCode, huyenHidden.value);
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error);
         }
+    }
 
-        function fetchDistricts(provinceId, selectedValue = "") {
-            fetch(`/api/ghn/districts?province_id=${provinceId}`)
-                .then(response => response.json())
-                .then(data => {
-                    huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-                    let selectedDistrictId = "";
-
-                    data.data.forEach(district => {
-                        const selected = district.DistrictName === selectedValue ? "selected" : "";
-                        if (selected) selectedDistrictId = district.DistrictID;
-                        huyenSelect.innerHTML += `<option value="${district.DistrictName}" data-id="${district.DistrictID}" ${selected}>${district.DistrictName}</option>`;
-                    });
-
-                    if (selectedDistrictId) fetchWards(selectedDistrictId, phuongHidden.value);
-                })
-                .catch(error => console.error("Lỗi khi lấy danh sách quận/huyện:", error));
-        }
-
-        function fetchWards(districtId, selectedValue = "") {
-            fetch(`/api/ghn/wards?district_id=${districtId}`)
-                .then(response => response.json())
-                .then(data => {
-                    phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-                    data.data.forEach(ward => {
-                        const selected = ward.WardName === selectedValue ? "selected" : "";
-                        phuongSelect.innerHTML += `<option value="${ward.WardName}" data-id="${ward.WardCode}" ${selected}>${ward.WardName}</option>`;
-                    });
-                })
-                .catch(error => console.error("Lỗi khi lấy danh sách phường/xã:", error));
-        }
-
-        // Cập nhật giá trị ẩn khi thay đổi lựa chọn
-        thanhPhoSelect.addEventListener("change", function () {
-            const selectedOption = this.options[this.selectedIndex];
-            const provinceId = selectedOption.getAttribute("data-id");
-
-            thanhPhoHidden.value = selectedOption.value;
-            huyenHidden.value = "";
-            phuongHidden.value = "";
+    // Load danh sách quận/huyện dựa trên tỉnh
+    async function fetchDistricts(provinceCode, selectedValue = "") {
+        try {
+            let response = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+            let data = await response.json();
 
             huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            let selectedDistrictCode = "";
+
+            data.districts.forEach(district => {
+                const selected = district.name === selectedValue ? "selected" : "";
+                if (selected) selectedDistrictCode = district.code;
+                huyenSelect.innerHTML += `<option value="${district.name}" data-code="${district.code}" ${selected}>${district.name}</option>`;
+            });
+
+            if (selectedDistrictCode) {
+                fetchWards(selectedDistrictCode, phuongHidden.value);
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách quận/huyện:", error);
+        }
+    }
+
+    // Load danh sách phường/xã dựa trên quận/huyện
+    async function fetchWards(districtCode, selectedValue = "") {
+        try {
+            let response = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+            let data = await response.json();
+
             phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
 
-            if (provinceId) {
-                fetchDistricts(provinceId);
-            }
-        });
+            data.wards.forEach(ward => {
+                const selected = ward.name === selectedValue ? "selected" : "";
+                phuongSelect.innerHTML += `<option value="${ward.name}" ${selected}>${ward.name}</option>`;
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách phường/xã:", error);
+        }
+    }
 
-        huyenSelect.addEventListener("change", function () {
-            const districtId = this.options[this.selectedIndex].getAttribute("data-id");
-            huyenHidden.value = this.value;
-            phuongHidden.value = "";
-            phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-            if (districtId) {
-                fetchWards(districtId);
-            }
-        });
-
-        phuongSelect.addEventListener("change", function () {
-            phuongHidden.value = this.value;
-        });
-
-        // Nếu có dữ liệu cũ, hiển thị trước rồi cho phép thay đổi
-        if (thanhPhoHidden.value) {
-            fetchProvinces(thanhPhoHidden.value);
-        } else {
-            fetchProvinces();
+    // Sự kiện khi chọn tỉnh/thành phố
+    thanhPhoSelect.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const code = selectedOption.getAttribute("data-code") || "";
+        thanhPhoHidden.value = this.value;
+        huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+        phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        if (code) {
+            fetchDistricts(code);
         }
     });
+
+    // Sự kiện khi chọn quận/huyện
+    huyenSelect.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const code = selectedOption.getAttribute("data-code") || "";
+        huyenHidden.value = this.value;
+        phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        if (code) {
+            fetchWards(code);
+        }
+    });
+
+    // Sự kiện khi chọn phường/xã
+    phuongSelect.addEventListener("change", function () {
+        phuongHidden.value = this.value;
+    });
+
+    // Gọi khi trang load để điền lại nếu có dữ liệu cũ
+    fetchProvinces(thanhPhoHidden.value);
+});
 
 </script>
 
