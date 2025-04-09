@@ -1,6 +1,7 @@
 let currentPage = 0; // Trang hiện tại
 const pageSize = 6;  // Số sản phẩm trên mỗi trang
 let currentCategory = "";
+let allProducts = []; // Toàn bộ sản phẩm lấy được từ API
 
 // Hàm lấy dữ liệu sản phẩm từ API
 async function fetchProducts(page = 0) {
@@ -25,6 +26,7 @@ async function fetchProducts(page = 0) {
             throw new Error("API không trả về dữ liệu hợp lệ");
         }
 
+        allProducts = data.content; // Lưu lại toàn bộ danh sách sản phẩm
         renderProducts(data.content);
         updatePaginationControls(data.totalPages);
     } catch (error) {
@@ -32,6 +34,34 @@ async function fetchProducts(page = 0) {
     }
 }
 
+document.querySelectorAll("#price-filter input[type=checkbox]").forEach(checkbox => {
+    checkbox.addEventListener("change", filterByPriceFE);
+});
+
+function filterByPriceFE() {
+    let filteredProducts = allProducts;
+
+    // Nếu checkbox "Tất cả giá" được chọn -> không lọc gì cả
+    const allPriceChecked = document.getElementById("price-all").checked;
+    if (!allPriceChecked) {
+        // Nếu không chọn tất cả -> lọc theo các checkbox đang được tick
+        let selectedRanges = [];
+
+        if (document.getElementById("price-1").checked) selectedRanges.push({ min: 0, max: 100000 });
+        if (document.getElementById("price-2").checked) selectedRanges.push({ min: 100000, max: 200000 });
+        if (document.getElementById("price-3").checked) selectedRanges.push({ min: 200000, max: 300000 });
+        if (document.getElementById("price-4").checked) selectedRanges.push({ min: 300000, max: 400000 });
+        if (document.getElementById("price-5").checked) selectedRanges.push({ min: 500000, max: Infinity });
+
+        filteredProducts = allProducts.filter(product => {
+            return selectedRanges.some(range =>
+                product.gia >= range.min && product.gia < range.max
+            );
+        });
+    }
+
+    renderProducts(filteredProducts);
+}
 
 // Hàm gọi fetchProducts khi trang được tải lần đầu
 document.addEventListener("DOMContentLoaded", function () {

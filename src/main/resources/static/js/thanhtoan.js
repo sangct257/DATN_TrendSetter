@@ -357,7 +357,7 @@ async function placeOrder() {
         phuong: document.getElementById("ward").options[document.getElementById("ward").selectedIndex].text,
         tongTien: totalAmount,
         phiShip: shippingFee,
-        idPhuongThucThanhToan: document.getElementById("cod").checked ? 1 : 2,
+        idPhuongThucThanhToan: document.getElementById("cod").checked ? 1 : 3,
         idPhieuGiamGia: discountId,
         hoaDonChiTiet: cart.map(item => ({
             idSanPhamChiTiet: item.idSanPhamChiTiet,
@@ -442,6 +442,8 @@ async function placeOrder() {
         }
         // 🔹 Nếu thanh toán VNPay → tạo thanh toán và chuyển hướng
         else {
+            sessionStorage.setItem("pendingOrder", JSON.stringify(orderInfo));
+
             let vnpayResponse = await fetch("/api/payment/create-payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

@@ -35,9 +35,9 @@
                                     <button class="btn btn-outline-primary px-2 py-1 fw-semibold border border-primary rounded-pill" data-status="">
                                         Tất Cả (<span id="count-all">0</span>)
                                     </button>
-                                    <button class="btn btn-outline-success px-2 py-1 fw-semibold border border-success rounded-pill" data-status="Đang Xử Lý">
-                                        Đang Xử Lý (<span id="count-dang-xu-ly">0</span>)
-                                    </button>
+<!--                                    <button class="btn btn-outline-success px-2 py-1 fw-semibold border border-success rounded-pill" data-status="Đang Xử Lý">-->
+<!--                                        Đang Xử Lý (<span id="count-dang-xu-ly">0</span>)-->
+<!--                                    </button>-->
                                     <button class="btn btn-outline-success px-2 py-1 fw-semibold border border-success rounded-pill" data-status="Chờ Xác Nhận">
                                         Chờ Xác Nhận (<span id="count-cho-xac-nhan">0</span>)
                                     </button>
@@ -77,7 +77,9 @@
                                 </tr>
                                 </thead>
                                 <tbody class="text-center">
-                                <tr th:each="hoaDon, i : ${hoaDon}" class="text-center">
+                                <tr th:each="hoaDon, i : ${hoaDon}"
+                                    th:if="${hoaDon.trangThai != 'Đang Xử Lý'}"
+                                    class="text-center">
                                     <td th:text="${i.index + 1}"></td>
                                     <td th:text="${hoaDon.maHoaDon}"></td>
                                     <td>
@@ -170,9 +172,11 @@
                     return JSON.parse(text); // Chuyển sang JSON
                 })
                 .then(data => {
-                    console.log("Dữ liệu JSON hợp lệ:", data);
+<!--                    console.log("Dữ liệu JSON hợp lệ:", data);-->
+                    // Lọc ra những hóa đơn KHÔNG phải trạng thái "Đang Xử Lý"
+                    let filteredData = data.filter(hoaDon => hoaDon.trangThai !== "Đang Xử Lý");
                     table.clear().draw();
-                    data.forEach((hoaDon, index) => {
+                    filteredData.forEach((hoaDon, index) => {
                         // Xác định màu sắc cho button theo loại hóa đơn
                         let loaiHoaDon = hoaDon.loaiHoaDon || 'Không có dữ liệu';
                         let btnClass = 'btn-secondary'; // Mặc định
@@ -229,7 +233,7 @@
                 .then(response => response.json())
                 .then(counts => {
                     document.getElementById("count-all").innerText = counts["Tất Cả"] || 0;
-                    document.getElementById("count-dang-xu-ly").innerText = counts["Đang Xử Lý"] || 0;
+<!--                    document.getElementById("count-dang-xu-ly").innerText = counts["Đang Xử Lý"] || 0;-->
                     document.getElementById("count-cho-xac-nhan").innerText = counts["Chờ Xác Nhận"] || 0;
                     document.getElementById("count-da-xac-nhan").innerText = counts["Đã Xác Nhận"] || 0;
                     document.getElementById("count-cho-van-chuyen").innerText = counts["Chờ Vận Chuyển"] || 0;

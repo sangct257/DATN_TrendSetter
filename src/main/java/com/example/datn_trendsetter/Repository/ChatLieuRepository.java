@@ -11,7 +11,9 @@ import java.util.List;
 public interface ChatLieuRepository extends JpaRepository<ChatLieu,Integer> {
     boolean existsByTenChatLieu(String tenChatLieu);
 
-    List<ChatLieu> findByTrangThai(String trangThai);
+    List<ChatLieu> findByDeleted(Boolean deleted,Sort sort);
 
     List<ChatLieu> findByTrangThai(String trangThai, Sort sort);
+
+    Integer countByTrangThai(String trangThai);
 }

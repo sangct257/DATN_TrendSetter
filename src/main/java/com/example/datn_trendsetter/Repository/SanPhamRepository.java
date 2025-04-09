@@ -19,6 +19,7 @@ public interface SanPhamRepository extends JpaRepository<SanPham,Integer> {
 
     List<SanPham> findByTrangThai(String trangThai, Sort sort);
 
+    List<SanPham> findByDeleted(Boolean deleted,Sort sort);
     Integer countByTrangThai(String trangThai);
 
     @Modifying

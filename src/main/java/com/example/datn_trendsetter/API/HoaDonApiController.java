@@ -90,7 +90,7 @@ public class HoaDonApiController {
         if (trangThai != null && !trangThai.isEmpty()) {
             hoaDonList = hoaDonRepository.findByTrangThai(trangThai, Sort.by(Sort.Direction.DESC, "id"));
         } else {
-            hoaDonList = hoaDonRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+            hoaDonList = hoaDonRepository.findByTrangThaiNot("Đang Xử Lý", Sort.by(Sort.Direction.DESC, "id"));
         }
 
         // Chuyển đổi danh sách hóa đơn sang JSON hợp lệ
@@ -116,17 +116,20 @@ public class HoaDonApiController {
         long choXacNhan = hoaDonRepository.countByTrangThai("Chờ Xác Nhận");
         long daXacNhan = hoaDonRepository.countByTrangThai("Đã Xác Nhận");
         long choVanChuyen = hoaDonRepository.countByTrangThai("Chờ Vận Chuyển");
+        long dangGiaoHang = hoaDonRepository.countByTrangThai("Đang Giao Hàng");
         long daThanhToan = hoaDonRepository.countByTrangThai("Đã Thanh Toán");
         long daHoanThanh = hoaDonRepository.countByTrangThai("Đã Hoàn Thành");
         long hoanTra = hoaDonRepository.countByTrangThai("Hoàn Trả");
         long daHuy = hoaDonRepository.countByTrangThai("Đã Hủy");
-        long tong = hoaDonRepository.count();
+        // Tổng tất cả trừ "Đang Xử Lý"
+        long tong = hoaDonRepository.countByTrangThaiNot("Đang Xử Lý");
 
         Map<String, Long> coutMap = Map.of(
                 "Đang Xử Lý",dangXuLy,
                 "Chờ Xác Nhận",choXacNhan,
                 "Đã Xác Nhận",daXacNhan,
                 "Chờ Vận Chuyển",choVanChuyen,
+                "Đang Giao Hàng",dangGiaoHang,
                 "Đã Thanh Toán",daThanhToan,
                 "Đã Hoàn Thành",daHoanThanh,
                 "Hoàn Trả",hoanTra,

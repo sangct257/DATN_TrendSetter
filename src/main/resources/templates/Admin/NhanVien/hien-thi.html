@@ -408,68 +408,81 @@
         return isValid;
     }
 
-    async function updateNhanVien() {
-        const btnSubmit = document.getElementById("btnUpdate");
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+async function updateNhanVien() {
+    const btnSubmit = document.getElementById("btnUpdate");
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
 
-        const form = document.getElementById('updateNhanVienForm');
-        const updatedNhanVien = {
-            id: form.querySelector('input[name="id"]').value,
-            hoTen: form.querySelector('input[name="hoTen"]').value,
-            username: form.querySelector('input[name="username"]').value,
-            email: form.querySelector('input[name="email"]').value,
-            diaChi: form.querySelector('input[name="diaChi"]').value,
-            gioiTinh: form.querySelector('select[name="gioiTinh"]').value === "true",
-            ngaySinh: form.querySelector('input[name="ngaySinh"]').value,
-            trangThai: form.querySelector('select[name="trangThai"]').value,
-            password: form.querySelector('input[name="password"]').value
-        };
+    const form = document.getElementById('updateNhanVienForm');
+    const formData = new FormData();
 
-        const formData = new FormData();
-        formData.append('id', updatedNhanVien.id);
-        formData.append('hoTen', updatedNhanVien.hoTen);
-        formData.append('username', updatedNhanVien.username);
-        formData.append('email', updatedNhanVien.email);
-        formData.append('diaChi', updatedNhanVien.diaChi);
-        formData.append('gioiTinh', updatedNhanVien.gioiTinh);
-        formData.append('ngaySinh', updatedNhanVien.ngaySinh);
-        formData.append('trangThai', updatedNhanVien.trangThai);
-        formData.append('password', updatedNhanVien.password);
+    // Các trường dữ liệu
+    const fields = ['id', 'hoTen', 'username', 'email', 'diaChi', 'ngaySinh', 'trangThai', 'password'];
+    fields.forEach(field => {
+        const input = form.querySelector(`[name="${field}"]`);
+        formData.append(field, input ? input.value : '');
+    });
 
-        // Thêm ảnh nếu có
-        const fileInput = form.querySelector('input[name="hinhAnh"]');
-        if (fileInput.files && fileInput.files[0]) {
-            formData.append('file', fileInput.files[0]);
-        }
+    // Giới tính (boolean)
+    const gioiTinh = form.querySelector('select[name="gioiTinh"]').value === "true";
+    formData.append('gioiTinh', gioiTinh);
 
-        try {
-            const response = await fetch(`http://localhost:8080/api/nhan-vien/update/${updatedNhanVien.id}`, {
-                method: 'PUT',
-                body: formData
-            });
-            if (response.ok) {
-                Swal.fire({
-                    title: "Cập nhật thành công!",
-                    text: "Thông tin nhân viên đã được cập nhật.",
-                    icon: "success",
-                    confirmButtonText: "OK"
-                }).then(() => location.reload());
-            } else {
-                throw new Error("Lỗi khi cập nhật thông tin nhân viên.");
-            }
-        } catch (error) {
-            Swal.fire({
-                title: "Lỗi!",
-                text: error.message,
-                icon: "error",
-                confirmButtonText: "OK"
-            });
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = `Cập nhật Nhân Viên`;
-        }
+    // Ảnh đại diện nếu có
+    const fileInput = form.querySelector('input[name="hinhAnh"]');
+    if (fileInput.files[0]) {
+        formData.append('file', fileInput.files[0]);
     }
+
+    try {
+        const id = form.querySelector('input[name="id"]').value;
+        const response = await fetch(`http://localhost:8080/api/nhan-vien/update/${id}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        clearFieldErrors(); // Xóa lỗi cũ nếu có
+
+        if (result.status === "success") {
+            Swal.fire("Cập nhật thành công!", "Thông tin nhân viên đã được cập nhật.", "success")
+                .then(() => location.reload());
+        } else if (result.status === "warning") {
+            for (const [field, message] of Object.entries(result.messages)) {
+                showFieldError(field, message);
+            }
+            Swal.fire("Thông tin chưa hợp lệ!", "Vui lòng kiểm tra lại các trường.", "warning");
+        } else {
+            Swal.fire("Lỗi!", result.message || "Cập nhật thất bại.", "error");
+        }
+    } catch (error) {
+        Swal.fire("Lỗi hệ thống!", error.message, "error");
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `Cập nhật Nhân Viên`;
+    }
+}
+
+// ✅ Hiển thị lỗi theo từng field
+function showFieldError(fieldName, message) {
+    const input = document.querySelector(`[name="${fieldName}"]`);
+    if (!input) return;
+
+    let errorEl = input.parentElement.querySelector('.text-danger');
+    if (!errorEl) {
+        errorEl = document.createElement('div');
+        errorEl.className = 'text-danger mt-1';
+        input.parentElement.appendChild(errorEl);
+    }
+    errorEl.innerText = message;
+}
+
+// ✅ Xóa lỗi cũ
+function clearFieldErrors() {
+    document.querySelectorAll('.text-danger').forEach(el => el.remove());
+}
+
+
 
     async function saveNhanVien() {
         if (!validateForm()) {

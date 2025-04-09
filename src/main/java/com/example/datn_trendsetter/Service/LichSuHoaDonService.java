@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class LichSuHoaDonService {
@@ -53,10 +54,10 @@ public class LichSuHoaDonService {
             // Lấy danh sách tất cả sản phẩm chi tiết có trạng thái "Còn Hàng"
             List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
-// Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
+            // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
             Set<String> seenImages = new HashSet<>();
 
-// Danh sách sản phẩm không trùng hình ảnh
+            // Danh sách sản phẩm không trùng hình ảnh
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
@@ -87,6 +88,10 @@ public class LichSuHoaDonService {
 
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
+            listPhuongThucThanhToan = listPhuongThucThanhToan.stream()
+                    .filter(p -> !"VNPAY".equals(p.getTenPhuongThuc()))
+                    .collect(Collectors.toList());
+
 
             model.addAttribute("khachHangs", khachHangs);
             model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);

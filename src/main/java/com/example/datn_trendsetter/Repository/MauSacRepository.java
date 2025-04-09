@@ -14,4 +14,5 @@ public interface MauSacRepository extends JpaRepository<MauSac,Integer> {
 
     List<MauSac> findByTrangThai(String trangThai, Sort sort);
 
+    List<MauSac> findByDeleted(Boolean deleted, Sort sort);
 }

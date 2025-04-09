@@ -42,22 +42,23 @@ public class ThongKeControlller {
 
         // Lấy dữ liệu thống kê
         Map<String, Integer> totalProductsByDateMonthYear = thongKeService.getTotalProductsByDateMonthYear();
-        Map<String, Integer> invoiceData = thongKeService.getInvoiceCountByDateMonthYear();
-
         List<String> formattedDates = new ArrayList<>(totalProductsByDateMonthYear.keySet());
         List<Integer> salesData = new ArrayList<>(totalProductsByDateMonthYear.values());
+        Map<String, Integer> invoiceData = thongKeService.getInvoiceCountByDateMonthYear();
         List<Integer> invoiceCounts = new ArrayList<>(invoiceData.values());
+        Map<String, Float> totalRevenueByDateMonthYear = thongKeService.getTotalRevenueByDateMonthYear();
+        List<Float> revenueData = new ArrayList<>(totalRevenueByDateMonthYear.values());
+        // Thêm vào model dữ liệu thống kê
+        model.addAttribute("invoiceData", invoiceCounts.isEmpty() ? Collections.emptyList() : invoiceCounts);
+        model.addAttribute("dates", formattedDates.isEmpty() ? Collections.emptyList() : formattedDates);
+        model.addAttribute("salesData", salesData.isEmpty() ? Collections.emptyList() : salesData);
+        model.addAttribute("revenueData", revenueData.isEmpty() ? Collections.emptyList() : revenueData);
 
         // Đảm bảo danh sách không rỗng trước khi truy cập phần tử
         List<Long> orderStatusPercentages = hoaDonService.getOrderStatusStatistics();
         while (orderStatusPercentages.size() < 8) {
             orderStatusPercentages.add(0L);
         }
-
-        // Thêm vào model dữ liệu thống kê
-        model.addAttribute("invoiceData", invoiceCounts.isEmpty() ? Collections.emptyList() : invoiceCounts);
-        model.addAttribute("dates", formattedDates.isEmpty() ? Collections.emptyList() : formattedDates);
-        model.addAttribute("salesData", salesData.isEmpty() ? Collections.emptyList() : salesData);
 
         model.addAttribute("processingPercentage", orderStatusPercentages.get(0));
         model.addAttribute("waitingConfirmationPercentage", orderStatusPercentages.get(1));

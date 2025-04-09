@@ -41,7 +41,7 @@ public class SanPhamController {
 
     @RequestMapping("admin/san-pham")
     public String SanPham(Model model) {
-        List<SanPham> sanPham = sanPhamRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<SanPham> sanPham = sanPhamRepository.findByDeleted(false,Sort.by(Sort.Direction.DESC, "id"));
         model.addAttribute("sanPham",sanPham);
         return "Admin/SanPham/hien-thi";
     }
