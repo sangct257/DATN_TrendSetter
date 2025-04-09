@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.Service;
 
 import com.example.datn_trendsetter.Repository.HoaDonChiTietRepository;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
+import com.example.datn_trendsetter.Repository.LichSuThanhToanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,9 @@ public class ThongKeService {
 
     @Autowired
     private HoaDonRepository hoaDonRepository;
+
+    @Autowired
+    private LichSuThanhToanRepository lichSuThanhToanRepository;
 
     // Tính doanh thu trong một khoảng thời gian
     public Float getDoanhThu(LocalDateTime startDate, LocalDateTime endDate) {
@@ -109,16 +113,18 @@ public class ThongKeService {
 
     // Lấy tổng số sản phẩm theo ngày, tháng, năm
     public Map<String, Integer> getTotalProductsByDateMonthYear() {
-        List<Object[]> results = hoaDonChiTietRepository.getTotalProductsByDateMonthYear("Đã Hoàn Thành");
+        String trangThaiThanhToan = "Đã Thanh Toán";
+        List<String> trangThaiHoaDon = List.of("Đã Thanh Toán", "Đã Hoàn Thành"); // chỉ tính đơn hợp lệ
+        List<Object[]> results = hoaDonChiTietRepository.getTotalProductsByDateMonthYear(trangThaiThanhToan,trangThaiHoaDon);
         Map<String, Integer> totalProductsByDateMonthYear = new LinkedHashMap<>();
 
         for (Object[] result : results) {
-            Integer year = (Integer) result[0];
-            Integer month = (Integer) result[1];
-            Integer day = (Integer) result[2];
+            Integer year = ((Number) result[0]).intValue();
+            Integer month = ((Number) result[1]).intValue();
+            Integer day = ((Number) result[2]).intValue();
             Integer totalProducts = ((Number) result[3]).intValue();
 
-            String key = day + " - " + month + " - " + year;
+            String key = String.format("%02d - %02d - %04d", day, month, year);
             totalProductsByDateMonthYear.put(key, totalProducts);
         }
         return totalProductsByDateMonthYear;
@@ -126,19 +132,44 @@ public class ThongKeService {
 
     // Lấy tổng số hóa đơn theo ngày, tháng, năm
     public Map<String, Integer> getInvoiceCountByDateMonthYear() {
-        List<Object[]> results = hoaDonRepository.getInvoiceCountByDateMonthYear("Đã Hoàn Thành");
+        String trangThaiThanhToan = "Đã Thanh Toán";
+        List<String> trangThaiList = List.of("Đã Thanh Toán", "Đã Hoàn Thành");
+        List<Object[]> results = hoaDonRepository.getInvoiceCountByDateMonthYear(trangThaiThanhToan,trangThaiList);
         Map<String, Integer> invoiceCountByDateMonthYear = new LinkedHashMap<>();
 
         for (Object[] result : results) {
-            Integer year = (Integer) result[0];
-            Integer month = (Integer) result[1];
-            Integer day = (Integer) result[2];
+            Integer year = ((Number) result[0]).intValue();
+            Integer month = ((Number) result[1]).intValue();
+            Integer day = ((Number) result[2]).intValue();
             Integer totalInvoices = ((Number) result[3]).intValue();
 
-            String key = day + " - " + month + " - " + year;
+            String key = String.format("%02d - %02d - %04d", day, month, year);
             invoiceCountByDateMonthYear.put(key, totalInvoices);
         }
-
         return invoiceCountByDateMonthYear;
     }
+
+    // Lấy tổng doanh thu theo ngày, tháng, năm
+    public Map<String, Float> getTotalRevenueByDateMonthYear() {
+        String trangThaiThanhToan = "Đã Thanh Toán";
+        List<String> trangThaiHoaDon = List.of("Đã Hoàn Thành", "Đã Thanh Toán");
+
+        List<Object[]> results = lichSuThanhToanRepository
+                .getTotalRevenueByDateMonthYear(trangThaiThanhToan, trangThaiHoaDon);
+
+        Map<String, Float> totalRevenueByDateMonthYear = new LinkedHashMap<>();
+
+        for (Object[] result : results) {
+            Integer year = ((Number) result[0]).intValue();
+            Integer month = ((Number) result[1]).intValue();
+            Integer day = ((Number) result[2]).intValue();
+            Float totalRevenue = ((Number) result[3]).floatValue();
+
+            String key = String.format("%02d - %02d - %04d", day, month, year);
+            totalRevenueByDateMonthYear.put(key, totalRevenue);
+        }
+
+        return totalRevenueByDateMonthYear;
+    }
+
 }

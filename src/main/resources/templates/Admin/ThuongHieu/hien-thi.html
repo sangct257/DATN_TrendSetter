@@ -28,6 +28,23 @@
             <!-- Default box -->
             <div class="box">
                 <div class="box-body">
+
+                    <div class="d-flex justify-content-center gap-3 mb-3 p-3 border rounded-3 shadow-sm bg-light">
+                        <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill"
+                                data-status="">
+                            Tất Cả (<span id="count-all">0</span>)
+                        </button>
+                        <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill"
+                                data-status="Đang Hoạt Động">
+                            Đang Hoạt Động (<span id="count-active">0</span>)
+                        </button>
+                        <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill"
+                                data-status="Ngừng Hoạt Động">
+                            Ngừng Hoạt Động (<span id="count-inactive">0</span>)
+                        </button>
+                    </div>
+
+
                     <!--Thêm Thương Hiệu-->
                     <div class="d-flex justify-content-end mb-3">
                         <!-- Nút mở modal Thêm Thương Hiệu -->
@@ -51,13 +68,6 @@
                                         <div class="mb-3">
                                             <label class="form-label">Tên Thương Hiệu</label>
                                             <input type="text" class="form-control" id="tenThuongHieu" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Trạng Thái</label>
-                                            <select class="form-select" id="trangThai">
-                                                <option value="Đang Hoạt Động">Đang Hoạt Động</option>
-                                                <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
-                                            </select>
                                         </div>
                                     </form>
                                 </div>
@@ -89,8 +99,11 @@
                             <td class="text-center" th:text="${thuongHieu.maThuongHieu}"></td>
                             <td class="text-center" th:text="${thuongHieu.tenThuongHieu}"></td>
                             <td class="text-center">
-                                <button th:class="${thuongHieu.trangThai == 'Đang Hoạt Động' ? 'badge bg-success' : 'badge bg-danger'}"
-                                        th:text="${thuongHieu.trangThai}">
+                                <button
+                                        class="badge"
+                                        th:classappend="${thuongHieu.trangThai == 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'}"
+                                        th:text="${thuongHieu.trangThai}"
+                                        onclick="updateTrangThai(this)">
                                 </button>
                             </td>
                             <td class="text-center">
@@ -125,13 +138,6 @@
                                             <label class="form-label">Tên Thương Hiệu</label>
                                             <input type="text" id="modalBrandName" class="form-control" required>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Trạng Thái</label>
-                                            <select id="modalBrandStatus" class="form-select">
-                                                <option value="Đang Hoạt Động">Đang Hoạt Động</option>
-                                                <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
-                                            </select>
-                                        </div>
                                     </form>
                                 </div>
                                 <div class="modal-footer">
@@ -162,41 +168,106 @@
 
 
 <script>
+
+    // Hàm cập nhật đếm số lượng thương hiệu theo trạng thái
+    function updateCount() {
+      const rows = document.querySelectorAll('#productTable tbody tr');  // Lấy tất cả các hàng trong bảng
+      let totalCount = 0;
+      let activeCount = 0;
+      let inactiveCount = 0;
+
+      rows.forEach(row => {
+          const statusButton = row.querySelector('td:nth-child(4) button');
+          const status = statusButton ? statusButton.textContent : '';
+
+          // Cập nhật các biến đếm
+          totalCount++;
+          if (status === 'Đang Hoạt Động') {
+              activeCount++;
+          } else if (status === 'Ngừng Hoạt Động') {
+              inactiveCount++;
+          }
+      });
+
+      // Cập nhật số liệu lên giao diện
+      document.getElementById('count-all').textContent = totalCount;
+      document.getElementById('count-active').textContent = activeCount;
+      document.getElementById('count-inactive').textContent = inactiveCount;
+  }
+
+  // Hàm lọc thương hiệu theo trạng thái
+  function filterThuongHieu(status) {
+      const rows = document.querySelectorAll('#productTable tbody tr');
+      rows.forEach(row => {
+          const statusButton = row.querySelector('td:nth-child(4) button');
+          const rowStatus = statusButton ? statusButton.textContent : '';
+
+          // Kiểm tra xem trạng thái có khớp với trạng thái lọc không
+          if (status === '' || rowStatus === status) {
+              row.style.display = '';  // Hiển thị hàng
+          } else {
+              row.style.display = 'none';  // Ẩn hàng
+          }
+      });
+
+      // Cập nhật lại đếm sau khi lọc
+      updateCount();
+  }
+
+  // Thêm sự kiện click vào các nút lọc
+  document.querySelectorAll('.filter-btn').forEach(button => {
+      button.addEventListener('click', () => {
+          const status = button.getAttribute('data-status');
+          filterThuongHieu(status);
+      });
+  });
+
+  // Gọi updateCount khi trang được tải lần đầu
+  document.addEventListener('DOMContentLoaded', () => {
+      updateCount();  // Cập nhật lại số liệu khi trang được tải
+  });
+
     // Hàm thêm thương hiệu
-    async function saveBrand() {
-        let tenThuongHieu = document.getElementById("tenThuongHieu").value;
-        let trangThai = document.getElementById("trangThai").value;
+ async function saveBrand() {
+    let tenThuongHieu = document.getElementById("tenThuongHieu").value;
 
-        let data = { tenThuongHieu, trangThai };
+    let data = { tenThuongHieu };
 
-        Swal.fire({
-            title: "Đang thêm thương hiệu...",
-            text: "Vui lòng chờ...",
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+    Swal.fire({
+        title: "Đang thêm thương hiệu...",
+        text: "Vui lòng chờ...",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+   try {
+        let response = await fetch('/api/thuong-hieu/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
         });
 
-        try {
-            let response = await fetch('/api/thuong-hieu/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            let message = await response.text();
+        let resJson = await response.json();
 
+        if (resJson.success) {
             Swal.fire({
                 icon: "success",
-                title: "Thành công!",
-                text: message,
+                title: "Thêm thành công!",
+                text: resJson.message,
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => location.reload());
-        } catch (error) {
-            Swal.fire("Lỗi!", "Lỗi khi thêm thương hiệu!", "error");
+        } else {
+            Swal.fire("Lỗi!", resJson.message, "warning");
         }
+    } catch (error) {
+        Swal.fire("Lỗi!", "Lỗi khi thêm thương hiệu!", "error");
     }
+}
+
+
 
     // Hàm xóa thương hiệu
     async function deleteBrand(button) {
@@ -245,40 +316,95 @@
     }
 
     // Hàm cập nhật thương hiệu
-    async function updateBrand() {
-        let brandId = document.getElementById("modalBrandId").value;
-        let brandName = document.getElementById("modalBrandName").value;
-        let brandStatus = document.getElementById("modalBrandStatus").value;
+ async function updateBrand() {
+    let brandId = document.getElementById("modalBrandId").value;
+    let brandName = document.getElementById("modalBrandName").value;
 
-        let updatedBrand = { id: brandId, tenThuongHieu: brandName, trangThai: brandStatus };
+    let updatedBrand = { id: brandId, tenThuongHieu: brandName };
 
-        Swal.fire({
-            title: "Đang cập nhật thương hiệu...",
-            text: "Vui lòng chờ...",
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+    Swal.fire({
+        title: "Đang cập nhật thương hiệu...",
+        text: "Vui lòng chờ...",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+     try {
+        let response = await fetch('/api/thuong-hieu/update', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedBrand)
         });
 
-        try {
-            let response = await fetch('/api/thuong-hieu/update', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedBrand)
-            });
-            let message = await response.text();
+        let json = await response.json(); // ✅ đổi từ response.text() sang response.json()
 
+        if (json.success) {
             Swal.fire({
                 icon: "success",
                 title: "Cập nhật thành công!",
-                text: message,
+                text: json.message || "Cập nhật thành công",
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => location.reload());
-        } catch (error) {
-            Swal.fire("Lỗi!", "Lỗi cập nhật thương hiệu!", "error");
+        } else {
+            Swal.fire("Lỗi!", json.message || "Lỗi không xác định!", "warning");
         }
+
+    } catch (error) {
+        Swal.fire("Lỗi!", "Lỗi hệ thống!", "error");
+    }
+}
+
+
+    // Hàm cập nhật trạng thái chất liệu khi click vào nút trạng thái
+    async function updateTrangThai(button) {
+        let row = button.closest("tr");
+        let thuongHieuId = row.querySelector("td input[type='hidden']").value;
+        let currentTrangThai = button.innerText;  // Trạng thái hiện tại
+
+        // Đổi trạng thái từ 'Đang Hoạt Động' -> 'Ngừng Hoạt Động' và ngược lại
+        let newTrangThai = (currentTrangThai === 'Đang Hoạt Động') ? 'Ngừng Hoạt Động' : 'Đang Hoạt Động';
+
+        Swal.fire({
+            title: `Bạn có chắc muốn đổi trạng thái thành ${newTrangThai}?`,
+            text: "Hành động này có thể thay đổi trạng thái thương hiệu.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Đang cập nhật trạng thái...",
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                // Gửi yêu cầu PUT tới API để cập nhật trạng thái
+                fetch(`/api/thuong-hieu/update-trang-thai/${thuongHieuId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ trangThai: newTrangThai })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire("Thành công!", data.message, "success").then(() => {
+                            // Cập nhật lại trạng thái trong bảng
+                            button.innerText = newTrangThai;
+                            button.className = (newTrangThai === 'Đang Hoạt Động') ? 'badge bg-success' : 'badge bg-danger';
+                            // Cập nhật lại đếm sau khi lọc
+                            updateCount();
+                        });
+                    } else {
+                        Swal.fire("Lỗi!", data.message, "warning");
+                    }
+                })
+                .catch(() => Swal.fire("Lỗi!", "Không thể cập nhật trạng thái!", "error"));
+            }
+        });
     }
 
     // Hàm mở modal chỉnh sửa
@@ -286,16 +412,13 @@
         let row = button.closest("tr");
         let brandId = row.querySelector("td input[type='hidden']").value;
         let brandName = row.cells[2].innerText;
-        let brandStatus = row.cells[3].innerText.trim();
 
         document.getElementById("modalBrandId").value = brandId;
         document.getElementById("modalBrandName").value = brandName;
-        document.getElementById("modalBrandStatus").value = brandStatus;
 
         let modal = new bootstrap.Modal(document.getElementById("modalBrandDetail"));
         modal.show();
     }
-
 </script>
 <!--Load table-->
 <script>

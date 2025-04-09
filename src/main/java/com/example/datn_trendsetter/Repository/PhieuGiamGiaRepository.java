@@ -28,4 +28,6 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integ
     Integer countByTrangThaiAndDeletedFalse(String trangThai);
 
     Integer countByDeletedFalse();
+
+    List<PhieuGiamGia> findByDeleted(Boolean deleted, Sort sort);
 }

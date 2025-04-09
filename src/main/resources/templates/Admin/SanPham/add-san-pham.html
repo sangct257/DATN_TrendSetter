@@ -121,7 +121,7 @@
 
 <div th:replace="admin/fragments/script :: script"></div>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => {
             document.querySelectorAll('.tom-select').forEach((el) => {
                 console.log("Khởi tạo Tom Select cho:", el.id);
@@ -133,10 +133,8 @@
                     searchField: ["value", "text"]
                 });
             });
-        }, 500); // Chờ 0.5 giây để đảm bảo danh sách đã render
+        }, 500);
     });
-
-
 
     document.getElementById("btnAddSanPham").addEventListener("click", function () {
         let sanPhamData = {
@@ -164,8 +162,8 @@
         })
             .then(response => response.json().then(data => ({ status: response.status, body: data })))
             .then(({ status, body }) => {
-                if (status === 409) {
-                    throw new Error(body.message || "Sản phẩm đã tồn tại!");
+                if (status === 409 || status === 400) {
+                    throw new Error(body.message || "Thông tin không hợp lệ!");
                 }
                 if (status !== 200 || !body.id) {
                     throw new Error(body.message || "Lỗi không xác định hoặc không lấy được ID sản phẩm!");
@@ -182,11 +180,19 @@
                 });
             })
             .catch(error => {
+                // Phân loại warning hay error
+                const isDanger =
+                    error.message.toLowerCase().includes("lỗi hệ thống") ||
+                    error.message.toLowerCase().includes("exception") ||
+                    error.message.toLowerCase().includes("không thể") ||
+                    error.message.toLowerCase().includes("đã xảy ra");
+
                 Swal.fire({
-                    icon: "error",
-                    title: "Lỗi!",
+                    icon: isDanger ? "error" : "warning",
+                    title: isDanger ? "Lỗi!" : "Cảnh báo!",
                     text: error.message
                 });
+
                 console.error("Lỗi:", error);
             });
     });

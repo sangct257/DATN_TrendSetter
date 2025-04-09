@@ -28,6 +28,22 @@
             <!-- Default box -->
             <div class="box">
                 <div class="box-body">
+
+                    <div class="d-flex justify-content-center gap-3 mb-3 p-3 border rounded-3 shadow-sm bg-light">
+                        <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill"
+                                data-status="">
+                            Tất Cả (<span id="count-all">0</span>)
+                        </button>
+                        <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill"
+                                data-status="Đang Hoạt Động">
+                            Đang Hoạt Động (<span id="count-active">0</span>)
+                        </button>
+                        <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill"
+                                data-status="Ngừng Hoạt Động">
+                            Ngừng Hoạt Động (<span id="count-inactive">0</span>)
+                        </button>
+                    </div>
+
                     <!--Thêm Màu Sắc-->
                     <div class="d-flex justify-content-end mb-3">
                         <!-- Nút mở modal Thêm Màu Sắc -->
@@ -50,18 +66,11 @@
                                             <label class="form-label">Tên Màu Sắc</label>
                                             <input type="text" class="form-control" id="tenMauSac" required>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Trạng Thái</label>
-                                            <select class="form-select" id="trangThai">
-                                                <option value="Đang Hoạt Động">Đang Hoạt Động</option>
-                                                <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
-                                            </select>
-                                        </div>
                                     </form>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="button" class="btn btn-success" onclick="saveMauSac()">Lưu</button>
+                                    <button type="button" class="btn btn-success" id="btnSaveMauSac">Lưu</button>
                                 </div>
                             </div>
                         </div>
@@ -87,18 +96,20 @@
                             <td class="text-center" th:text="${mauSac.maMauSac}"></td>
                             <td class="text-center" th:text="${mauSac.tenMauSac}"></td>
                             <td class="text-center">
-                                <button th:class="${mauSac.trangThai == 'Đang Hoạt Động' ? 'badge bg-success' : 'badge bg-danger'}"
+                                <button
+                                        class="badge btnChangeTrangThai"
+                                        th:classappend="${mauSac.trangThai == 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'}"
                                         th:text="${mauSac.trangThai}">
                                 </button>
                             </td>
                             <td class="text-center">
                                 <!-- Nút mở modal Chi Tiết -->
-                                <button class="btn btn-primary btn-sm fw-bold me-2"
-                                        onclick="openMauSacDetailModal(this)">
+                                <button class="btn btn-primary btn-sm fw-bold me-2 btnOpenModalDetail"
+                                        id="btnOpenMauSacDetail">
                                     <i class="bi bi-eye"></i> Chi Tiết
                                 </button>
 
-                                <button class="btn btn-danger btn-sm fw-bold" onclick="deleteMauSac(this)">
+                                <button class="btn btn-danger btn-sm fw-bold btnDeleteMauSac">
                                     <i class="bi bi-trash"></i> Xóa
                                 </button>
                             </td>
@@ -123,18 +134,11 @@
                                             <label class="form-label">Tên Màu Sắc</label>
                                             <input type="text" id="modalMauSacName" class="form-control" required>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Trạng Thái</label>
-                                            <select id="modalMauSacStatus" class="form-select">
-                                                <option value="Đang Hoạt Động">Đang Hoạt Động</option>
-                                                <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
-                                            </select>
-                                        </div>
                                     </form>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="button" class="btn btn-success" onclick="updateMauSac()">Chỉnh Sửa</button>
+                                    <button type="button" class="btn btn-success" id="btnUpdateMauSac">Chỉnh Sửa</button>
                                 </div>
                             </div>
                         </div>
@@ -160,103 +164,249 @@
 <div th:replace="admin/fragments/script :: script"></div>
 
 <script>
-    function saveMauSac() {
-        let data = {
-            tenMauSac: document.getElementById("tenMauSac").value.trim(),
-            trangThai: document.getElementById("trangThai").value.trim()
-        };
 
-        if (!data.tenMauSac) {
-            Swal.fire("Lỗi!", "Vui lòng nhập tên màu sắc!", "error");
-            return;
-        }
+    // Hàm cập nhật đếm số lượng màu sắc theo trạng thái
+    function updateCount() {
+      const rows = document.querySelectorAll('#productTable tbody tr');  // Lấy tất cả các hàng trong bảng
+      let totalCount = 0;
+      let activeCount = 0;
+      let inactiveCount = 0;
 
-        fetchData("/api/mau-sac/add", data, "Thêm màu sắc thành công!", "POST");
-    }
+      rows.forEach(row => {
+          const statusButton = row.querySelector('td:nth-child(4) button');
+          const status = statusButton ? statusButton.textContent : '';
 
-    function updateMauSac() {
-        let updatedMauSac = {
-            id: document.getElementById("modalMauSacId").value,
-            tenMauSac: document.getElementById("modalMauSacName").value.trim(),
-            trangThai: document.getElementById("modalMauSacStatus").value.trim()
-        };
+          // Cập nhật các biến đếm
+          totalCount++;
+          if (status === 'Đang Hoạt Động') {
+              activeCount++;
+          } else if (status === 'Ngừng Hoạt Động') {
+              inactiveCount++;
+          }
+      });
 
-        fetchData("/api/mau-sac/update", updatedMauSac, "Cập nhật màu sắc thành công!", "PUT");
-    }
+      // Cập nhật số liệu lên giao diện
+      document.getElementById('count-all').textContent = totalCount;
+      document.getElementById('count-active').textContent = activeCount;
+      document.getElementById('count-inactive').textContent = inactiveCount;
+  }
 
-    function fetchData(url, data, successMessage, method) {
-        fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.text())
-            .then(text => {
-                try {
-                    return JSON.parse(text);
-                } catch {
-                    return { message: text };
-                }
-            })
-            .then(result => {
-                if (result.error) {
-                    Swal.fire("Lỗi!", result.error, "error");
-                } else {
-                    Swal.fire("Thành công!", result.message || successMessage, "success")
-                        .then(() => location.reload());
-                }
-            })
-            .catch(error => {
-                console.error("Lỗi hệ thống:", error);
-                Swal.fire("Lỗi!", "Lỗi hệ thống, vui lòng thử lại!", "error");
-            });
-    }
+  // Hàm lọc màu sắc theo trạng thái
+  function filterMauSac(status) {
+      const rows = document.querySelectorAll('#productTable tbody tr');
+      rows.forEach(row => {
+          const statusButton = row.querySelector('td:nth-child(4) button');
+          const rowStatus = statusButton ? statusButton.textContent : '';
 
-    function openMauSacDetailModal(button) {
-        let row = button.closest("tr");
-        document.getElementById("modalMauSacId").value = row.querySelector("td input[type='hidden']").value;
-        document.getElementById("modalMauSacName").value = row.cells[2].innerText;
-        document.getElementById("modalMauSacStatus").value = row.cells[3].innerText.trim();
-        new bootstrap.Modal(document.getElementById("modalMauSacDetail")).show();
-    }
+          // Kiểm tra xem trạng thái có khớp với trạng thái lọc không
+          if (status === '' || rowStatus === status) {
+              row.style.display = '';  // Hiển thị hàng
+          } else {
+              row.style.display = 'none';  // Ẩn hàng
+          }
+      });
 
-    function deleteMauSac(button) {
-        let row = button.closest("tr");
-        let hiddenInput = row.querySelector("td input[type='hidden']");
+      // Cập nhật lại đếm sau khi lọc
+      updateCount();
+  }
 
-        if (!hiddenInput) {
-            Swal.fire("Lỗi!", "Không tìm thấy ID màu sắc!", "error");
-            return;
-        }
+  // Thêm sự kiện click vào các nút lọc
+  document.querySelectorAll('.filter-btn').forEach(button => {
+      button.addEventListener('click', () => {
+          const status = button.getAttribute('data-status');
+          filterMauSac(status);
+      });
+  });
 
-        let mauSacId = hiddenInput.value;
-        Swal.fire({
-            title: "Xác nhận xóa",
-            text: "Bạn có chắc chắn muốn xóa màu sắc này không?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Có, xóa!",
-            cancelButtonText: "Hủy",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/api/mau-sac/delete/${mauSacId}`, {
-                    method: "DELETE",
-                    headers: { "Content-Type": "application/json" }
-                })
-                    .then(response => {
-                        if (!response.ok) throw new Error("Xóa thất bại!");
-                        return response.text();
-                    })
-                    .then(message => {
-                        Swal.fire("Xóa thành công!", message, "success")
-                            .then(() => row.remove());
-                    })
-                    .catch(error => Swal.fire("Lỗi!", error.message, "error"));
-            }
-        });
-    }
+  // Gọi updateCount khi trang được tải lần đầu
+  document.addEventListener('DOMContentLoaded', () => {
+      updateCount();  // Cập nhật lại số liệu khi trang được tải
+  });
 
+    document.addEventListener('DOMContentLoaded', function () {
 
+       // Hàm thêm màu sắc
+       function saveMauSac() {
+           let tenMauSac = document.getElementById("tenMauSac").value;
+           let data = { tenMauSac };
+
+           Swal.fire({
+               title: "Đang thêm màu sắc...",
+               allowOutsideClick: false,
+               didOpen: () => Swal.showLoading()
+           });
+
+           fetch('/api/mau-sac/add', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify(data)
+           })
+           .then(response => response.json())
+           .then(data => {
+               if (data.success) {
+                   Swal.fire("Thành công!", data.message, "success").then(() => {
+                       location.reload();
+                   });
+               } else {
+                   Swal.fire("Thất bại!", data.message, "warning");
+               }
+           })
+           .catch(() => Swal.fire("Lỗi!", "Lỗi khi thêm màu sắc!", "error"));
+       }
+
+       // Hàm xóa màu sắc
+       function deleteMauSac(button) {
+           let row = button.closest("tr");
+           let hiddenInput = row.querySelector("td input[type='hidden']");
+           if (!hiddenInput) {
+               Swal.fire("Lỗi!", "Không tìm thấy ID màu sắc!", "error");
+               return;
+           }
+
+           let mauSacId = hiddenInput.value;
+
+           Swal.fire({
+               title: "Bạn có chắc chắn muốn xóa màu sắc này?",
+               text: "Hành động này không thể hoàn tác!",
+               icon: "warning",
+               showCancelButton: true,
+               confirmButtonText: "Xóa",
+               cancelButtonText: "Hủy"
+           }).then((result) => {
+               if (result.isConfirmed) {
+                   Swal.fire({
+                       title: "Đang xóa màu sắc...",
+                       allowOutsideClick: false,
+                       didOpen: () => Swal.showLoading()
+                   });
+
+                   fetch(`/api/mau-sac/delete/${mauSacId}`, {
+                       method: 'DELETE',
+                       headers: { 'Content-Type': 'application/json' }
+                   })
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data.success) {
+                           Swal.fire("Đã xóa!", data.message, "success").then(() => {
+                               row.remove();
+                           });
+                       } else {
+                           Swal.fire("Lỗi!", data.message, "warning");
+                       }
+                   })
+                   .catch(() => Swal.fire("Lỗi!", "Không thể xóa màu sắc!", "error"));
+               }
+           });
+       }
+
+       // Hàm cập nhật màu sắc
+       function updateMauSac() {
+           let mauSacId = document.getElementById("modalMauSacId").value;
+           let tenMauSac = document.getElementById("modalMauSacName").value;
+
+           let updatedMauSac = {
+               id: mauSacId,
+               tenMauSac: tenMauSac
+           };
+
+           Swal.fire({
+               title: "Đang cập nhật màu sắc...",
+               allowOutsideClick: false,
+               didOpen: () => Swal.showLoading()
+           });
+
+           fetch('/api/mau-sac/update', {
+               method: 'PUT',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify(updatedMauSac)
+           })
+           .then(response => response.json())
+           .then(data => {
+               if (data.success) {
+                   Swal.fire("Thành công!", data.message, "success").then(() => {
+                       location.reload();
+                   });
+               } else {
+                   Swal.fire("Thất bại!", data.message, "warning");
+               }
+           })
+           .catch(() => Swal.fire("Lỗi!", "Cập nhật thất bại!", "error"));
+       }
+
+       // Hàm cập nhật trạng thái màu sắc
+       function updateTrangThai(button) {
+           let row = button.closest("tr");
+           let mauSacId = row.querySelector("td input[type='hidden']").value;
+           let currentTrangThai = button.innerText;
+
+           let newTrangThai = (currentTrangThai === 'Đang Hoạt Động') ? 'Ngừng Hoạt Động' : 'Đang Hoạt Động';
+
+           Swal.fire({
+               title: `Bạn có chắc muốn đổi trạng thái thành ${newTrangThai}?`,
+               text: "Hành động này có thể thay đổi trạng thái màu sắc.",
+               icon: "warning",
+               showCancelButton: true,
+               confirmButtonText: "Đồng ý",
+               cancelButtonText: "Hủy"
+           }).then((result) => {
+               if (result.isConfirmed) {
+                   Swal.fire({
+                       title: "Đang cập nhật trạng thái...",
+                       allowOutsideClick: false,
+                       didOpen: () => Swal.showLoading()
+                   });
+
+                   fetch(`/api/mau-sac/update-trang-thai/${mauSacId}`, {
+                       method: 'PUT',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify({ trangThai: newTrangThai })
+                   })
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data.success) {
+                           Swal.fire("Thành công!", data.message, "success").then(() => {
+                               button.innerText = newTrangThai;
+                               button.className = (newTrangThai === 'Đang Hoạt Động') ? 'badge bg-success' : 'badge bg-danger';
+                               updateCount();  // Cập nhật lại số liệu khi trang được tải
+
+                           });
+                       } else {
+                           Swal.fire("Lỗi!", data.message, "warning");
+                       }
+                   })
+                   .catch(() => Swal.fire("Lỗi!", "Không thể cập nhật trạng thái!", "error"));
+               }
+           });
+       }
+
+       // Hàm mở modal chi tiết màu sắc
+       function openMauSacDetailModal(button) {
+           let row = button.closest("tr");
+           let mauSacId = row.querySelector("td input[type='hidden']").value;
+           let tenMauSac = row.cells[2].innerText;
+
+           document.getElementById("modalMauSacId").value = mauSacId;
+           document.getElementById("modalMauSacName").value = tenMauSac;
+
+           let modal = new bootstrap.Modal(document.getElementById("modalMauSacDetail"));
+           modal.show();
+       }
+
+       // Gán sự kiện
+       document.getElementById("btnSaveMauSac").addEventListener("click", saveMauSac);
+       document.getElementById("btnUpdateMauSac").addEventListener("click", updateMauSac);
+       document.querySelectorAll(".btnDeleteMauSac").forEach(button => button.addEventListener("click", function () {
+           deleteMauSac(this);
+       }));
+       document.querySelectorAll(".btnChangeTrangThai").forEach(button => {
+           button.addEventListener("click", function () {
+               updateTrangThai(this);
+           });
+       });
+       document.querySelectorAll(".btnOpenModalDetail").forEach(button => button.addEventListener("click", function () {
+           openMauSacDetailModal(this);
+       }));
+   });
 </script>
 
 

@@ -210,6 +210,14 @@ function renderCoupons(coupons) {
     let eligibleCoupons = coupons.filter(coupon => cartTotal >= coupon.dieuKien);
     eligibleCoupons.sort((a, b) => b.giaTriGiam - a.giaTriGiam); // Sắp xếp giảm dần theo giá trị giảm
 
+    // Nếu không có phiếu giảm giá đủ điều kiện, xóa giảm giá và cập nhật tổng
+    if (eligibleCoupons.length === 0) {
+        localStorage.removeItem("discountCode");
+        localStorage.removeItem("discountValue");
+        localStorage.removeItem("discountId");
+        updateTotal(0);
+    }
+
     // Nếu có phiếu giảm giá đủ điều kiện, tự động chọn phiếu giảm giá có giá trị giảm cao nhất
     let selectedCoupon = null;
     if (eligibleCoupons.length > 0) {
@@ -228,7 +236,7 @@ function renderCoupons(coupons) {
                 <div class="coupon-title">${coupon.tenPhieuGiamGia} - <strong>${coupon.maPhieuGiamGia}</strong></div>
                 <div class="coupon-condition">Đơn hàng từ ${coupon.dieuKien.toLocaleString()} ${coupon.donViTinh}</div>
             </div>
-            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}" 
+            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}"
                    data-value="${coupon.giaTriGiam}" ${isEligible ? '' : 'disabled'}
                    ${coupon.maPhieuGiamGia === (selectedCoupon ? selectedCoupon.maPhieuGiamGia : savedDiscountCode) ? 'checked' : ''}>
         `;
@@ -284,7 +292,7 @@ function renderCoupons(coupons) {
                 <div class="coupon-title">${coupon.tenPhieuGiamGia} - <strong>${coupon.maPhieuGiamGia}</strong></div>
                 <div class="coupon-condition">Đơn hàng từ ${coupon.dieuKien.toLocaleString()} ${coupon.donViTinh}</div>
             </div>
-            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}" 
+            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}"
                    data-value="${coupon.giaTriGiam}" ${coupon.maPhieuGiamGia === savedDiscountCode ? 'checked' : ''}>
         `;
         container.appendChild(couponElement);

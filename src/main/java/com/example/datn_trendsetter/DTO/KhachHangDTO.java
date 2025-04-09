@@ -1,18 +1,23 @@
 package com.example.datn_trendsetter.DTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDate;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class KhachHangDTO {
     private Integer id;
     private String hoTen;
-    private String email;
+    private String username;
     private String soDienThoai;
+    private String email;
     private Boolean gioiTinh;
+    private LocalDate ngaySinh;
+    private String trangThai;
+    private String hinhAnh;
+
 }

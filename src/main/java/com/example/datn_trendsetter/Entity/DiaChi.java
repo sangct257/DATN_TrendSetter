@@ -34,8 +34,10 @@ public class DiaChi {
     private String trangThai;
 
     @ManyToOne
-    @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")
-    @JsonIgnore // Tránh vòng lặp vô hạn khi serialize JSON
+    @JoinColumn(name = "id_khach_hang")
+    @JsonIgnore
     private KhachHang khachHang;
+
+
 
 }

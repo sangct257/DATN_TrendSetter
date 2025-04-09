@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +26,8 @@ public class NhanVienApiController {
     @Autowired
     private NhanVienService nhanVienService;
 
+    @Autowired
+    private NhanVienRepository nhanVienRepository;
     @GetMapping
     public List<NhanVien> getNhanVien() {
         return nhanVienService.getAllNhanVien();
@@ -84,7 +88,7 @@ public class NhanVienApiController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<NhanVien> updateNhanVien(
+    public ResponseEntity<?> updateNhanVien(
             @PathVariable Integer id,
             @RequestParam("hoTen") String hoTen,
             @RequestParam("username") String username,
@@ -95,51 +99,98 @@ public class NhanVienApiController {
             @RequestParam("ngaySinh") String ngaySinh,
             @RequestParam("trangThai") String trangThai,
             @RequestParam(value = "file", required = false) MultipartFile file,
-            HttpSession session) throws Exception {
+            HttpSession session
+    ) {
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
 
-        // Lấy thông tin nhân viên từ session
-        NhanVien nhanVien = (NhanVien) session.getAttribute("userNhanVien");
-
-        // Kiểm tra xem nhân viên đã đăng nhập chưa
-        if (nhanVien == null) {
+        if (nhanVienSession == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(null); // Hoặc có thể trả về message như Map.of("message", "Vui lòng đăng nhập")
+                    .body(Map.of("status", "unauthorized", "message", "Vui lòng đăng nhập."));
         }
 
-        // Khởi tạo đối tượng nhân viên cập nhật
-        NhanVien updatedNhanVien = new NhanVien();
-        updatedNhanVien.setHoTen(hoTen);
-        updatedNhanVien.setUsername(username);
-        updatedNhanVien.setEmail(email);
-        updatedNhanVien.setDiaChi(diaChi);
-        updatedNhanVien.setGioiTinh(gioiTinh);
-        updatedNhanVien.setNgaySinh(LocalDate.parse(ngaySinh));
-        updatedNhanVien.setTrangThai(trangThai);
+        Map<String, String> messages = new HashMap<>();
 
-        // Nếu có mật khẩu mới, thêm vào
+        // Validate các trường cơ bản
+        if (hoTen == null || hoTen.trim().isEmpty()) {
+            messages.put("hoTen", "Họ tên không được để trống.");
+        }
+
+        if (username == null || username.trim().isEmpty()) {
+            messages.put("username", "Tên đăng nhập không được để trống.");
+        }
+
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            messages.put("email", "Email không đúng định dạng.");
+        }
+
+        if (password != null && !password.isEmpty() && password.length() < 6) {
+            messages.put("password", "Mật khẩu phải có ít nhất 6 ký tự.");
+        }
+
+        if (diaChi == null || diaChi.trim().isEmpty()) {
+            messages.put("diaChi", "Địa chỉ không được để trống.");
+        }
+
+        LocalDate parsedNgaySinh = null;
+        try {
+            parsedNgaySinh = LocalDate.parse(ngaySinh);
+            if (parsedNgaySinh.isAfter(LocalDate.now())) {
+                messages.put("ngaySinh", "Ngày sinh không được lớn hơn hiện tại.");
+            }
+        } catch (DateTimeParseException e) {
+            messages.put("ngaySinh", "Ngày sinh không đúng định dạng yyyy-MM-dd.");
+        }
+
+        if (!trangThai.equalsIgnoreCase("Đang Hoạt Động") && !trangThai.equalsIgnoreCase("Ngừng Hoạt Động")) {
+            messages.put("trangThai", "Trạng thái không hợp lệ.");
+        }
+
+        // Kiểm tra email trùng (trừ chính mình)
+        Optional<NhanVien> existingEmail = nhanVienService.findByEmail(email);
+        if (existingEmail.isPresent() && !existingEmail.get().getId().equals(id)) {
+            messages.put("email", "Email đã được sử dụng bởi nhân viên khác.");
+        }
+
+        if (!messages.isEmpty()) {
+            return ResponseEntity.ok(Map.of("status", "warning", "messages", messages));
+        }
+
+        // Tạo object NhanVien để cập nhật
+        NhanVien updatedNhanVien = new NhanVien();
+        updatedNhanVien.setHoTen(hoTen.trim());
+        updatedNhanVien.setUsername(username.trim());
+        updatedNhanVien.setEmail(email.trim());
+        updatedNhanVien.setDiaChi(diaChi.trim());
+        updatedNhanVien.setGioiTinh(gioiTinh);
+        updatedNhanVien.setNgaySinh(parsedNgaySinh);
+        updatedNhanVien.setTrangThai(trangThai.trim());
+
         if (password != null && !password.isEmpty()) {
-            updatedNhanVien.setPassword(password);
+            updatedNhanVien.setPassword(password.trim()); // Cân nhắc mã hóa tại service
         }
 
         try {
-            // Cập nhật nhân viên trong cơ sở dữ liệu
-            NhanVien savedNhanVien = nhanVienService.updateNhanVien(id, updatedNhanVien, file);
+            NhanVien saved = nhanVienService.updateNhanVien(id, updatedNhanVien, file);
 
-            if (savedNhanVien != null) {
-                // Cập nhật lại session nếu nhân viên là chính mình
-                if (nhanVien.getId().equals(savedNhanVien.getId())) {
-                    session.setAttribute("userNhanVien", savedNhanVien);
+            if (saved != null) {
+                if (nhanVienSession.getId().equals(saved.getId())) {
+                    session.setAttribute("userNhanVien", saved);
                 }
 
-                // Trả về nhân viên đã cập nhật thành công
-                return ResponseEntity.ok(savedNhanVien);
+                return ResponseEntity.ok(Map.of("status", "success", "data", saved));
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("status", "error", "message", "Không tìm thấy nhân viên để cập nhật."));
             }
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "error", "message", "Lỗi xử lý file: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "error", "message", "Lỗi hệ thống: " + e.getMessage()));
         }
     }
+
 
 
 }

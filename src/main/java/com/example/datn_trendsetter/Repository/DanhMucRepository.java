@@ -12,4 +12,6 @@ public interface DanhMucRepository extends JpaRepository<DanhMuc,Integer> {
     boolean existsByTenDanhMuc(String tenDanhMuc);
 
     List<DanhMuc> findByTrangThai(String trangThai, Sort sort);
+
+    List<DanhMuc> findByDeleted(Boolean deleted, Sort sort);
 }

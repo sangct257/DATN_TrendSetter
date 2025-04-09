@@ -150,6 +150,11 @@ public class ShopService {
                     nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
         }
 
+        if (!existingMethods.contains("VNPAY")) {
+            newMethods.add(new PhuongThucThanhToan("VNPAY", "Thành Công", LocalDate.now(), LocalDate.now(),
+                    nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
+        }
+
         if (!newMethods.isEmpty()) {
             phuongThucThanhToanRepository.saveAll(newMethods);
         }
@@ -316,6 +321,9 @@ public class ShopService {
         // Lấy danh sách khách hàng và phương thức thanh toán
         Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
         List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
+        listPhuongThucThanhToan = listPhuongThucThanhToan.stream()
+                .filter(p -> !"VNPAY".equals(p.getTenPhuongThuc()))
+                .collect(Collectors.toList());
 
         model.addAttribute("khachHangs", khachHangs);
         model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);

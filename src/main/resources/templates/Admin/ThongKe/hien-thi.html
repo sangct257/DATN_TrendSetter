@@ -396,177 +396,200 @@
 </script>
 
 <script th:inline="javascript">
-
     var labels = /*[[${dates}]]*/ [];
     var salesData = /*[[${salesData}]]*/ [];
     var invoiceData = /*[[${invoiceData}]]*/ [];
-    var originalLabels = labels;
-    var originalSalesData = salesData;
-    var originalInvoiceData = invoiceData;
+    var revenueData = /*[[${revenueData}]]*/ [];
+
+    // Debug dữ liệu gốc
+    console.log("Dữ liệu gốc - Labels:", labels);
+    console.log("Sales Data:", salesData);
+    console.log("Invoice Data:", invoiceData);
+    console.log("Revenue Data:", revenueData);
+
+    var originalLabels = labels.slice();
+    var originalSalesData = salesData.slice();
+    var originalInvoiceData = invoiceData.slice();
+    var originalRevenueData = revenueData.slice();
 
     var ctx = document.getElementById('myChart').getContext('2d');
+
     var myChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: 'Số lượng sản phẩm bán ra',
-                    data: salesData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Số lượng hóa đơn',
-                    data: invoiceData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }
-            ]
+            datasets: [{
+                label: 'Số lượng sản phẩm bán ra',
+                data: salesData,
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                x: {
-                    ticks: {autoSkip: false},
-                    min: Math.max(0, labels.length - 12),
-                    max: labels.length - 1
-                },
-                y: {
-                    beginAtZero: true
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var index = context.dataIndex;
+                            var product = salesData[index];
+                            var invoice = invoiceData[index];
+                            var revenue = revenueData[index].toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+
+                            return [
+                                'Sản phẩm bán: ' + product,
+                                'Số hóa đơn: ' + invoice,
+                                'Doanh thu: ' + revenue
+                            ];
+                        }
+                    }
                 }
             },
-            plugins: {
-                zoom: {
-                    pan: {
-                        enabled: true,
-                        mode: 'x',
-                    },
-                    zoom: {
-                        wheel: {enabled: true},
-                        pinch: {enabled: true},
-                        mode: 'x',
-                    }
+            scales: {
+                y: {
+                    beginAtZero: true
                 }
             }
         }
     });
 
-    // Chọn bộ lọc ngày
+    // Hàm chuẩn hóa ngày (chỉ lấy ngày tháng năm)
+    function normalizeDate(date) {
+        // Làm tròn xuống giờ phút giây để chỉ lấy ngày
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    // Sự kiện lọc
     document.getElementById('dayFilter').addEventListener('click', function () {
+        console.log("Bộ lọc: Hôm nay");
         updateChartData('1');
     });
 
     document.getElementById('sevenDaysFilter').addEventListener('click', function () {
+        console.log("Bộ lọc: 7 ngày gần nhất");
         updateChartData('7');
     });
 
     document.getElementById('monthFilter').addEventListener('click', function () {
+        console.log("Bộ lọc: 1 tháng");
         updateChartData('30');
     });
 
     document.getElementById('yearFilter').addEventListener('click', function () {
+        console.log("Bộ lọc: 1 năm");
         updateChartData('365');
     });
 
     document.getElementById('customFilter').addEventListener('click', function () {
+        console.log("Bộ lọc: Tùy chỉnh");
         document.getElementById('customDateRange').style.display = 'block';
-        updateChartData(); // reset chart if the custom filter is clicked
+        updateChartData(); // reset nếu chưa chọn ngày
     });
 
-    // Sử dụng ngày tùy chỉnh
     document.getElementById('startDate').addEventListener('change', applyCustomDateFilter);
     document.getElementById('endDate').addEventListener('change', applyCustomDateFilter);
 
     function applyCustomDateFilter() {
         var startDate = document.getElementById('startDate').value;
         var endDate = document.getElementById('endDate').value;
+        console.log("Ngày tùy chỉnh:", startDate, "->", endDate);
         if (startDate && endDate) {
             updateChartData(null, startDate, endDate);
         }
     }
 
-    // Hàm chuẩn hóa ngày (loại bỏ giờ, phút, giây)
-    function normalizeDate(date) {
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Chỉ lấy năm, tháng, ngày
-    }
-
     function updateChartData(filterValue, startDate = null, endDate = null) {
+        console.log("Đang cập nhật biểu đồ...");
         var filteredLabels = [];
         var filteredSalesData = [];
         var filteredInvoiceData = [];
+        var filteredRevenueData = [];
 
+        // Lấy thời điểm hiện tại với thời gian
         var currentDate = new Date();
+        var currentTimestamp = currentDate.getTime(); // Thời gian tính theo ms từ epoch
         var filterDate;
 
-        // Chuẩn hóa ngày hiện tại
-        currentDate = normalizeDate(currentDate);
-
-        // Xử lý bộ lọc theo ngày, 7 ngày, tháng, năm
         if (filterValue) {
             switch (filterValue) {
-                case '1': // Ngày
-                    filterDate = normalizeDate(new Date()); // Lấy ngày hôm nay
+                case '1':  // Hôm nay
+                    filterDate = currentDate;
                     break;
-                case '7': // 7 Ngày
-                    filterDate = new Date();
-                    filterDate.setDate(currentDate.getDate() - 7); // 7 ngày trước
-                    filterDate = normalizeDate(filterDate); // Chuẩn hóa ngày
+                case '7':  // 7 ngày gần nhất
+                    filterDate = new Date(currentTimestamp - 7 * 24 * 60 * 60 * 1000); // Lấy thời điểm 7 ngày trước
                     break;
-                case '30': // Tháng
-                    filterDate = new Date();
-                    filterDate.setMonth(currentDate.getMonth() - 1); // 1 tháng trước
-                    filterDate = normalizeDate(filterDate); // Chuẩn hóa ngày
+                case '30':  // 1 tháng
+                    filterDate = new Date(currentTimestamp - 30 * 24 * 60 * 60 * 1000); // Lấy thời điểm 1 tháng trước
                     break;
-                case '365': // Năm
-                    filterDate = new Date();
-                    filterDate.setFullYear(currentDate.getFullYear() - 1); // 1 năm trước
-                    filterDate = normalizeDate(filterDate); // Chuẩn hóa ngày
+                case '365':  // 1 năm
+                    filterDate = new Date(currentTimestamp - 365 * 24 * 60 * 60 * 1000); // Lấy thời điểm 1 năm trước
                     break;
             }
+
+            console.log("Ngày lọc từ:", filterDate);
 
             // Lọc dữ liệu theo ngày
             for (var i = 0; i < originalLabels.length; i++) {
-                var dateParts = originalLabels[i].split(' - '); // Chia ngày thành các phần
-                var labelDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); // Tạo đối tượng Date từ ngày trong label
-                labelDate = normalizeDate(labelDate); // Chuẩn hóa ngày trong label
+                var dateParts = originalLabels[i].split(' - ');
+                if (dateParts.length === 3) {
+                    var labelDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                    labelDate.setHours(0, 0, 0, 0); // Làm tròn thời gian cho chính xác
 
-                // Điều kiện lọc: labelDate phải lớn hơn hoặc bằng filterDate
-                if (labelDate >= filterDate) {
-                    filteredLabels.push(originalLabels[i]);
-                    filteredSalesData.push(originalSalesData[i]);
-                    filteredInvoiceData.push(originalInvoiceData[i]);
+                    // So sánh ngày
+                    if (labelDate.getTime() >= filterDate.getTime()) {
+                        filteredLabels.push(originalLabels[i]);
+                        filteredSalesData.push(originalSalesData[i]);
+                        filteredInvoiceData.push(originalInvoiceData[i]);
+                        filteredRevenueData.push(originalRevenueData[i]);
+                    }
+                } else {
+                    console.warn("Lỗi định dạng ngày:", originalLabels[i]);
                 }
             }
-        } else if (startDate && endDate) { // Tùy chỉnh ngày
+        } else if (startDate && endDate) {  // Lọc theo ngày tùy chỉnh
             var start = new Date(startDate);
             var end = new Date(endDate);
+            start.setHours(0, 0, 0, 0); // Làm tròn xuống đầu ngày
+            end.setHours(23, 59, 59, 999); // Làm tròn lên cuối ngày
 
-            // Chuẩn hóa ngày bắt đầu và ngày kết thúc
-            start = normalizeDate(start);
-            end = normalizeDate(end);
+            console.log("Lọc từ ngày:", start, "đến ngày:", end);
 
             for (var i = 0; i < originalLabels.length; i++) {
-                var dateParts = originalLabels[i].split(' - '); // Chia ngày thành các phần
-                var labelDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); // Tạo đối tượng Date từ ngày trong label
-                labelDate = normalizeDate(labelDate); // Chuẩn hóa ngày trong label
+                var dateParts = originalLabels[i].split(' - ');
+                if (dateParts.length === 3) {
+                    var labelDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                    labelDate.setHours(0, 0, 0, 0); // Làm tròn thời gian cho chính xác
 
-                // Điều kiện lọc: labelDate phải trong khoảng start và end
-                if (labelDate >= start && labelDate <= end) {
-                    filteredLabels.push(originalLabels[i]);
-                    filteredSalesData.push(originalSalesData[i]);
-                    filteredInvoiceData.push(originalInvoiceData[i]);
+                    if (labelDate.getTime() >= start.getTime() && labelDate.getTime() <= end.getTime()) {
+                        filteredLabels.push(originalLabels[i]);
+                        filteredSalesData.push(originalSalesData[i]);
+                        filteredInvoiceData.push(originalInvoiceData[i]);
+                        filteredRevenueData.push(originalRevenueData[i]);
+                    }
+                } else {
+                    console.warn("Lỗi định dạng ngày:", originalLabels[i]);
                 }
             }
+        } else {
+            // Không có filter, reset về toàn bộ
+            filteredLabels = originalLabels.slice();
+            filteredSalesData = originalSalesData.slice();
+            filteredInvoiceData = originalInvoiceData.slice();
+            filteredRevenueData = originalRevenueData.slice();
+            console.log("Reset biểu đồ về dữ liệu gốc");
         }
 
-        // Cập nhật lại dữ liệu biểu đồ
+        console.log("Dữ liệu sau lọc:");
+        console.log("Labels:", filteredLabels);
+        console.log("Sales:", filteredSalesData);
+        console.log("Invoices:", filteredInvoiceData);
+        console.log("Revenue:", filteredRevenueData);
+
+        // Cập nhật dữ liệu cho biểu đồ
         myChart.data.labels = filteredLabels;
         myChart.data.datasets[0].data = filteredSalesData;
-        myChart.data.datasets[1].data = filteredInvoiceData;
         myChart.update();
     }
 </script>

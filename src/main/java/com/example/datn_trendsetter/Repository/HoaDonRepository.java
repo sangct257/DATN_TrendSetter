@@ -23,6 +23,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     @Query("select hd from HoaDon hd order by hd.id desc")
     List<HoaDon> getAllHoaDon();
 
+    List<HoaDon> findByTrangThaiNot(String trangThai,Sort sort);
+
     HoaDon findByMaHoaDon(String maHoaDon);
     boolean existsByMaHoaDon(String maHoaDon);
 
@@ -74,12 +76,20 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     @Query("SELECT SUM(h.tongTien) FROM HoaDon h WHERE h.ngayTao BETWEEN :startDate AND :endDate")
     Float sumTongTienByNgayTaoBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao), COUNT(hd) " +
+    @Query("SELECT YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao), COUNT(DISTINCT hd.id) " +
             "FROM HoaDon hd " +
-            "WHERE hd.trangThai = :trangThai " +
+            "JOIN LichSuThanhToan lst ON lst.hoaDon.id = hd.id " +
+            "WHERE hd.trangThai IN :trangThaiHoaDon " +
+            "AND lst.trangThai = :trangThaiThanhToan " +
+            "AND lst.thoiGianThanhToan IS NOT NULL " +
             "GROUP BY YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao) " +
             "ORDER BY YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao)")
-    List<Object[]> getInvoiceCountByDateMonthYear(@Param("trangThai") String trangThai);
+    List<Object[]> getInvoiceCountByDateMonthYear(
+            @Param("trangThaiThanhToan") String trangThaiThanhToan,
+            @Param("trangThaiHoaDon") List<String> trangThaiHoaDon);
+
+
+
 
 
     @Query("SELECT COUNT(hd) FROM HoaDon hd WHERE FUNCTION('MONTH', hd.ngayTao) = :month AND FUNCTION('YEAR', hd.ngayTao) = :year")
@@ -111,4 +121,5 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     List<HoaDon> findByKhachHang_Id(Integer khachHangId);
 
+    Integer countByTrangThaiNot(String trangThai);
 }

@@ -29,10 +29,27 @@
             <div class="box">
                 <div class="box-body">
                     <div class="box-body">
+
+                        <div class="d-flex justify-content-center gap-3 mb-3 p-3 border rounded-3 shadow-sm bg-light">
+                            <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill"
+                                    data-status="">
+                                Tất Cả (<span id="count-all">0</span>)
+                            </button>
+                            <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill"
+                                    data-status="Đang Hoạt Động">
+                                Đang Hoạt Động (<span id="count-active">0</span>)
+                            </button>
+                            <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill"
+                                    data-status="Ngừng Hoạt Động">
+                                Ngừng Hoạt Động (<span id="count-inactive">0</span>)
+                            </button>
+                        </div>
+
                         <!--Thêm Kích Thước-->
                         <div class="d-flex justify-content-end mb-3">
                             <!-- Nút mở modal Thêm Kích Thước -->
-                            <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalAddKichThuoc">
+                            <button class="btn btn-success fw-bold" data-bs-toggle="modal"
+                                    data-bs-target="#modalAddKichThuoc">
                                 <i class="bi bi-plus-lg"></i> Thêm Kích Thước
                             </button>
                         </div>
@@ -53,18 +70,12 @@
                                                 <label class="form-label">Tên Kích Thước</label>
                                                 <input type="text" class="form-control" id="tenKichThuoc" required>
                                             </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Trạng Thái</label>
-                                                <select class="form-select" id="trangThai">
-                                                    <option value="Đang Hoạt Động">Đang Hoạt Động</option>
-                                                    <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
-                                                </select>
-                                            </div>
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                        <button type="button" class="btn btn-success" onclick="saveKichThuoc()">Lưu</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                        </button>
+                                        <button type="button" class="btn btn-success" id="btnSaveKichThuoc">Lưu</button>
                                     </div>
                                 </div>
                             </div>
@@ -90,18 +101,20 @@
                                 <td class="text-center" th:text="${kichThuoc.maKichThuoc}"></td>
                                 <td class="text-center" th:text="${kichThuoc.tenKichThuoc}"></td>
                                 <td class="text-center">
-                                    <button th:class="${kichThuoc.trangThai == 'Đang Hoạt Động' ? 'badge bg-success' : 'badge bg-danger'}"
+                                    <button
+                                            class="badge btnChangeTrangThai"
+                                            th:classappend="${kichThuoc.trangThai == 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'}"
                                             th:text="${kichThuoc.trangThai}">
                                     </button>
                                 </td>
                                 <td class="text-center">
                                     <!-- Nút mở modal Chi Tiết -->
-                                    <button class="btn btn-primary btn-sm fw-bold me-2"
-                                            onclick="openKichThuocDetailModal(this)">
+                                    <button class="btn btn-primary btn-sm fw-bold me-2 btnOpenModalDetail"
+                                            id="btnOpenKichThuocDetail">
                                         <i class="bi bi-eye"></i> Chi Tiết
                                     </button>
 
-                                    <button class="btn btn-danger btn-sm fw-bold" onclick="deleteKichThuoc(this)">
+                                    <button class="btn btn-danger btn-sm fw-bold btnDeleteKichThuoc">
                                         <i class="bi bi-trash"></i> Xóa
                                     </button>
                                 </td>
@@ -110,7 +123,8 @@
                         </table>
 
                         <!-- Modal Chi Tiết Kích Thước -->
-                        <div class="modal fade" id="modalKichThuocDetail" tabindex="-1" aria-labelledby="kichThuocDetailLabel"
+                        <div class="modal fade" id="modalKichThuocDetail" tabindex="-1"
+                             aria-labelledby="kichThuocDetailLabel"
                              aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -124,20 +138,17 @@
                                             <input type="hidden" id="modalKichThuocId">
                                             <div class="mb-3">
                                                 <label class="form-label">Tên Kích Thước</label>
-                                                <input type="text" id="modalKichThuocName" class="form-control" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Trạng Thái</label>
-                                                <select id="modalKichThuocStatus" class="form-select">
-                                                    <option value="Đang Hoạt Động">Đang Hoạt Động</option>
-                                                    <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
-                                                </select>
+                                                <input type="text" id="modalKichThuocName" class="form-control"
+                                                       required>
                                             </div>
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                        <button type="button" class="btn btn-primary" onclick="updateKichThuoc()">Chỉnh Sửa</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                        </button>
+                                        <button type="button" class="btn btn-primary" id="btnUpdateKichThuoc">Chỉnh
+                                            Sửa
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -163,144 +174,240 @@
 <div th:replace="admin/fragments/script :: script"></div>
 
 <script>
-    // Hàm thêm kích thước
-    function saveKichThuoc() {
-        let tenKichThuoc = document.getElementById("tenKichThuoc").value;
-        let trangThai = document.getElementById("trangThai").value;
 
-        let data = {
-            tenKichThuoc: tenKichThuoc,
-            trangThai: trangThai
-        };
+    // Hàm cập nhật đếm số lượng kích thước theo trạng thái
+    function updateCount() {
+      const rows = document.querySelectorAll('#productTable tbody tr');  // Lấy tất cả các hàng trong bảng
+      let totalCount = 0;
+      let activeCount = 0;
+      let inactiveCount = 0;
 
-        fetch('/api/kich-thuoc/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.text())
-            .then(message => {
-                Swal.fire({
-                    icon: "success",
-                    title: "Thành công!",
-                    text: message,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => location.reload());
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: "error",
-                    title: "Lỗi!",
-                    text: "Lỗi khi thêm kích thước!",
-                });
-            });
-    }
+      rows.forEach(row => {
+          const statusButton = row.querySelector('td:nth-child(4) button');
+          const status = statusButton ? statusButton.textContent : '';
 
-    function deleteKichThuoc(button) {
-        let row = button.closest("tr");
-        let hiddenInput = row.querySelector("td input[type='hidden']");
+          // Cập nhật các biến đếm
+          totalCount++;
+          if (status === 'Đang Hoạt Động') {
+              activeCount++;
+          } else if (status === 'Ngừng Hoạt Động') {
+              inactiveCount++;
+          }
+      });
 
-        if (!hiddenInput) {
-            Swal.fire({
-                icon: "error",
-                title: "Lỗi!",
-                text: "Không tìm thấy ID kích thước!",
-            });
-            return;
-        }
+      // Cập nhật số liệu lên giao diện
+      document.getElementById('count-all').textContent = totalCount;
+      document.getElementById('count-active').textContent = activeCount;
+      document.getElementById('count-inactive').textContent = inactiveCount;
+  }
 
-        let kichThuocId = hiddenInput.value;
+  // Hàm lọc kích thước theo trạng thái
+  function filterKichThuoc(status) {
+      const rows = document.querySelectorAll('#productTable tbody tr');
+      rows.forEach(row => {
+          const statusButton = row.querySelector('td:nth-child(4) button');
+          const rowStatus = statusButton ? statusButton.textContent : '';
 
-        Swal.fire({
-            title: "Bạn có chắc chắn muốn xóa?",
-            text: "Hành động này không thể hoàn tác!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Xóa",
-            cancelButtonText: "Hủy"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/api/kich-thuoc/delete/${kichThuocId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                    .then(response => {
-                        if (!response.ok) throw new Error("Xóa thất bại!");
-                        return response.text();
-                    })
-                    .then(message => {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Đã xóa!",
-                            text: message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => row.remove());
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Lỗi!",
-                            text: error.message,
-                        });
-                    });
-            }
-        });
-    }
+          // Kiểm tra xem trạng thái có khớp với trạng thái lọc không
+          if (status === '' || rowStatus === status) {
+              row.style.display = '';  // Hiển thị hàng
+          } else {
+              row.style.display = 'none';  // Ẩn hàng
+          }
+      });
 
-    function updateKichThuoc() {
-        let kichThuocId = document.getElementById("modalKichThuocId").value;
-        let kichThuocName = document.getElementById("modalKichThuocName").value;
-        let kichThuocStatus = document.getElementById("modalKichThuocStatus").value;
+      // Cập nhật lại đếm sau khi lọc
+      updateCount();
+  }
 
-        let updatedKichThuoc = {
-            id: kichThuocId,
-            tenKichThuoc: kichThuocName,
-            trangThai: kichThuocStatus
-        };
+  // Thêm sự kiện click vào các nút lọc
+  document.querySelectorAll('.filter-btn').forEach(button => {
+      button.addEventListener('click', () => {
+          const status = button.getAttribute('data-status');
+          filterKichThuoc(status);
+      });
+  });
 
-        fetch('/api/kich-thuoc/update', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedKichThuoc)
-        })
-            .then(response => response.text())
-            .then(message => {
-                Swal.fire({
-                    icon: "success",
-                    title: "Cập nhật thành công!",
-                    text: message,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => location.reload());
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: "error",
-                    title: "Lỗi!",
-                    text: "Lỗi cập nhật!",
-                });
-            });
-    }
+  // Gọi updateCount khi trang được tải lần đầu
+  document.addEventListener('DOMContentLoaded', () => {
+      updateCount();  // Cập nhật lại số liệu khi trang được tải
+  });
+  document.addEventListener('DOMContentLoaded', function () {
 
-    function openKichThuocDetailModal(button) {
-        let row = button.closest("tr");
-        let kichThuocId = row.querySelector("td input[type='hidden']").value;
-        let kichThuocName = row.cells[2].innerText;
-        let kichThuocStatus = row.cells[3].innerText.trim();
+      // Thêm kích thước
+      function saveKichThuoc() {
+          let tenKichThuoc = document.getElementById("tenKichThuoc").value;
+          let data = { tenKichThuoc};
 
-        // Gán giá trị vào modal
-        document.getElementById("modalKichThuocId").value = kichThuocId;
-        document.getElementById("modalKichThuocName").value = kichThuocName;
-        document.getElementById("modalKichThuocStatus").value = kichThuocStatus;
+          Swal.fire({
+              title: "Đang thêm kích thước...",
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+          });
 
-        // Hiển thị modal
-        let modal = new bootstrap.Modal(document.getElementById("modalKichThuocDetail"));
-        modal.show();
-    }
+          fetch('/api/kich-thuoc/add', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+          })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      Swal.fire("Thành công!", data.message, "success").then(() => location.reload());
+                  } else {
+                      Swal.fire("Thất bại!", data.message, "warning");
+                  }
+              })
+              .catch(() => Swal.fire("Lỗi!", "Không thể thêm kích thước!", "error"));
+      }
+
+      // Xóa kích thước
+      function deleteKichThuoc(button) {
+          let row = button.closest("tr");
+          let hiddenInput = row.querySelector("td input[type='hidden']");
+          if (!hiddenInput) {
+              Swal.fire("Lỗi!", "Không tìm thấy ID!", "error");
+              return;
+          }
+
+          let kichThuocId = hiddenInput.value;
+
+          Swal.fire({
+              title: "Bạn có chắc chắn muốn xóa?",
+              text: "Hành động này không thể hoàn tác!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Xóa",
+              cancelButtonText: "Hủy"
+          }).then((result) => {
+              if (result.isConfirmed) {
+                  Swal.fire({
+                      title: "Đang xóa...",
+                      allowOutsideClick: false,
+                      didOpen: () => Swal.showLoading()
+                  });
+
+                  fetch(`/api/kich-thuoc/delete/${kichThuocId}`, {
+                      method: 'DELETE',
+                      headers: { 'Content-Type': 'application/json' }
+                  })
+                      .then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              Swal.fire("Đã xóa!", data.message, "success").then(() => row.remove());
+                          } else {
+                              Swal.fire("Lỗi!", data.message, "warning");
+                          }
+                      })
+                      .catch(() => Swal.fire("Lỗi!", "Không thể xóa kích thước!", "error"));
+              }
+          });
+      }
+
+      // Cập nhật kích thước
+      function updateKichThuoc() {
+          let id = document.getElementById("modalKichThuocId").value;
+          let tenKichThuoc = document.getElementById("modalKichThuocName").value;
+          let data = { id, tenKichThuoc };
+
+          Swal.fire({
+              title: "Đang cập nhật kích thước...",
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+          });
+
+          fetch('/api/kich-thuoc/update', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+          })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      Swal.fire("Thành công!", data.message, "success").then(() => location.reload());
+                  } else {
+                      Swal.fire("Thất bại!", data.message, "warning");
+                  }
+              })
+              .catch(() => Swal.fire("Lỗi!", "Cập nhật thất bại!", "error"));
+      }
+
+      // Cập nhật trạng thái
+      function updateTrangThai(button) {
+          let row = button.closest("tr");
+          let id = row.querySelector("td input[type='hidden']").value;
+          let currentTrangThai = button.innerText;
+          let newTrangThai = (currentTrangThai === 'Đang Hoạt Động') ? 'Ngừng Hoạt Động' : 'Đang Hoạt Động';
+
+          Swal.fire({
+              title: `Bạn có chắc muốn đổi trạng thái thành ${newTrangThai}?`,
+              text: "Hành động này sẽ thay đổi trạng thái kích thước.",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Đồng ý",
+              cancelButtonText: "Hủy"
+          }).then((result) => {
+              if (result.isConfirmed) {
+                  Swal.fire({
+                      title: "Đang cập nhật trạng thái...",
+                      allowOutsideClick: false,
+                      didOpen: () => Swal.showLoading()
+                  });
+
+                  fetch(`/api/kich-thuoc/update-trang-thai/${id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ trangThai: newTrangThai })
+                  })
+                      .then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              Swal.fire("Thành công!", data.message, "success").then(() => {
+                                  button.innerText = newTrangThai;
+                                  button.className = (newTrangThai === 'Đang Hoạt Động') ? 'badge bg-success' : 'badge bg-danger';
+                                  updateCount();  // Cập nhật lại số liệu khi trang được tải
+                              });
+                          } else {
+                              Swal.fire("Lỗi!", data.message, "warning");
+                          }
+                      })
+                      .catch(() => Swal.fire("Lỗi!", "Không thể cập nhật trạng thái!", "error"));
+              }
+          });
+      }
+
+      // Mở modal chi tiết
+      function openKichThuocDetailModal(button) {
+          let row = button.closest("tr");
+          let id = row.querySelector("td input[type='hidden']").value;
+          let tenKichThuoc = row.cells[2].innerText;
+
+          document.getElementById("modalKichThuocId").value = id;
+          document.getElementById("modalKichThuocName").value = tenKichThuoc;
+
+          let modal = new bootstrap.Modal(document.getElementById("modalKichThuocDetail"));
+          modal.show();
+      }
+
+      // Gán sự kiện
+      document.getElementById("btnSaveKichThuoc").addEventListener("click", saveKichThuoc);
+      document.getElementById("btnUpdateKichThuoc").addEventListener("click", updateKichThuoc);
+      document.querySelectorAll(".btnDeleteKichThuoc").forEach(button => {
+          button.addEventListener("click", function () {
+              deleteKichThuoc(this);
+          });
+      });
+      document.querySelectorAll(".btnChangeTrangThai").forEach(button => {
+          button.addEventListener("click", function () {
+              updateTrangThai(this);
+          });
+      });
+      document.querySelectorAll(".btnOpenModalDetail").forEach(button => {
+          button.addEventListener("click", function () {
+              openKichThuocDetailModal(this);
+          });
+      });
+  });
 </script>
 <!--Load table-->
 <script>

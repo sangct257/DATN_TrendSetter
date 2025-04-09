@@ -163,102 +163,152 @@ public class SanPhamAPIController {
 
 
     @PutMapping("/update-product-details")
-    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request, HttpSession session) throws Exception {
-        Map<Integer, SanPhamChiTietDTO> idProductAndProduct = request.stream().collect(Collectors.toMap(SanPhamChiTietDTO::getId, Function.identity()));
-        List<Integer> idProductDetails = request.stream().map(SanPhamChiTietDTO::getId).toList();
+    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request, HttpSession session) {
+        Map<String, String> response = new HashMap<>();
 
-        List<SanPhamChiTiet> sanPhamChiTiets = sanPhamChiTietRepository.findAllByIdIn(idProductDetails);
-        if (sanPhamChiTiets.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vui lòng chọn sản phẩm chi tiết");
-        }
-
-        // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
-        if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập.");
-        }
-
-        // Kiểm tra số lượng trước khi cập nhật
-        for (SanPhamChiTietDTO sanPhamChiTietDTO : request) {
-            if (sanPhamChiTietDTO.getSoLuong() < 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Số lượng sản phẩm chi tiết không thể nhỏ hơn 0.");
+        try {
+            if (request == null || request.isEmpty()) {
+                response.put("status", "warning");
+                response.put("message", "Danh sách sản phẩm không được để trống.");
+                return ResponseEntity.badRequest().body(response);
             }
-        }
 
-        // Cập nhật sản phẩm chi tiết
-        sanPhamChiTiets.forEach(sanPhamChiTiet -> {
-            SanPhamChiTietDTO sanPhamChiTietDTO = idProductAndProduct.getOrDefault(sanPhamChiTiet.getId(), null);
-            if (ObjectUtils.isNotEmpty(sanPhamChiTietDTO)) {
-                sanPhamChiTiet.setSoLuong(sanPhamChiTietDTO.getSoLuong());
-                sanPhamChiTiet.setGia(sanPhamChiTietDTO.getGia().floatValue());
-                sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
-                sanPhamChiTiet.setTrangThai(sanPhamChiTietDTO.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
-                sanPhamChiTiet.setNgaySua(LocalDate.now());
+            Map<Integer, SanPhamChiTietDTO> idProductAndProduct = request.stream()
+                    .collect(Collectors.toMap(SanPhamChiTietDTO::getId, Function.identity()));
+            List<Integer> idProductDetails = request.stream().map(SanPhamChiTietDTO::getId).toList();
+
+            List<SanPhamChiTiet> sanPhamChiTiets = sanPhamChiTietRepository.findAllByIdIn(idProductDetails);
+            if (sanPhamChiTiets.isEmpty()) {
+                response.put("status", "warning");
+                response.put("message", "Không tìm thấy sản phẩm chi tiết tương ứng.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-        });
 
-        sanPhamChiTietRepository.saveAll(sanPhamChiTiets);
-        capNhatSoLuongTonKhoSanPham(sanPhamChiTiets.get(0).getSanPham());
-        return response("Cập nhật chi tiết sản phẩm thành công!", true);
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+            if (nhanVienSession == null) {
+                response.put("status", "error");
+                response.put("message", "Bạn cần đăng nhập để thực hiện thao tác này.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            for (SanPhamChiTietDTO dto : request) {
+                if (dto.getSoLuong() < 0) {
+                    response.put("status", "warning");
+                    response.put("message", "Số lượng sản phẩm không thể nhỏ hơn 0.");
+                    return ResponseEntity.badRequest().body(response);
+                }
+                if (dto.getGia() < 1000) {
+                    response.put("status", "warning");
+                    response.put("message", "Giá sản phẩm không thể nhỏ hơn 1000.");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            }
+
+            sanPhamChiTiets.forEach(spct -> {
+                SanPhamChiTietDTO dto = idProductAndProduct.get(spct.getId());
+                if (dto != null) {
+                    spct.setSoLuong(dto.getSoLuong());
+                    spct.setGia(dto.getGia().floatValue());
+                    spct.setNguoiSua(nhanVienSession.getHoTen());
+                    spct.setTrangThai(dto.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+                    spct.setNgaySua(LocalDate.now());
+                }
+            });
+
+            sanPhamChiTietRepository.saveAll(sanPhamChiTiets);
+            capNhatSoLuongTonKhoSanPham(sanPhamChiTiets.get(0).getSanPham());
+
+            response.put("status", "success");
+            response.put("message", "Cập nhật chi tiết sản phẩm thành công!");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
+
     @PutMapping("/update")
-    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request, HttpSession session) throws Exception {
-        // Kiểm tra số lượng không được nhỏ hơn 0
-        if (request.getSoLuong() < 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Số lượng sản phẩm không thể nhỏ hơn 0.");
+    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request, HttpSession session) {
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            if (request.getSoLuong() < 0) {
+                response.put("status", "warning");
+                response.put("message", "Số lượng sản phẩm không thể nhỏ hơn 0.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (request.getGia() < 1000) {
+                response.put("status", "warning");
+                response.put("message", "Giá sản phẩm không thể nhỏ hơn 1000.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            SanPhamChiTiet spct = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
+            if (spct == null) {
+                response.put("status", "warning");
+                response.put("message", "Chi tiết sản phẩm không tồn tại!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+            if (nhanVienSession == null) {
+                response.put("status", "error");
+                response.put("message", "Bạn cần đăng nhập.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            spct.setSoLuong(request.getSoLuong());
+            spct.setGia(request.getGia().floatValue());
+            spct.setNguoiSua(nhanVienSession.getHoTen());
+            spct.setTrangThai(request.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+            spct.setNgaySua(LocalDate.now());
+            sanPhamChiTietRepository.save(spct);
+
+            capNhatSoLuongTonKhoSanPham(spct.getSanPham());
+
+            response.put("status", "success");
+            response.put("message", "Cập nhật chi tiết sản phẩm thành công!");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
-        if (sanPhamChiTiet == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
-        }
-
-        // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
-        if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập.");
-        }
-
-        // Cập nhật thông tin chi tiết sản phẩm
-        sanPhamChiTiet.setSoLuong(request.getSoLuong());
-        sanPhamChiTiet.setGia(request.getGia().floatValue());
-        sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
-        sanPhamChiTiet.setTrangThai(request.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
-        sanPhamChiTiet.setNgaySua(LocalDate.now());
-        sanPhamChiTietRepository.save(sanPhamChiTiet);
-
-        // Cập nhật tồn kho sản phẩm chính
-        capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
-        return ResponseEntity.ok("Cập nhật chi tiết sản phẩm thành công!");
     }
 
     @Transactional
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteSPCT(@PathVariable("id") Integer id) {
-        // Kiểm tra xem sản phẩm chi tiết có tồn tại không
+        Map<String, String> response = new HashMap<>();
+
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(id).orElse(null);
         if (sanPhamChiTiet == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
+            response.put("status", "warning");
+            response.put("message", "Chi tiết sản phẩm không tồn tại!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        // Kiểm tra xem sản phẩm chi tiết có trong hóa đơn chi tiết không
         boolean existsInHoaDonChiTiet = hoaDonChiTietRepository.existsBySanPhamChiTiet(sanPhamChiTiet);
         if (existsInHoaDonChiTiet) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không thể xóa sản phẩm đang được thống kê!");
+            response.put("status", "warning");
+            response.put("message", "Không thể xóa sản phẩm đang được thống kê!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
-        // Xóa hình ảnh liên quan đến sản phẩm chi tiết trước
         hinhAnhRepository.deleteBySanPhamChiTiet(sanPhamChiTiet);
-
-        // Xóa sản phẩm chi tiết
         sanPhamChiTietRepository.deleteById(id);
-
-        // Cập nhật số lượng tồn kho cho sản phẩm
         capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
 
-        return ResponseEntity.ok("Xóa sản phẩm chi tiết thành công!");
+        response.put("status", "success");
+        response.put("message", "Xóa sản phẩm chi tiết thành công!");
+        return ResponseEntity.ok(response);
     }
+
 
     private void capNhatSoLuongTonKhoSanPham(SanPham sanPham) {
         List<SanPhamChiTiet> listSanPhamChiTiet = sanPhamChiTietRepository.findBySanPham(sanPham);

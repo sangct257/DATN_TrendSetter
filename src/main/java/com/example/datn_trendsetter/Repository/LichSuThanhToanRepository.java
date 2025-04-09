@@ -18,4 +18,19 @@ public interface LichSuThanhToanRepository extends JpaRepository<LichSuThanhToan
     float sumSoTienThanhToanByHoaDon(@Param("hoaDonId") Integer hoaDonId);
 
     @Query("SELECT SUM(l.soTienThanhToan) FROM LichSuThanhToan l WHERE l.hoaDon.id = :hoaDonId")
-    Optional<Float> sumSoTienThanhToanByHoaDonId(@Param("hoaDonId") Integer hoaDonId);}
+    Optional<Float> sumSoTienThanhToanByHoaDonId(@Param("hoaDonId") Integer hoaDonId);
+
+    @Query("SELECT YEAR(lst.thoiGianThanhToan), MONTH(lst.thoiGianThanhToan), DAY(lst.thoiGianThanhToan), SUM(lst.soTienThanhToan) " +
+            "FROM LichSuThanhToan lst " +
+            "JOIN lst.hoaDon hd " +
+            "WHERE lst.trangThai = :trangThaiThanhToan AND hd.trangThai IN :trangThaiHoaDon " +
+            "GROUP BY YEAR(lst.thoiGianThanhToan), MONTH(lst.thoiGianThanhToan), DAY(lst.thoiGianThanhToan) " +
+            "ORDER BY YEAR(lst.thoiGianThanhToan), MONTH(lst.thoiGianThanhToan), DAY(lst.thoiGianThanhToan)")
+    List<Object[]> getTotalRevenueByDateMonthYear(
+            @Param("trangThaiThanhToan") String trangThaiThanhToan,
+            @Param("trangThaiHoaDon") List<String> trangThaiHoaDon
+    );
+
+
+
+}

@@ -32,7 +32,7 @@ public class DonHangClientController {
         // Kiểm tra xem session có chứa thông tin KhachHang hay không
         if (session.getAttribute("userKhachHang") == null) {
             // Nếu chưa đăng nhập, chuyển hướng về trang chủ
-            return "User/trangChuClient";// Đường dẫn trang chủ (hoặc trang login nếu cần)
+            return "redirect:/trang-chu";  // Đảm bảo sử dụng 'redirect:' đúng cách
         }
 
         // Nếu đã đăng nhập, trả về trang DonHangClient

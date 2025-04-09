@@ -1,7 +1,9 @@
 package com.example.datn_trendsetter.API;
 
 
+import com.example.datn_trendsetter.Entity.ChatLieu;
 import com.example.datn_trendsetter.Entity.NhanVien;
+import com.example.datn_trendsetter.Entity.ThuongHieu;
 import com.example.datn_trendsetter.Entity.XuatXu;
 import com.example.datn_trendsetter.Repository.XuatXuRepository;
 import jakarta.servlet.http.HttpSession;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,66 +25,213 @@ public class XuatXuApiController {
     private XuatXuRepository xuatXuRepository;
 
     @PostMapping("add")
-    public ResponseEntity<String> add(@RequestBody XuatXu xuatXuRequest, HttpSession session) throws Exception {
-        // Kiểm tra xem thương hiệu đã tồn tại chưa
-        boolean exists = xuatXuRepository.existsByQuocGia(xuatXuRequest.getQuocGia());
+    public ResponseEntity<?> add(@RequestBody XuatXu xuatXuRequest, HttpSession session) {
+        try {
+            // Kiểm tra xem thương hiệu đã tồn tại chưa
+            boolean exists = xuatXuRepository.existsByQuocGia(xuatXuRequest.getQuocGia());
+            if (exists) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                        "success", false,
+                        "message", "Quốc gia đã tồn tại"
+                ));
+            }
 
-        if (exists) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên quốc gia đã tồn tại");
+            if (xuatXuRequest.getQuocGia().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Quốc gia không được để trống"
+                ));
+            }
+
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+            if (nhanVienSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "success", false,
+                        "message", "Bạn cần đăng nhập"
+                ));
+            }
+
+
+            // Nếu chưa tồn tại, tạo mới
+            XuatXu xuatXu= new XuatXu();
+            xuatXu.setMaXuatXu("XX-" + UUID.randomUUID().toString().substring(0, 8)); // Sinh mã ngẫu nhiên
+            xuatXu.setQuocGia(xuatXuRequest.getQuocGia());
+            xuatXu.setNgayTao(LocalDate.now());
+            xuatXu.setNgaySua(LocalDate.now());
+            xuatXu.setNguoiTao(nhanVienSession.getHoTen());
+            xuatXu.setNguoiSua(nhanVienSession.getHoTen());
+            xuatXu.setDeleted(false);
+            xuatXu.setTrangThai("Đang Hoạt Động");
+
+            xuatXuRepository.save(xuatXu);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Thêm xuất xứ thành công",
+                    "xuatXu", Map.of(
+                            "maXuatXu", xuatXu.getMaXuatXu(),
+                            "quocGia", xuatXu.getQuocGia(),
+                            "trangThai", xuatXu.getTrangThai(),
+                            "ngayTao", xuatXu.getNgayTao(),
+                            "nguoiTao", xuatXu.getNguoiTao()
+                    )
+            ));
+        } catch (Exception e)  {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Đã xảy ra lỗi: " + e.getMessage()
+            ));
         }
-
-        // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
-        if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập.");
-        }
-
-        // Nếu chưa tồn tại, tạo mới
-        XuatXu xuatXu= new XuatXu();
-        xuatXu.setMaXuatXu("XX-" + UUID.randomUUID().toString().substring(0, 8)); // Sinh mã ngẫu nhiên
-        xuatXu.setQuocGia(xuatXuRequest.getQuocGia());
-        xuatXu.setNgayTao(LocalDate.now());
-        xuatXu.setNgaySua(LocalDate.now());
-        xuatXu.setNguoiTao(nhanVienSession.getHoTen());
-        xuatXu.setNguoiSua(nhanVienSession.getHoTen());
-        xuatXu.setDeleted(false);
-        xuatXu.setTrangThai(xuatXuRequest.getTrangThai());
-
-        xuatXuRepository.save(xuatXu);
-        return ResponseEntity.ok("Thêm xuất xứ thành công");
     }
 
 
     @PutMapping("update")
-    public ResponseEntity<String> update(@RequestBody XuatXu updatedXuatXu,HttpSession session) throws Exception {
-        XuatXu xuatXu = xuatXuRepository.findById(updatedXuatXu.getId()).orElse(null);
-        // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
-        if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập.");
-        }
-        if (xuatXu != null) {
-            xuatXu.setMaXuatXu(xuatXu.getMaXuatXu());
+    public ResponseEntity<?> update(@RequestBody XuatXu updatedXuatXu,HttpSession session) {
+        try {
+
+            boolean exists = xuatXuRepository.existsByQuocGia(updatedXuatXu.getQuocGia());
+            if (exists) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                        "success", false,
+                        "message", "Quốc gia đã tồn tại"
+                ));
+            }
+
+            if (updatedXuatXu.getQuocGia().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Quốc gia không được để trống"
+                ));
+            }
+
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+            if (nhanVienSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "success", false,
+                        "message", "Bạn cần đăng nhập"
+                ));
+            }
+
+            // Tìm xuất xứ theo ID
+            XuatXu xuatXu = xuatXuRepository.findById(updatedXuatXu.getId()).orElse(null);
+            if (xuatXu == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "success", false,
+                        "message", "Không tìm thấy xuất xứ"
+                ));
+            }
+
+            // Cập nhật dữ liệu
             xuatXu.setQuocGia(updatedXuatXu.getQuocGia());
-            xuatXu.setNgayTao(xuatXu.getNgayTao());
-            xuatXu.setNgaySua(LocalDate.now());
+            xuatXu.setTrangThai("Đang Hoạt Động");
             xuatXu.setNguoiSua(nhanVienSession.getHoTen());
-            xuatXu.setTrangThai(updatedXuatXu.getTrangThai());
-            xuatXu.setDeleted(xuatXu.getDeleted());
+            xuatXu.setNgaySua(LocalDate.now());
+
             xuatXuRepository.save(xuatXu);
-            return ResponseEntity.ok("Cập nhật thành công");
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cập nhật xuất xứ thành công",
+                    "xuatXu", Map.of(
+                            "id", xuatXu.getId(),
+                            "quocGia", xuatXu.getQuocGia(),
+                            "trangThai", xuatXu.getTrangThai(),
+                            "ngaySua", xuatXu.getNgaySua(),
+                            "nguoiSua", xuatXu.getNguoiSua()
+                    )
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Đã xảy ra lỗi: " + e.getMessage()
+            ));
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy danh mục");
     }
 
     @DeleteMapping("delete/{id}")
-    public ResponseEntity<String> delete(@PathVariable Integer id) {
-        Optional<XuatXu> xuatXu = xuatXuRepository.findById(id);
-        if (xuatXu.isPresent()) {
-            xuatXuRepository.deleteById(id);
-            return ResponseEntity.ok("Xóa xuất xứ thành công");
+    public ResponseEntity<?> delete(@PathVariable Integer id,HttpSession session) {
+        try {
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+            if (nhanVienSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "success", false,
+                        "message", "Bạn cần đăng nhập"
+                ));
+            }
+
+            // Tìm thương hiệu theo ID
+            Optional<XuatXu> optionalXuatXu = xuatXuRepository.findById(id);
+            if (optionalXuatXu.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "success", false,
+                        "message", "Không tìm thấy xuất xứ"
+                ));
+            }
+
+            // Xóa mềm
+            XuatXu xuatXu = optionalXuatXu.get();
+            xuatXu.setTrangThai("Ngừng Hoạt Động");
+            xuatXu.setDeleted(true);
+            xuatXu.setNgaySua(LocalDate.now());
+            xuatXu.setNguoiSua(nhanVienSession.getHoTen());
+
+            xuatXuRepository.save(xuatXu);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Xóa xuất xứ thành công (đã đánh dấu là deleted)"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Đã xảy ra lỗi: " + e.getMessage()
+            ));
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy xuất xứ");
     }
 
+    @PutMapping("update-trang-thai/{id}")
+    public ResponseEntity<?> updateTrangThai(@PathVariable Integer id, @RequestBody Map<String, String> request, HttpSession session) {
+        try {
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+            if (nhanVienSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "success", false,
+                        "message", "Bạn cần đăng nhập"
+                ));
+            }
+
+            // Tìm thương hiệu theo ID
+            Optional<XuatXu> optionalXuatXu = xuatXuRepository.findById(id);
+            if (optionalXuatXu.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "success", false,
+                        "message", "Không tìm thấy quốc gia"
+                ));
+            }
+
+            XuatXu xuatXu = optionalXuatXu.get();
+            String newTrangThai = request.get("trangThai");
+
+            // Cập nhật trạng thái
+            xuatXu.setTrangThai(newTrangThai);
+            xuatXu.setNgaySua(LocalDate.now());
+            xuatXu.setNguoiSua(nhanVienSession.getHoTen());
+
+            xuatXuRepository.save(xuatXu);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cập nhật trạng thái thành công"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Đã xảy ra lỗi: " + e.getMessage()
+            ));
+        }
+    }
 }
