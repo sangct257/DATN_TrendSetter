@@ -1,7 +1,9 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.ThuongHieu;
 import com.example.datn_trendsetter.Repository.ThuongHieuRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +22,7 @@ public class ThuongHieuApiController {
     private ThuongHieuRepository thuongHieuRepository;
 
     @PostMapping("add")
-    public ResponseEntity<String> addThuongHieu(@RequestBody ThuongHieu thuongHieuRequest) {
+    public ResponseEntity<String> addThuongHieu(@RequestBody ThuongHieu thuongHieuRequest, HttpSession session) throws Exception {
         // Kiểm tra xem thương hiệu đã tồn tại chưa
         boolean exists = thuongHieuRepository.existsByTenThuongHieu(thuongHieuRequest.getTenThuongHieu());
 
@@ -28,29 +30,40 @@ public class ThuongHieuApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên thương hiệu đã tồn tại");
         }
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
         // Nếu chưa tồn tại, tạo mới
         ThuongHieu thuongHieu = new ThuongHieu();
         thuongHieu.setMaThuongHieu("TH-" + UUID.randomUUID().toString().substring(0, 8)); // Sinh mã ngẫu nhiên
         thuongHieu.setTenThuongHieu(thuongHieuRequest.getTenThuongHieu());
         thuongHieu.setNgayTao(LocalDate.now());
         thuongHieu.setNgaySua(LocalDate.now());
-        thuongHieu.setNguoiTao("admin");
-        thuongHieu.setNguoiSua("admin");
+        thuongHieu.setNguoiTao(nhanVienSession.getHoTen());
+        thuongHieu.setNguoiSua(nhanVienSession.getHoTen());
         thuongHieu.setTrangThai(thuongHieuRequest.getTrangThai());
-
+        thuongHieu.setDeleted(false);
         thuongHieuRepository.save(thuongHieu);
         return ResponseEntity.ok("Thêm thương hiệu thành công");
     }
 
 
     @PutMapping("update")
-    public ResponseEntity<String> updateThuongHieu(@RequestBody ThuongHieu updatedBrand) {
+    public ResponseEntity<String> updateThuongHieu(@RequestBody ThuongHieu updatedBrand,HttpSession session) throws Exception {
         ThuongHieu thuongHieu = thuongHieuRepository.findById(updatedBrand.getId()).orElse(null);
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
         if (thuongHieu != null) {
             thuongHieu.setTenThuongHieu(updatedBrand.getTenThuongHieu()); // Cập nhật tên
+            thuongHieu.setNguoiTao(nhanVienSession.getHoTen());
             thuongHieu.setTrangThai(updatedBrand.getTrangThai()); // Cập nhật trạng thái
             thuongHieu.setNgaySua(LocalDate.now()); // Cập nhật ngày sửa
-
             thuongHieuRepository.save(thuongHieu);
             return ResponseEntity.ok("Cập nhật thương hiệu thành công");
         }

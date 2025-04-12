@@ -21,12 +21,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 @Service
 public class ShopService {
     private static final Set<String> ALLOWED_ROLES = Set.of("ADMIN", "NHANVIEN");
     private static final Map<Long, Lock> USER_LOCKS = new ConcurrentHashMap<>();
     private static final long SESSION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(30);
+
     @Autowired
     private HoaDonChiTietService hoaDonChiTietService;
 
@@ -77,53 +79,63 @@ public class ShopService {
             throw new Exception("Dữ liệu hóa đơn không được để trống.");
         }
 
+        // Kiểm tra nhân viên
         Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(nhanVienId);
         if (nhanVienOpt.isEmpty()) {
             throw new Exception("Không tìm thấy thông tin nhân viên");
         }
-
         NhanVien nhanVien = nhanVienOpt.get();
 
+        // Gán thông tin nhân viên vào hóa đơn
         hoaDon.setNhanVien(nhanVien);
         hoaDon.setNguoiTao(nhanVien.getHoTen());
         hoaDon.setNguoiSua(nhanVien.getHoTen());
 
+        // Nếu khách hàng chưa có ID -> Lưu vào DB trước
         if (hoaDon.getKhachHang() != null && hoaDon.getKhachHang().getId() == null) {
             KhachHang khachHang = khachHangRepository.save(hoaDon.getKhachHang());
             hoaDon.setKhachHang(khachHang);
         }
 
+        // Giới hạn số hóa đơn đang xử lý
         long countDangXuLy = hoaDonRepository.countByTrangThai("Đang xử lý");
         if (countDangXuLy >= 3) {
             throw new Exception("Đã đạt giới hạn 3 hóa đơn đang xử lý");
         }
 
+        // Kiểm tra và tạo phương thức thanh toán mặc định nếu chưa có
+        List<PhuongThucThanhToan> paymentMethods = createDefaultPaymentMethods(nhanVienId);
+
+        // Gán phương thức thanh toán mặc định là "Tiền Mặt"
+        if (!paymentMethods.isEmpty()) {
+            hoaDon.setPhuongThucThanhToan(paymentMethods.get(0)); // Chọn phương thức đầu tiên
+        }
+
+        // Thiết lập thông tin hóa đơn
         hoaDon.setLoaiHoaDon("Tại Quầy");
         hoaDon.setTrangThai("Đang Xử Lý");
         hoaDon.setNgayTao(LocalDateTime.now());
 
+        // Lưu hóa đơn
         hoaDon = hoaDonRepository.save(hoaDon);
 
+        // Tạo mã hóa đơn duy nhất
         hoaDon.setMaHoaDon(generateUniqueMaHoaDon());
+
+        // Lưu lịch sử hóa đơn
+        saveLichSuHoaDon(hoaDon, nhanVienId);
 
         return hoaDonRepository.save(hoaDon);
     }
 
-
-    private void createDefaultPaymentMethods(HttpSession session) throws Exception {
+    private List<PhuongThucThanhToan> createDefaultPaymentMethods(Integer nhanVienId) throws Exception {
         List<String> existingMethods = phuongThucThanhToanRepository.findAll().stream()
                 .map(PhuongThucThanhToan::getTenPhuongThuc)
                 .toList();
 
         List<PhuongThucThanhToan> newMethods = new ArrayList<>();
 
-        // Lấy nhân viên từ session (đã sửa)
-        UserDetails userDetails = (UserDetails) session.getAttribute("user");
-        if (userDetails == null || !"NHANVIEN".equals(userDetails.getUserType())) {
-            throw new Exception("Bạn cần đăng nhập với tư cách nhân viên để tạo phương thức thanh toán");
-        }
-
-        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(userDetails.getId());
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(nhanVienId);
         if (nhanVienOpt.isEmpty()) {
             throw new Exception("Không tìm thấy thông tin nhân viên");
         }
@@ -141,6 +153,9 @@ public class ShopService {
         if (!newMethods.isEmpty()) {
             phuongThucThanhToanRepository.saveAll(newMethods);
         }
+
+        // Lấy lại danh sách phương thức thanh toán để trả về
+        return phuongThucThanhToanRepository.findAll();
     }
 
     private String generateUniqueMaHoaDon() {
@@ -153,14 +168,9 @@ public class ShopService {
         return maHoaDon;
     }
 
-    private void saveLichSuHoaDon(HoaDon hoaDon, HttpSession session) throws Exception {
-        // Lấy nhân viên từ session (đã sửa)
-        UserDetails userDetails = (UserDetails) session.getAttribute("user");
-        if (userDetails == null || !"NHANVIEN".equals(userDetails.getUserType())) {
-            throw new Exception("Bạn cần đăng nhập với tư cách nhân viên để lưu lịch sử hóa đơn");
-        }
+    private void saveLichSuHoaDon(HoaDon hoaDon,Integer nhanVienId) throws Exception {
 
-        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(userDetails.getId());
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findById(nhanVienId);
         if (nhanVienOpt.isEmpty()) {
             throw new Exception("Không tìm thấy thông tin nhân viên");
         }
@@ -180,6 +190,7 @@ public class ShopService {
 
         lichSuHoaDonRepository.save(lichSu);
     }
+
     @Transactional
     public void deleteHoaDon(Integer hoaDonId) {
         try {
@@ -289,10 +300,18 @@ public class ShopService {
         List<KichThuoc> kichThuocs = kichThuocRepository.findAll();
         model.addAttribute("danhSachKichThuoc", kichThuocs);
 
-        // Lấy danh sách sản phẩm duy nhất và trộn ngẫu nhiên
-        List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>(uniqueSanPhamMap.values());
-        Collections.shuffle(uniqueSanPhamChiTiet);
-        model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
+        // ✅ Lọc danh sách sản phẩm chi tiết Còn Hàng và có sản phẩm chính Đang Hoạt Động
+        List<SanPhamChiTiet> filteredSanPhamChiTiet = uniqueSanPhamMap.values().stream()
+                .filter(spct -> "Còn Hàng".equals(spct.getTrangThai())
+                        && "Đang Hoạt Động".equals(spct.getSanPham().getTrangThai()))
+                .collect(Collectors.toList());
+
+        // ✅ Trộn ngẫu nhiên danh sách sản phẩm đã lọc
+        Collections.shuffle(filteredSanPhamChiTiet);
+
+        // ✅ Đưa danh sách vào model
+        model.addAttribute("sanPhamChiTiet", filteredSanPhamChiTiet);
+
 
         // Lấy danh sách khách hàng và phương thức thanh toán
         Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
@@ -579,11 +598,6 @@ public class ShopService {
             throw new RuntimeException("Điều kiện phiếu giảm giá không thỏa mãn.");
         }
 
-        if ("Giao Hàng".equalsIgnoreCase(phieuGiamGiaMoi.getLoaiApDung()) &&
-                !"Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
-            throw new RuntimeException("Phiếu giảm giá chỉ áp dụng cho đơn hàng giao hàng.");
-        }
-
         // Gán phiếu giảm giá mới cho hóa đơn
         hoaDon.setPhieuGiamGia(phieuGiamGiaMoi);
         float phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : 0F;
@@ -712,8 +726,6 @@ public class ShopService {
         }
     }
 
-
-
     private void saveLichSuThanhToan(HoaDon hoaDon, Float soTien) {
         NhanVien nhanVien = hoaDon.getNhanVien();
 
@@ -741,9 +753,8 @@ public class ShopService {
         return "GD" + timePart + randomPart; // VD: GD20240321123045123456
     }
 
-
-
     private void saveLichSuHoaDon(HoaDon hoaDon, String hanhDong) {
+
         LichSuHoaDon lichSuHoaDon = new LichSuHoaDon();
         lichSuHoaDon.setHoaDon(hoaDon);
         lichSuHoaDon.setKhachHang(hoaDon.getKhachHang());
@@ -755,6 +766,7 @@ public class ShopService {
         lichSuHoaDon.setGhiChu("Hóa đơn: " + hoaDon.getMaHoaDon() + " - " + hanhDong);
         lichSuHoaDonRepository.save(lichSuHoaDon);
     }
+
 
     public Map<String, String> addNewCustomer(Integer hoaDonId, String nguoiNhan, String soDienThoai) {
         Map<String, String> response = new HashMap<>();

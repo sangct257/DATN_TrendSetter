@@ -34,9 +34,6 @@ public class LichSuHoaDonApiController {
     private HoaDonChiTietService hoaDonChiTietService;
 
     @Autowired
-    private PhieuGiamGiaRepository phieuGiamGiaRepository;
-
-    @Autowired
     private LichSuThanhToanRepository lichSuThanhToanRepository;
 
     @Autowired
@@ -52,11 +49,19 @@ public class LichSuHoaDonApiController {
     private ResponseEntity<?> thayDoiTrangThaiHoaDon(Integer hoaDonId, String trangThai, String ghiChu,HttpSession session) throws Exception {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
+
+            // Lấy nhân viên từ session
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+            if (nhanVienSession == null) {
+                throw new Exception("Bạn cần đăng nhập.");
+            }
+
+
             HoaDon hoaDon = optionalHoaDon.get();
             hoaDon.setTrangThai(trangThai);
-            hoaDon.setNhanVien(hoaDon.getNhanVien());
-            hoaDon.setNguoiTao(hoaDon.getNhanVien().getHoTen());
-            hoaDon.setNguoiSua(hoaDon.getNhanVien().getHoTen());
+            hoaDon.setNhanVien(nhanVienSession);
+            hoaDon.setNguoiTao(nhanVienSession.getHoTen());
+            hoaDon.setNguoiSua(nhanVienSession.getHoTen());
             hoaDonRepository.save(hoaDon);
             luuLichSuHoaDon(hoaDon, trangThai, ghiChu,session);
             return response("Hóa đơn đã được cập nhật trạng thái: " + trangThai, true);
@@ -67,9 +72,9 @@ public class LichSuHoaDonApiController {
     private void luuLichSuHoaDon(HoaDon hoaDon, String hanhDong, String ghiChu,HttpSession session) throws Exception {
 
         // Lấy nhân viên từ session
-        NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
         if (nhanVienSession == null) {
-            throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+            throw new Exception("Bạn cần đăng nhập.");
         }
 
         LichSuHoaDon lichSu = new LichSuHoaDon();
@@ -77,10 +82,11 @@ public class LichSuHoaDonApiController {
         lichSu.setHanhDong(hanhDong);
         lichSu.setKhachHang(hoaDon.getKhachHang());
         lichSu.setNgayTao(LocalDateTime.now());
-        lichSu.setNhanVien(hoaDon.getNhanVien());
+        lichSu.setNhanVien(nhanVienSession);
         lichSu.setNguoiTao(nhanVienSession.getHoTen());
         lichSu.setNguoiTao(nhanVienSession.getHoTen());
         lichSu.setGhiChu(ghiChu);
+        lichSu.setDeleted(false);
         lichSuHoaDonRepository.save(lichSu);
     }
 
@@ -124,9 +130,9 @@ public class LichSuHoaDonApiController {
 
 
             // Lấy nhân viên từ session
-            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
-                throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+                throw new Exception("Bạn cần đăng nhập.");
             }
 
             // Nếu chưa thanh toán đủ, xử lý thanh toán phần còn thiếu
@@ -227,20 +233,11 @@ public class LichSuHoaDonApiController {
         // Lấy danh sách chi tiết hóa đơn theo hoaDonId
         List<HoaDonChiTiet> danhSachChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
 
-        // Tìm hóa đơn theo ID
-        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
-                .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
 
         if (danhSachChiTiet.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("errorMessage", "Không tìm thấy chi tiết hóa đơn!"));
         }
 
-        // Hoàn trả số lượt sử dụng của phiếu giảm giá nếu hóa đơn có sử dụng
-        if (hoaDon.getPhieuGiamGia() != null) {
-            PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
-            phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
-            phieuGiamGiaRepository.save(phieuGiamGia);
-        }
 
         // Hoàn trả lại số lượng sản phẩm
         for (HoaDonChiTiet hoaDonChiTiet : danhSachChiTiet) {

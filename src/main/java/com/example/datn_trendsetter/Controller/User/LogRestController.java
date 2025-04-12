@@ -6,15 +6,14 @@ import com.example.datn_trendsetter.DTO.RegisterRequest;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Service.AuthService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -70,19 +69,18 @@ public class LogRestController {
 
     // Đăng nhập Nhân viên
     @PostMapping("/nhanvien/login")
-    public ResponseEntity<?> loginNhanVien(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<?> loginNhanVien(@RequestBody LoginRequest request, HttpSession session, HttpServletResponse response) {
         try {
             request.setLoaiTaiKhoan("NHANVIEN");
-            AuthResponse response = authService.login(request, session);
+            AuthResponse authResponse = authService.login(request, session, response);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "redirect", response.getRedirectUrl(),
-                    "user", response.getUserDetails(),
-                    "roles", response.getRoles()
-
+                    "redirect", authResponse.getRedirectUrl(),
+                    "user", authResponse.getUserDetails(),
+                    "roles", authResponse.getRoles(),
+                    "accountType", authResponse.getAccountType()
             ));
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
@@ -93,16 +91,17 @@ public class LogRestController {
 
     // Đăng nhập Khách hàng
     @PostMapping("/khachhang/login")
-    public ResponseEntity<?> loginKhachHang(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<?> loginKhachHang(@RequestBody LoginRequest request, HttpSession session, HttpServletResponse response) {
         try {
             request.setLoaiTaiKhoan("KHACHHANG");
-            AuthResponse response = authService.login(request, session);
+            AuthResponse authResponse = authService.login(request, session, response);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "redirect", response.getRedirectUrl(),
-                    "user", response.getUserDetails(),
-                    "roles", response.getRoles()
+                    "redirect", authResponse.getRedirectUrl(),
+                    "user", authResponse.getUserDetails(),
+                    "roles", authResponse.getRoles(),
+                    "accountType", authResponse.getAccountType()
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -113,15 +112,39 @@ public class LogRestController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         try {
             HttpSession session = request.getSession(false);
             if (session != null) {
-                session.invalidate();
+                // Lấy loại tài khoản từ session
+                String accountType = (String) session.getAttribute("accountType");
+
+                // Kiểm tra tài khoản loại Nhân viên hoặc Khách hàng
+                if (accountType != null) {
+                    if (accountType.equals("NHANVIEN")) {
+                        // Xử lý logout cho Nhân viên
+                        System.out.println("Đang đăng xuất Nhân viên");
+                        // Gọi phương thức logout cho Nhân viên
+                        authService.logout(session, response, "SESSION_NHANVIEN");
+                    } else if (accountType.equals("KHACHHANG")) {
+                        // Xử lý logout cho Khách hàng
+                        System.out.println("Đang đăng xuất Khách hàng");
+                        // Gọi phương thức logout cho Khách hàng
+                        authService.logout(session, response, "SESSION_KHACHHANG");
+                    }
+                }
+
+                // Sau khi logout, trả về phản hồi thành công
+                return ResponseEntity.ok().body(Map.of(
+                        "success", true,
+                        "message", "Đăng xuất thành công"
+                ));
             }
-            return ResponseEntity.ok().body(Map.of(
-                    "success", true,
-                    "message", "Đăng xuất thành công"
+
+            // Nếu không có session, trả về lỗi
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Không tìm thấy session"
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -134,25 +157,34 @@ public class LogRestController {
     @GetMapping("/check-session")
     public ResponseEntity<?> checkSession(HttpSession session) {
         Boolean isAuthenticated = (Boolean) session.getAttribute("isAuthenticated");
+
+        // Debugging thông tin session
+        System.out.println("Session ID: " + session.getId());
+        System.out.println("isAuthenticated: " + isAuthenticated);
+        System.out.println("Session Role Nhan Vien: " + session.getAttribute("rolesNhanVien"));
+        System.out.println("Session Role Khach Hang: " + session.getAttribute("rolesKhachHang"));
+
         if (isAuthenticated != null && isAuthenticated) {
-            Object user = session.getAttribute("user");
-            String userType = (user instanceof NhanVien) ? "NHANVIEN" :
-                    (user instanceof KhachHang) ? "KHACHHANG" : "UNKNOWN";
-
             Map<String, Object> response = new HashMap<>();
-            response.put("isAuthenticated", true);
-            response.put("user", user);
-            response.put("userType", userType);
-            response.put("roles", session.getAttribute("roles"));
-            response.put("accountType", session.getAttribute("accountType"));
 
-            Long loginTime = (Long) session.getAttribute("loginTime");
-            if (loginTime != null) {
-                response.put("sessionTime", (System.currentTimeMillis() - loginTime) / 1000 + " giây");
+            // Lấy roles tùy thuộc vào loại tài khoản
+            List<String> roles = new ArrayList<>();
+            if (session.getAttribute("rolesNhanVien") != null) {
+                roles = (List<String>) session.getAttribute("rolesNhanVien");
+            } else if (session.getAttribute("rolesKhachHang") != null) {
+                roles = (List<String>) session.getAttribute("rolesKhachHang");
             }
+
+            response.put("isAuthenticated", true);
+            response.put("roles", roles);
+            response.put("user", session.getAttribute("user"));
+            response.put("accountType", session.getAttribute("accountType"));
 
             return ResponseEntity.ok().body(response);
         }
+
         return ResponseEntity.ok().body(Collections.singletonMap("isAuthenticated", false));
     }
+
+
 }

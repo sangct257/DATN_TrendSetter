@@ -2,7 +2,9 @@ package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.KichThuoc;
 import com.example.datn_trendsetter.Entity.MauSac;
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.MauSacRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,7 @@ public class MauSacApiController {
     private MauSacRepository mauSacRepository;
 
     @PostMapping("add")
-    public ResponseEntity<Map<String, String>> add(@RequestBody MauSac mauSacRequest) {
+    public ResponseEntity<Map<String, String>> add(@RequestBody MauSac mauSacRequest, HttpSession session) throws Exception {
         Map<String, String> response = new HashMap<>();
 
         boolean exists = mauSacRepository.existsByTenMauSac(mauSacRequest.getTenMauSac());
@@ -31,13 +33,19 @@ public class MauSacApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
         MauSac mauSac = new MauSac();
         mauSac.setMaMauSac("MS-" + UUID.randomUUID().toString().substring(0, 8));
         mauSac.setTenMauSac(mauSacRequest.getTenMauSac());
         mauSac.setNgayTao(LocalDate.now());
         mauSac.setNgaySua(LocalDate.now());
-        mauSac.setNguoiTao("admin");
-        mauSac.setNguoiSua("admin");
+        mauSac.setNguoiTao(nhanVienSession.getHoTen());
+        mauSac.setNguoiSua(nhanVienSession.getHoTen());
         mauSac.setDeleted(false);
         mauSac.setTrangThai(mauSacRequest.getTrangThai());
 
@@ -50,7 +58,7 @@ public class MauSacApiController {
 
 
     @PutMapping("update")
-    public ResponseEntity<Map<String, String>> update(@RequestBody MauSac updatedMauSac) {
+    public ResponseEntity<Map<String, String>> update(@RequestBody MauSac updatedMauSac,HttpSession session) throws Exception {
         Map<String, String> response = new HashMap<>();
 
         if (updatedMauSac.getId() == null) {
@@ -71,11 +79,17 @@ public class MauSacApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
         // Cập nhật thông tin màu sắc
         mauSac.setMaMauSac(mauSac.getMaMauSac());
         mauSac.setTenMauSac(updatedMauSac.getTenMauSac());
         mauSac.setNgaySua(LocalDate.now());
-        mauSac.setNguoiSua(updatedMauSac.getNguoiSua() != null ? updatedMauSac.getNguoiSua() : "admin");
+        mauSac.setNguoiSua(nhanVienSession.getHoTen());
         mauSac.setTrangThai(updatedMauSac.getTrangThai());
 
         mauSacRepository.save(mauSac);

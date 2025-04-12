@@ -22,6 +22,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     @Query("select hd from HoaDon hd order by hd.id desc")
     List<HoaDon> getAllHoaDon();
 
+    HoaDon findByMaHoaDon(String maHoaDon);
     boolean existsByMaHoaDon(String maHoaDon);
 
     @Query("SELECT COALESCE(SUM(h.tongTien - COALESCE(h.phiShip, 0) + COALESCE(h.phieuGiamGia.giaTriGiam, 0)), 0) " +
@@ -43,20 +44,23 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     Float getDoanhSoNgayNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
 
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) " +
-            "FROM HoaDon h " +
-            "WHERE YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
-    Float getDoanhThuNamNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
+    @Query("SELECT COALESCE(SUM(l.soTienThanhToan), 0) " +
+            "FROM LichSuThanhToan l " +
+            "WHERE YEAR(l.thoiGianThanhToan) = YEAR(:now)")
+    Float getDoanhThuNamNay(@Param("now") LocalDateTime now);
 
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) " +
-            "FROM HoaDon h " +
-            "WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
-    Float getDoanhThuThangNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
+    @Query("SELECT COALESCE(SUM(l.soTienThanhToan), 0) " +
+            "FROM LichSuThanhToan l " +
+            "WHERE MONTH(l.thoiGianThanhToan) = MONTH(:now) AND YEAR(l.thoiGianThanhToan) = YEAR(:now)")
+    Float getDoanhThuThangNay(@Param("now") LocalDateTime now);
 
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) " +
-            "FROM HoaDon h " +
-            "WHERE DAY(h.ngayTao) = DAY(:now) AND MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
-    Float getDoanhThuNgayNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
+    @Query("SELECT COALESCE(SUM(l.soTienThanhToan), 0) " +
+            "FROM LichSuThanhToan l " +
+            "WHERE DAY(l.thoiGianThanhToan) = DAY(:now) " +
+            "AND MONTH(l.thoiGianThanhToan) = MONTH(:now) " +
+            "AND YEAR(l.thoiGianThanhToan) = YEAR(:now)")
+    Float getDoanhThuNgayNay(@Param("now") LocalDateTime now);
+
 
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")
     int countHoaDonThangNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);

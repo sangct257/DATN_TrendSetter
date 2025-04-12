@@ -4,8 +4,19 @@
 <body class="hold-transition skin-blue sidebar-mini">
 <style>
     .image-wrapper {
-        position: relative;
-        display: inline-block;
+        width: 60px;
+        height: 100px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa; /* Tùy chọn: màu nền nếu ảnh không lấp đầy khung */
+    }
+
+    .image-wrapper img {
+        width: 100%;
+        height: auto;
+        object-fit: contain; /* Hiển thị toàn bộ ảnh mà không bị cắt */
     }
 
     .image-overlay {
@@ -57,7 +68,7 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                <h5>Thêm Sản Phẩm</h5>
+                <h5>Chi Tiết Sản Phẩm</h5>
             </h1>
         </section>
 
@@ -288,7 +299,7 @@
                                                    oninput="checkForm(this)">
                                         </td>
                                         <td>
-                                            <button th:value="${chiTiet.id}" th:class=" ${chiTiet.trangThai == 'Còn Hàng' ? 'badge bg-success updateStatusProductDetail' : 'badge bg-danger updateStatusProductDetail'} "
+                                            <button th:value="${chiTiet.id}" th:class=" ${chiTiet.trangThai == 'Còn Hàng' ? 'badge bg-success ' : 'badge bg-danger '} "
                                                     th:text="${chiTiet.trangThai}">
                                             </button>
 
@@ -329,9 +340,13 @@
                                                     </div>
                                                 </th:block>
 
-                                                <label class="btn btn-light btn-sm">
-                                                    <input type="file" class="file-input" hidden multiple> Upload
-                                                </label>
+                                                <div class="d-flex justify-content-center">
+                                                    <label class="btn btn-light btn-sm d-flex align-items-center justify-content-center border border-secondary border-dashed rounded p-3"
+                                                           style="width: 60px; height: 60px;">
+                                                        <input type="file" class="file-input" hidden multiple>
+                                                        +
+                                                    </label>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -577,57 +592,6 @@
 
         });
 
-        $(".updateStatusProductDetail").click(function(){
-            let id = $(this).val();
-            let item = {
-                id:id
-            };
-
-            fetch('/api/san-pham/update-product-detail-status' , {
-                method: 'PUT',
-                body: JSON.stringify(item, null, 2),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(response => response.json().then(data => ({ status: response.status, body: data })))
-                .then(({ status, body }) => {
-                    if (status === 200) {
-                        Swal.fire({
-                            title: "Thành công!",
-                            text: "Cập nhật sản phẩm thành công!",
-                            icon: "success",
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
-                    } else {
-                        let errorMessage = body.error || "Có lỗi xảy ra!";
-                        switch (status) {
-                            case 400:
-                                errorMessage = "Lỗi dữ liệu! " + errorMessage;
-                                break;
-                            case 409:
-                                errorMessage = "Xung đột dữ liệu! " + errorMessage;
-                                break;
-                            case 500:
-                                errorMessage = "Lỗi hệ thống! " + errorMessage;
-                                break;
-                        }
-                        throw new Error(errorMessage);
-                    }
-                })
-                .catch(error => {
-                    console.error("Lỗi cập nhật:", error);
-                    Swal.fire({
-                        title: "Thất bại!",
-                        text: error.message,
-                        icon: "error",
-                        confirmButtonText: "OK"
-                    });
-                });
-
-
-        });
     });
 </script>
 

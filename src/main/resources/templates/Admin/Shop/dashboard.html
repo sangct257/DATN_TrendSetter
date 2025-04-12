@@ -76,7 +76,7 @@
                                                 <div class="card-body text-center">
                                                     <p class="card-text text-muted">
                                                         <i class="fas fa-shopping-cart"></i> Số lượng sản phẩm:
-                                                        <strong th:text="${hoaDon.tongSanPham}"></strong>
+                                                        <strong th:text="${hoaDon.tongSanPham != null ? hoaDon.tongSanPham : 0}"></strong>
                                                     </p>
                                                 </div>
                                                 <div class="card-footer bg-light text-center">
@@ -674,12 +674,12 @@
                                 <!-- Tiền hàng -->
                                 <div class="info mb-4">
                                     <span><i class="fas fa-box"></i> Tiền hàng:</span>
-                                    <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-                                    #numbers.formatInteger(hoaDon.tongTien +
-                                    (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0) -
-                                    (hoaDon.phiShip != null ? hoaDon.phiShip : 0), 3, 'COMMA') + ' VNĐ'
-                                    : '0 VND'}"></span>
-
+                                    <span th:text="${hoaDon.tongTien != null && hoaDon.tongTien != 0 ?
+                                            #numbers.formatDecimal(
+                                                    (hoaDon.tongTien ?: 0) +
+                                                    (hoaDon.phieuGiamGia?.giaTriGiam ?: 0) -
+                                                    (hoaDon.phiShip ?: 0), 0, 'POINT', 0, 'NONE') + ' VND'
+                                            : '0 VND'}"></span>
                                 </div>
 
                                 <!-- Giảm Giá -->
@@ -719,16 +719,20 @@
                                                     <p>Công thức tính tổng tiền là:</p>
                                                     <ul>
                                                         <li><strong>Tổng Thành Tiền</strong> - <strong>Giá trị phiếu giảm giá</strong> + <strong>Phí vận chuyển</strong></li>
-                                                        <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-        #numbers.formatInteger(hoaDon.tongTien +
-        (hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0) -
-        (hoaDon.phiShip != null ? hoaDon.phiShip : 0), 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span> -
+                                                        <span th:text="${hoaDon.tongTien != null && hoaDon.tongTien != 0 ?
+                                                                    #numbers.formatDecimal(
+                                                                            (hoaDon.tongTien ?: 0) +
+                                                                            (hoaDon.phieuGiamGia?.giaTriGiam ?: 0) -
+                                                                            (hoaDon.phiShip ?: 0), 0, 'POINT', 0, 'NONE') + ' VND'
+                                                        : '0 VND'}"></span> -
                                                         <span th:text="${(hoaDon.phieuGiamGia != null && hoaDon.phieuGiamGia.giaTriGiam != 0) ?
-        #numbers.formatInteger(hoaDon.phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span> +
+                                                                    #numbers.formatInteger(
+                                                                    hoaDon.phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VNĐ'
+                                                        : '0 VNĐ'}"></span> +
                                                         <span th:text="${(hoaDon.phiShip != null && hoaDon.phiShip != 0) ?
-        #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span> =
+                                                                    #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span> =
                                                         <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-        #numbers.formatInteger(hoaDon.tongTien, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span>
+                                                                    #numbers.formatInteger(hoaDon.tongTien, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span>
                                                     </ul>
                                                 </div>
                                             </div>

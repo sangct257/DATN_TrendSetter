@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.apache.commons.lang3.ObjectUtils;
 
+import java.time.LocalDate;
 import java.util.List;
 import com.example.datn_trendsetter.DTO.ProductDetailDTO;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
@@ -121,12 +122,18 @@ public class SanPhamAPIController {
     }
 
     @PostMapping("/add-mau-sac-kich-thuoc")
-    public ResponseEntity<String> addMauSacKichThuoc(@RequestBody ProductDetailDTO request) {
+    public ResponseEntity<String> addMauSacKichThuoc(@RequestBody ProductDetailDTO request ,HttpSession session) throws Exception {
         Optional<SanPham> sanPhamOpt = sanPhamRepository.findById(request.getSanPhamId());
         if (!sanPhamOpt.isPresent()) {
             return ResponseEntity.badRequest().body("Sản phẩm không tồn tại");
         }
         SanPham sanPham = sanPhamOpt.get();
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
 
         for (Integer mauSacId : request.getMauSacIds()) {
             for (Integer kichThuocId : request.getKichThuocIds()) {
@@ -140,6 +147,11 @@ public class SanPhamAPIController {
                     chiTiet.setTrangThai(chiTiet.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
                     chiTiet.setMauSac(mauSacRepository.findById(mauSacId).orElse(null));
                     chiTiet.setKichThuoc(kichThuocRepository.findById(kichThuocId).orElse(null));
+                    chiTiet.setNguoiTao(nhanVienSession.getHoTen());
+                    chiTiet.setNguoiSua(nhanVienSession.getHoTen());
+                    chiTiet.setNgayTao(LocalDate.now());
+                    chiTiet.setNgaySua(LocalDate.now());
+                    chiTiet.setDeleted(false);
                     sanPhamChiTietRepository.save(chiTiet);
                     capNhatSoLuongTonKhoSanPham(chiTiet.getSanPham());
                 }
@@ -151,7 +163,7 @@ public class SanPhamAPIController {
 
 
     @PutMapping("/update-product-details")
-    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request) {
+    public ResponseEntity<?> updateProductDetails(@RequestBody List<SanPhamChiTietDTO> request,HttpSession session) throws Exception {
         Map<Integer,SanPhamChiTietDTO> idProductAndProduct= request.stream().collect(Collectors.toMap(SanPhamChiTietDTO::getId, Function.identity()));
         List<Integer> idProductDetails= request.stream().map(SanPhamChiTietDTO::getId).toList();
 
@@ -160,12 +172,22 @@ public class SanPhamAPIController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vui lòng chọn sản phẩm chi tiết");
         }
 
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
+
         sanPhamChiTiets.forEach(sanPhamChiTiet -> {
             SanPhamChiTietDTO sanPhamChiTietDTO = idProductAndProduct.getOrDefault(sanPhamChiTiet.getId(),null);
             if (ObjectUtils.isNotEmpty(sanPhamChiTietDTO)){
                 sanPhamChiTiet.setSoLuong(sanPhamChiTietDTO.getSoLuong());
                 sanPhamChiTiet.setGia(sanPhamChiTietDTO.getGia().floatValue());
+                sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
                 sanPhamChiTiet.setTrangThai(sanPhamChiTietDTO.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+                sanPhamChiTiet.setNgaySua(LocalDate.now());
             }
 
         });
@@ -175,55 +197,25 @@ public class SanPhamAPIController {
         return response("Cập nhật chi tiết sản phẩm thành công!",true);
     }
 
-    @PutMapping("/update-product-detail-status")
-    public ResponseEntity<?> updateProductDetails(
-            @RequestBody SanPhamChiTietDTO request,
-            HttpSession session
-    ) {
-        try {
-            NhanVien nhanVien = (NhanVien) session.getAttribute("user");
-            if (nhanVien == null || nhanVien.getVaiTro() != NhanVien.Role.ADMIN) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Chỉ admin mới được thực hiện thao tác này");
-            }
-
-            SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId())
-                    .orElseThrow(() -> new RuntimeException("Chi tiết sản phẩm không tồn tại"));
-
-            if ("Còn Hàng".equals(sanPhamChiTiet.getTrangThai())) {
-                sanPhamChiTiet.setTrangThai("Hết Hàng");
-                sanPhamChiTiet.setDeleted(true);
-            } else {
-                sanPhamChiTiet.setTrangThai("Còn Hàng");
-                sanPhamChiTiet.setDeleted(false);
-            }
-
-            sanPhamChiTietRepository.save(sanPhamChiTiet);
-            capNhatSoLuongTonKhoSanPham(sanPhamChiTiet.getSanPham());
-
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Cập nhật thành công",
-                    "newStatus", sanPhamChiTiet.getTrangThai()
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
-        }
-    }
-
     @PutMapping("/update")
-    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request) {
+    public ResponseEntity<?> capNhatChiTietSanPham(@RequestBody SanPhamChiTietDTO request,HttpSession session) throws Exception {
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(request.getId()).orElse(null);
         if (sanPhamChiTiet == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chi tiết sản phẩm không tồn tại!");
         }
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
 
         sanPhamChiTiet.setSoLuong(request.getSoLuong());
         sanPhamChiTiet.setGia(request.getGia().floatValue());
+        sanPhamChiTiet.setNguoiSua(nhanVienSession.getHoTen());
         sanPhamChiTiet.setTrangThai(request.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+        sanPhamChiTiet.setNgaySua(LocalDate.now());
         sanPhamChiTietRepository.save(sanPhamChiTiet);
 
 

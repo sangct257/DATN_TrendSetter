@@ -1,9 +1,11 @@
 package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.ChatLieu;
+import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.ThuongHieu;
 import com.example.datn_trendsetter.Repository.ChatLieuRepository;
 import com.example.datn_trendsetter.Repository.ThuongHieuRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +25,18 @@ public class ChatLieuApiController {
     private ChatLieuRepository chatLieuRepository;
 
     @PostMapping("add")
-    public ResponseEntity<String> add(@RequestBody ChatLieu chatLieuRequest) {
+    public ResponseEntity<String> add(@RequestBody ChatLieu chatLieuRequest , HttpSession session) throws Exception {
         // Kiểm tra xem thương hiệu đã tồn tại chưa
         boolean exists = chatLieuRepository.existsByTenChatLieu(chatLieuRequest.getTenChatLieu());
 
         if (exists) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Tên chất liệu đã tồn tại");
+        }
+
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
         }
 
         // Nếu chưa tồn tại, tạo mới
@@ -37,8 +45,8 @@ public class ChatLieuApiController {
         chatLieu.setTenChatLieu(chatLieuRequest.getTenChatLieu());
         chatLieu.setNgayTao(LocalDate.now());
         chatLieu.setNgaySua(LocalDate.now());
-        chatLieu.setNguoiTao("admin");
-        chatLieu.setNguoiSua("admin");
+        chatLieu.setNguoiTao(nhanVienSession.getHoTen());
+        chatLieu.setNguoiSua(nhanVienSession.getHoTen());
         chatLieu.setTrangThai(chatLieuRequest.getTrangThai());
         chatLieu.setDeleted(false);
         chatLieuRepository.save(chatLieu);
@@ -47,7 +55,7 @@ public class ChatLieuApiController {
 
 
     @PutMapping("update")
-    public ResponseEntity<Map<String, String>> update(@RequestBody ChatLieu updatedChatLieu) {
+    public ResponseEntity<Map<String, String>> update(@RequestBody ChatLieu updatedChatLieu ,HttpSession session) throws Exception {
         Map<String, String> response = new HashMap<>();
 
         if (updatedChatLieu.getId() == null) {
@@ -68,10 +76,16 @@ public class ChatLieuApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
+        // Lấy nhân viên từ session
+        NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
+        if (nhanVienSession == null) {
+            throw new Exception("Bạn cần đăng nhập.");
+        }
+
         // Cập nhật thông tin chất liệu
         chatLieu.setTenChatLieu(updatedChatLieu.getTenChatLieu());
         chatLieu.setNgaySua(LocalDate.now());
-        chatLieu.setNguoiSua(updatedChatLieu.getNguoiSua() != null ? updatedChatLieu.getNguoiSua() : "admin");
+        chatLieu.setNguoiSua(nhanVienSession.getHoTen());
         chatLieu.setTrangThai(updatedChatLieu.getTrangThai());
 
         chatLieuRepository.save(chatLieu);

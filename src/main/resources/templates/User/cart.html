@@ -23,30 +23,119 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
-</head>
+    <style>
+        :root {
+            --primary: #D19C97;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .coupon {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 2px dashed var(--primary);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .coupon:hover {
+            transform: scale(1.02);
+        }
+        .coupon-left {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            min-width: 80px;
+            text-align: center;
+        }
+        .coupon-right {
+            flex-grow: 1;
+            padding-left: 15px;
+        }
+        .coupon-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .coupon-condition {
+            font-size: 14px;
+            color: #555;
+        }
+        .coupon-select {
+            margin-left: auto;
+        }
+        .see-more-btn {
+            text-align: center;
+            font-weight: bold;
+            color: #020101;
+            cursor: pointer;
+            margin-top: 10px;
+            padding: 10px 0;
+            position: relative;
+        }
 
+        .see-more-btn::before,
+        .see-more-btn::after {
+            content: "";
+            display: inline-block;
+            width: 30%;
+            height: 1px;
+            background-color: #ccc;
+            vertical-align: middle;
+            margin: 0 10px;
+        }
+
+    </style>
+</head>
 <body>
 <!-- Topbar Start -->
 <div class="container-fluid">
     <div class="row align-items-center py-3 px-xl-5">
+        <!-- Logo -->
         <div class="col-lg-3 d-none d-lg-block">
             <a href="" class="text-decoration-none">
-                <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Tên shop</h1>
+                <h1 class="m-0 display-5 font-weight-semi-bold">
+                    <span class="text-primary font-weight-bold border px-3 mr-1">E</span>Tên shop
+                </h1>
             </a>
         </div>
-        <div class="col-lg-6 col-6 text-left">
+
+        <!-- Ô tìm kiếm (Tăng rộng) -->
+        <div class="col-lg-5 col-6 text-left">
             <form action="">
                 <div class="input-group">
                     <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm">
                     <div class="input-group-append">
-                            <span class="input-group-text bg-transparent text-primary">
-                                <i class="fa fa-search"></i>
-                            </span>
+                        <span class="input-group-text bg-transparent text-primary">
+                            <i class="fa fa-search"></i>
+                        </span>
                     </div>
                 </div>
             </form>
         </div>
-        <div class="col-lg-3 col-6 text-right">
+
+        <!-- Ô nhập mã hóa đơn (Giữ vừa) -->
+        <div class="col-lg-2 col-6 text-center">
+            <div class="input-group shadow-sm">
+                <form action="/don-hang" method="GET" class="input-group shadow-sm">
+                    <input type="text" class="form-control border-primary rounded-start px-2"
+                           name="maHoaDon" id="maHoaDonInput" placeholder="Nhập mã hóa đơn"
+                           style="border-right: none; box-shadow: none;" required>
+                    <button type="submit" class="btn btn-primary rounded-end px-3">Tra cứu</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Nút giỏ hàng (Hợp lý) -->
+        <div class="col-lg-2 col-6 text-right">
             <a href="gio-hang" class="btn border">
                 <i class="fas fa-shopping-cart text-primary"></i>
                 <span class="badge">0</span>
@@ -96,12 +185,39 @@
                             <div class="dropdown-menu rounded-0 m-0">
                                 <a href="gio-hang" class="dropdown-item">Giỏ hàng</a>
                                 <a href="thanh-toan" class="dropdown-item">Thanh toán</a>
+                                <a href="thong-tin" class="dropdown-item">Thông tin </a>
+                                <a href="don-hang" class="dropdown-item">Tra cứu</a>
                             </div>
                         </div>
                     </div>
                     <div class="navbar-nav ml-auto py-0">
-                        <a href="" class="nav-item nav-link">Đăng nhập</a>
-                        <a href="" class="nav-item nav-link">Đăng ký</a>
+                        <!-- Nếu chưa đăng nhập -->
+                        <a th:if="${session.user == null}" href="/auth/home" class="nav-item nav-link">Đăng nhập</a>
+
+                        <!-- Nếu đã đăng nhập -->
+                        <li th:if="${session.user != null}" class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle d-flex align-items-center"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <img th:src="${session.user.hinhAnh}" class="rounded-circle user-image" alt="User Image"
+                                     width="40" height="40">
+                                <span class="d-none d-md-inline ms-2" th:text="${session.user.hoTen}"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                                <li class="dropdown-header text-center">
+                                    <img th:src="${session.user.hinhAnh}" class="rounded-circle" alt="User Image"
+                                         width="80" height="80">
+                                    <p class="mt-3 mb-0 text-dark fw-bold"
+                                       th:text="${session.user.hoTen + ' ( ' + session.user.username + ' )'}"></p>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-info text-center" href="/thong-tin">Thông tin </a>
+                                    <a class="dropdown-item text-danger text-center" href="#" id="logout-btn">Log out</a>
+                                </li>
+                            </ul>
+                        </li>
                     </div>
                 </div>
             </nav>
@@ -149,25 +265,40 @@
         </div>
         <div class="col-lg-4">
             <div class="card border-secondary mb-5">
-                <div class="card-header bg-secondary border-0">
-                    <h4 class="font-weight-semi-bold m-0">Tóm tắt giỏ hàng</h4>
+                <div class="card-header bg-secondary border-0 text-center">
+                    <h4 class="font-weight-semi-bold m-0">🛒 Tóm tắt giỏ hàng</h4>
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-3 pt-1">
-                        <h6 class="font-weight-medium">Tạm tính</h6>
+                        <h6 class="font-weight-medium">🧾 Tạm tính</h6>
                         <h6 class="font-weight-medium" id="subtotal">0 VND</h6>
                     </div>
+                    <div id="discount-container" class="d-flex justify-content-between text-danger font-weight-bold" style="display: none;">
+                        <h6>🎉 Giảm giá</h6>
+                        <h6 id="discount-display">-0 VND</h6>
+                    </div>
+                    <hr class="my-2">
                     <div class="d-flex justify-content-between">
-                        <h6 class="font-weight-medium">Phí vận chuyển</h6>
-                        <h6 id="shipping-fee" class="font-weight-medium">0 VND</h6> <!-- Thêm id vào đây -->
+                        <h6 class="font-weight-medium">🚚 Phí vận chuyển</h6>
+                        <h6 id="shipping-fee" class="font-weight-medium">0 VND</h6>
                     </div>
                 </div>
+
+                <hr class="my-3">
+
+                <div class="px-3">
+                    <h5 class="font-weight-bold text-center">🎟 Chọn Phiếu Giảm Giá</h5>
+                    <div id="coupon-container" class="p-2 border rounded bg-light"></div>
+                </div>
+
+                <hr class="my-3">
+
                 <div class="card-footer border-secondary bg-transparent">
                     <div class="d-flex justify-content-between mt-2">
-                        <h5 class="font-weight-bold">Tổng cộng</h5>
-                        <h5 class="font-weight-bold" id="total">0 VND</h5>
+                        <h5 class="font-weight-bold">💰 Tổng cộng</h5>
+                        <h5 class="font-weight-bold text-danger" id="total">0 VND</h5>
                     </div>
-                    <button id="checkout-button" class="btn btn-block btn-primary my-3 py-3">Thanh toán ngay</button>
+                    <button id="checkout-button" class="btn btn-block btn-primary my-3 py-3">🛍 Thanh toán ngay</button>
                 </div>
             </div>
         </div>
@@ -250,6 +381,7 @@
 <!-- Back to Top -->
 <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 
+<div th:replace="admin/fragments/script :: script"></div>
 
 <!-- JavaScript Libraries -->
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -262,7 +394,9 @@
 <script src="mail/contact.js"></script>
 
 <!-- Template Javascript -->
-<script src="js/main.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/DangNhap/login.js"></script>
+<script src="/js/DangNhap/logout.js"></script>
 <script src="js/giohang.js"></script>
 <script src="js/sanphamchitiet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
