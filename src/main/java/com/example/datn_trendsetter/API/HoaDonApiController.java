@@ -172,6 +172,7 @@ public class HoaDonApiController {
                 hoaDon.getLoaiHoaDon(),
                 hoaDon.getNgayTao(),
                 hoaDon.getTongTien(),
+                hoaDon.getTrangThai(),
                 hoaDon.getPhiShip()
         )).collect(Collectors.toList());
 

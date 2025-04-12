@@ -629,7 +629,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Gọi hàm fetchProvinces khi load trang
-    fetchProvinces();
+    fetchProvinces(thanhPhoHidden.value);
 
     // Khi Tỉnh/Thành phố thay đổi, gọi lại fetchDistricts
     thanhPhoSelect.addEventListener("change", function () {
