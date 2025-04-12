@@ -251,13 +251,14 @@
                                     </button>
 
 
-                                    <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and
-           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
-           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
-           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đang Giao Hàng' or
-           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
-                                            th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/huy'"
+                                    <!-- Nếu là NHÂN VIÊN -->
+                                    <button type="button" class="btn btn-warning"
+                                            th:if="${session.userNhanVien != null and !listLichSuHoaDon.isEmpty() and
+               (listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
+                listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
+                listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đang Giao Hàng' or
+                listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển')}"
+                                            th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/admin-huy'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Hủy
                                     </button>

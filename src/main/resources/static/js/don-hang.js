@@ -56,6 +56,13 @@ function renderDonHangCards(data) {
         // Format số tiền
         const formatMoney = (amount) => new Intl.NumberFormat("vi-VN").format(amount) + " VND";
 
+        // Điều kiện hiển thị nút Huỷ đơn
+        const canCancel = ["Chờ Xác Nhận", "Đã Xác Nhận", "Chờ Vận Chuyển"].includes(hoaDon.trangThai);
+        const cancelButton = canCancel
+            ? `<button class="btn btn-danger btn-sm fw-bold me-2" onclick="moModalHuy('${hoaDon.id}')">Huỷ đơn</button>`
+            : "";
+
+
         card.innerHTML = `
 <div class="card-body">
     <!-- Thông tin Mã Hóa Đơn và Tên Khách Hàng -->
@@ -89,15 +96,55 @@ function renderDonHangCards(data) {
     </div>
 
     <!-- Thông tin Tổng Tiền -->
-<div class="d-flex justify-content-center mt-3">
-            <strong>Tổng Tiền: </strong> <span class="text-danger" style="margin-left: 10px;">  ${hoaDon.tongTien ? formatMoney(hoaDon.tongTien) : '0 VND'}</span>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <strong>Tổng Tiền: </strong> <span class="text-danger" style="margin-left: 10px;">  ${hoaDon.tongTien ? formatMoney(hoaDon.tongTien) : '0 VND'}</span>
+            </div>
+            <div class="col-md-6">
+                <strong>Trạng Thái: </strong> <span class="text-danger" style="margin-left: 10px;">  ${hoaDon.trangThai}</span>
+            </div>
         </div>
 
     <!-- Nút Chi Tiết - Căn giữa và có icon -->
 <div class="d-flex justify-content-center mt-3">
+    <!-- Nút hủy -->
+    ${cancelButton}
+
     <a href="/don-hang?maHoaDon=${hoaDon.maHoaDon}" class="btn btn-primary btn-sm fw-bold">
         <i class="bi bi-pencil-square me-2"></i> Chi Tiết
     </a>
+</div>
+
+<!-- Modal chọn lý do huỷ đơn -->
+<div class="modal fade" id="modalHuyDon" tabindex="-1" aria-labelledby="modalHuyDonLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalHuyDonLabel">Xác nhận hủy đơn</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="hoaDonIdHuy">
+        <div class="mb-3">
+          <label for="lyDoHuy" class="form-label">Lý do hủy đơn:</label>
+          <select id="lyDoHuy" class="form-select">
+            <option value="Khách đổi ý">Khách đổi ý</option>
+            <option value="Sản phẩm không đúng mô tả">Sản phẩm không đúng mô tả</option>
+            <option value="Giao hàng quá chậm">Giao hàng quá chậm</option>
+            <option value="Lý do khác">Lý do khác</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="ghiChuKhac" class="form-label">Ghi chú thêm (nếu có):</label>
+          <textarea id="ghiChuKhac" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-danger" onclick="xacNhanHuy()">Xác nhận huỷ</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -117,3 +164,32 @@ function setupInfiniteScroll(data) {
         }
     });
 }
+
+function moModalHuy(hoaDonId) {
+    document.getElementById('hoaDonIdHuy').value = hoaDonId;
+    document.getElementById('lyDoHuy').value = "Khách đổi ý";
+    document.getElementById('ghiChuKhac').value = "";
+    new bootstrap.Modal(document.getElementById('modalHuyDon')).show();
+  }
+
+  function xacNhanHuy() {
+    const hoaDonId = document.getElementById('hoaDonIdHuy').value;
+    const lyDo = document.getElementById('lyDoHuy').value;
+    const ghiChuThem = document.getElementById('ghiChuKhac').value;
+    const ghiChu = ghiChuThem ? lyDo + " - " + ghiChuThem : lyDo;
+
+    fetch("/api/v2/huy", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ hoaDonId: hoaDonId, ghiChu: ghiChu })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("Hủy đơn thành công!");
+        location.reload();
+      } else {
+        alert(data.errorMessage || "Có lỗi xảy ra!");
+      }
+    });
+  }

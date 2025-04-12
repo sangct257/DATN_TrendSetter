@@ -91,12 +91,14 @@ public class HoaDonDTO {
                      String loaiHoaDon,
                      LocalDateTime ngayTao,
                      Float tongTien,
+                     String trangThai,
                      Float phiShip) {
         this.id = id;
         this.idKhachHang = idKhachHang;
         this.maHoaDon = maHoaDon;
         this.tongTien = tongTien;
         this.phiShip = phiShip;
+        this.trangThai = trangThai;
         this.loaiHoaDon = loaiHoaDon;
         this.ngayTao = ngayTao;
         this.nguoiTao = nguoiTao;
