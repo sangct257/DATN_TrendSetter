@@ -23,9 +23,7 @@ public class UserDetails {
     private LocalDate ngaySinh;
     private String trangThai;
     private String hinhAnh;
-
-    // Trường phân biệt loại tài khoản
-    private String userType; // "NHANVIEN" hoặc "KHACHHANG"
+    private String userType;
 
     // Thông tin dành riêng cho nhân viên
     private Role vaiTro;
