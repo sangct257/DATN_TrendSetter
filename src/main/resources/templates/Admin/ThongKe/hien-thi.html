@@ -515,16 +515,18 @@
         if (filterValue) {
             switch (filterValue) {
                 case '1':  // Hôm nay
-                    filterDate = currentDate;
+                    filterDate = new Date();
+                    filterDate.setHours(0, 0, 0, 0); // Đầu ngày hôm nay
                     break;
                 case '7':  // 7 ngày gần nhất
-                    filterDate = new Date(currentTimestamp - 7 * 24 * 60 * 60 * 1000); // Lấy thời điểm 7 ngày trước
+                    filterDate = new Date(currentTimestamp - 7 * 24 * 60 * 60 * 1000);
+                    filterDate.setHours(0, 0, 0, 0);
                     break;
-                case '30':  // 1 tháng
-                    filterDate = new Date(currentTimestamp - 30 * 24 * 60 * 60 * 1000); // Lấy thời điểm 1 tháng trước
+                case '30':  // Tháng này
+                    filterDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1); // Đầu tháng
                     break;
-                case '365':  // 1 năm
-                    filterDate = new Date(currentTimestamp - 365 * 24 * 60 * 60 * 1000); // Lấy thời điểm 1 năm trước
+                case '365':  // Năm nay
+                    filterDate = new Date(currentDate.getFullYear(), 0, 1); // Đầu năm
                     break;
             }
 
@@ -590,7 +592,16 @@
         // Cập nhật dữ liệu cho biểu đồ
         myChart.data.labels = filteredLabels;
         myChart.data.datasets[0].data = filteredSalesData;
+        // Cập nhật dữ liệu cho biểu đồ
+        myChart.data.labels = filteredLabels;
+        myChart.data.datasets[0].data = filteredSalesData;
+
+        // Gắn lại dữ liệu cho tooltip dùng
+        invoiceData = filteredInvoiceData;
+        revenueData = filteredRevenueData;
+
         myChart.update();
+
     }
 </script>
 

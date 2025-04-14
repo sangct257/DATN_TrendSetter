@@ -113,9 +113,8 @@ public class ThongKeService {
 
     // Lấy tổng số sản phẩm theo ngày, tháng, năm
     public Map<String, Integer> getTotalProductsByDateMonthYear() {
-        String trangThaiThanhToan = "Đã Thanh Toán";
-        List<String> trangThaiHoaDon = List.of("Đã Thanh Toán", "Đã Hoàn Thành"); // chỉ tính đơn hợp lệ
-        List<Object[]> results = hoaDonChiTietRepository.getTotalProductsByDateMonthYear(trangThaiThanhToan,trangThaiHoaDon);
+        List<String> trangThaiHoaDon = List.of( "Đã Hoàn Thành"); // chỉ tính đơn hợp lệ
+        List<Object[]> results = hoaDonChiTietRepository.getTotalProductsByDateMonthYear(trangThaiHoaDon);
         Map<String, Integer> totalProductsByDateMonthYear = new LinkedHashMap<>();
 
         for (Object[] result : results) {
@@ -132,9 +131,8 @@ public class ThongKeService {
 
     // Lấy tổng số hóa đơn theo ngày, tháng, năm
     public Map<String, Integer> getInvoiceCountByDateMonthYear() {
-        String trangThaiThanhToan = "Đã Thanh Toán";
-        List<String> trangThaiList = List.of("Đã Thanh Toán", "Đã Hoàn Thành");
-        List<Object[]> results = hoaDonRepository.getInvoiceCountByDateMonthYear(trangThaiThanhToan,trangThaiList);
+        List<String> trangThaiList = List.of("Đã Hoàn Thành");
+        List<Object[]> results = hoaDonRepository.getInvoiceCountByDateMonthYear(trangThaiList);
         Map<String, Integer> invoiceCountByDateMonthYear = new LinkedHashMap<>();
 
         for (Object[] result : results) {
@@ -151,11 +149,10 @@ public class ThongKeService {
 
     // Lấy tổng doanh thu theo ngày, tháng, năm
     public Map<String, Float> getTotalRevenueByDateMonthYear() {
-        String trangThaiThanhToan = "Đã Thanh Toán";
-        List<String> trangThaiHoaDon = List.of("Đã Hoàn Thành", "Đã Thanh Toán");
+        List<String> trangThaiHoaDon = List.of("Đã Hoàn Thành");
 
         List<Object[]> results = lichSuThanhToanRepository
-                .getTotalRevenueByDateMonthYear(trangThaiThanhToan, trangThaiHoaDon);
+                .getTotalRevenueByDateMonthYear(trangThaiHoaDon);
 
         Map<String, Float> totalRevenueByDateMonthYear = new LinkedHashMap<>();
 

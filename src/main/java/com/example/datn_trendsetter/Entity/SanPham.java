@@ -32,7 +32,7 @@ public class SanPham {
     @Column(name = "so_luong")
     private Integer soLuong;
 
-    @Column(name = "mo_ta",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "mo_ta",columnDefinition = "NVARCHAR(MAX)")
     private String moTa;
 
     @ManyToOne(fetch = FetchType.EAGER)
