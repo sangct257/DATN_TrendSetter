@@ -23,11 +23,10 @@ public interface LichSuThanhToanRepository extends JpaRepository<LichSuThanhToan
     @Query("SELECT YEAR(lst.thoiGianThanhToan), MONTH(lst.thoiGianThanhToan), DAY(lst.thoiGianThanhToan), SUM(lst.soTienThanhToan) " +
             "FROM LichSuThanhToan lst " +
             "JOIN lst.hoaDon hd " +
-            "WHERE lst.trangThai = :trangThaiThanhToan AND hd.trangThai IN :trangThaiHoaDon " +
+            "WHERE hd.trangThai IN :trangThaiHoaDon " +
             "GROUP BY YEAR(lst.thoiGianThanhToan), MONTH(lst.thoiGianThanhToan), DAY(lst.thoiGianThanhToan) " +
             "ORDER BY YEAR(lst.thoiGianThanhToan), MONTH(lst.thoiGianThanhToan), DAY(lst.thoiGianThanhToan)")
     List<Object[]> getTotalRevenueByDateMonthYear(
-            @Param("trangThaiThanhToan") String trangThaiThanhToan,
             @Param("trangThaiHoaDon") List<String> trangThaiHoaDon
     );
 

@@ -46,20 +46,22 @@ function updateProductDetails(products) {
     const firstProduct = products[0];
 
     document.querySelector('.product-title').textContent = firstProduct.tenSanPham || "Không có tên sản phẩm";
-    document.querySelector('.product-description').textContent = firstProduct.moTa || "Mô tả chưa cập nhật";
+    // Sử dụng innerHTML để giữ lại các thẻ <br/>
+    document.querySelector('.product-description').innerHTML = firstProduct.moTa || "Mô tả chưa cập nhật";
     document.querySelector('.product-chatLieu').textContent = firstProduct.tenChatLieu || "Chất liệu chưa cập nhật";
     document.querySelector('.product-xuatXu').textContent = firstProduct.quocGia || "Xuất xứ chưa cập nhật";
     document.querySelector('.product-thuongHieu').textContent = firstProduct.tenThuongHieu || "Thương hiệu chưa cập nhật";
-     // Tính tổng số lượng sản phẩm từ soLuongTheoSize
-        const totalQuantity = Object.values(firstProduct.soLuongTheoSize).reduce((sum, quantity) => sum + quantity, 0);
 
-        // Hiển thị số lượng tổng cộng
-        document.querySelector('.product-soLuong').textContent = totalQuantity > 0 ? `Số lượng còn lại: ${totalQuantity}` : "Số lượng còn lại chưa cập nhật";
+    // Tính tổng số lượng sản phẩm từ soLuongTheoSize
+    const totalQuantity = Object.values(firstProduct.soLuongTheoSize).reduce((sum, quantity) => sum + quantity, 0);
 
-        // 🚀 Hiển thị số lượng theo từng size
-        const sizeQuantityText = Object.entries(firstProduct.soLuongTheoSize).map(([size, quantity]) => {
-            return `${size}: ${quantity}`;
-        }).join(', ');
+    // Hiển thị số lượng tổng cộng
+    document.querySelector('.product-soLuong').textContent = totalQuantity > 0 ? `Số lượng còn lại: ${totalQuantity}` : "Số lượng còn lại chưa cập nhật";
+
+    // 🚀 Hiển thị số lượng theo từng size
+    const sizeQuantityText = Object.entries(firstProduct.soLuongTheoSize).map(([size, quantity]) => {
+        return `${size}: ${quantity}`;
+    }).join(', ');
 
     const allImages = [...new Set(products.flatMap(p => p.hinhAnh))];
     document.getElementById('mainImage').src = allImages[0] || "https://via.placeholder.com/300";

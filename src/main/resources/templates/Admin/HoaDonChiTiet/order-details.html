@@ -789,14 +789,16 @@
                                                       th:text="${hoaDonChiTiet.sanPhamChiTiet.trangThai}"></span>
                                             </td>
                                             <td class="text-center">
-                                                <input type="hidden" name="hoaDonChiTietId"
-                                                       th:value="${hoaDonChiTiet.id}">
-                                                <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
-                                                <button type="button" class="btn btn-danger"
-                                                        th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán' ?  'disabled' : null}"
-                                                        onclick="deleteProductOrder(this)">
-                                                    <i class="fas fa-trash"></i> Xóa
-                                                </button>
+                                                <!-- Chỉ hiển thị nút xóa nếu số lượng sản phẩm chi tiết > 1 -->
+                                                <div th:if="${#lists.size(danhSachHoaDonChiTiet) > 1}">
+                                                    <input type="hidden" name="hoaDonChiTietId" th:value="${hoaDonChiTiet.id}">
+                                                    <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
+                                                    <button type="button" class="btn btn-danger"
+                                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán' ? 'disabled' : null}"
+                                                            onclick="deleteProductOrder(this)">
+                                                        <i class="fas fa-trash"></i> Xóa
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </th:block>
