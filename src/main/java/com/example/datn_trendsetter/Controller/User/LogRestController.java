@@ -3,14 +3,17 @@ package com.example.datn_trendsetter.Controller.User;
 import com.example.datn_trendsetter.DTO.AuthResponse;
 import com.example.datn_trendsetter.DTO.LoginRequest;
 import com.example.datn_trendsetter.DTO.RegisterRequest;
-import com.example.datn_trendsetter.Entity.KhachHang;
-import com.example.datn_trendsetter.Entity.NhanVien;
+import com.example.datn_trendsetter.Repository.KhachHangRepository;
 import com.example.datn_trendsetter.Service.AuthService;
-import jakarta.servlet.http.Cookie;
+import com.example.datn_trendsetter.Service.EmailService;
+import com.example.datn_trendsetter.Service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -19,11 +22,22 @@ import java.util.*;
 @RequestMapping("/auth")
 @CrossOrigin("*")
 public class LogRestController {
-    private final AuthService authService;
 
-    public LogRestController(AuthService authService) {
+    private final UserService userService;
+    private final EmailService emailService;
+
+
+    private final AuthService authService;
+    private final KhachHangRepository khachHangRepository;
+
+    @Autowired
+    public LogRestController(UserService userService, EmailService emailService, AuthService authService, KhachHangRepository khachHangRepository) {
+        this.userService = userService;
+        this.emailService = emailService;
         this.authService = authService;
+        this.khachHangRepository = khachHangRepository;
     }
+
 
     // Đăng ký Nhân viên
     @PostMapping("/nhanvien/register")
@@ -116,32 +130,24 @@ public class LogRestController {
         try {
             HttpSession session = request.getSession(false);
             if (session != null) {
-                // Lấy loại tài khoản từ session
                 String accountType = (String) session.getAttribute("accountType");
+                String redirectUrl = "/";
 
-                // Kiểm tra tài khoản loại Nhân viên hoặc Khách hàng
-                if (accountType != null) {
-                    if (accountType.equals("NHANVIEN")) {
-                        // Xử lý logout cho Nhân viên
-                        System.out.println("Đang đăng xuất Nhân viên");
-                        // Gọi phương thức logout cho Nhân viên
-                        authService.logout(session, response, "SESSION_NHANVIEN");
-                    } else if (accountType.equals("KHACHHANG")) {
-                        // Xử lý logout cho Khách hàng
-                        System.out.println("Đang đăng xuất Khách hàng");
-                        // Gọi phương thức logout cho Khách hàng
-                        authService.logout(session, response, "SESSION_KHACHHANG");
-                    }
+                if ("NHANVIEN".equals(accountType)) {
+                    redirectUrl = "/auth/home";
+                } else if ("KHACHHANG".equals(accountType)) {
+                    redirectUrl = "/trang-chu";
                 }
 
-                // Sau khi logout, trả về phản hồi thành công
+                authService.logout(session, response, accountType);
+
                 return ResponseEntity.ok().body(Map.of(
                         "success", true,
-                        "message", "Đăng xuất thành công"
+                        "message", "Đăng xuất thành công",
+                        "redirect", redirectUrl
                 ));
             }
 
-            // Nếu không có session, trả về lỗi
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", "Không tìm thấy session"
@@ -151,6 +157,39 @@ public class LogRestController {
                     "success", false,
                     "message", "Lỗi khi đăng xuất: " + e.getMessage()
             ));
+        }
+    }
+
+    @GetMapping("/khachhang/check-email")
+    public ResponseEntity<?> checkEmailExists(@RequestParam("email") String email) {
+        boolean exists = userService.existsByEmail(email);
+        return ResponseEntity.ok(Collections.singletonMap("exists", exists));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+
+        if (!userService.existsByEmail(email)) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Email không tồn tại"));
+        }
+
+        String token = userService.generateResetToken(email);
+        emailService.sendResetPasswordEmail(email, token);
+
+        return ResponseEntity.ok(Collections.singletonMap("message", "Email reset đã được gửi"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String newPassword = body.get("newPassword");
+
+        boolean success = userService.resetPassword(token, newPassword);
+        if (success) {
+            return ResponseEntity.ok(Collections.singletonMap("message", "Đặt lại mật khẩu thành công"));
+        } else {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Token không hợp lệ hoặc đã hết hạn"));
         }
     }
 

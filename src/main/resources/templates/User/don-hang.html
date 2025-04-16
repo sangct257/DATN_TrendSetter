@@ -241,22 +241,53 @@
                         </div>
                     </div>
 
-                    <!-- Modal Quên mật khẩu -->
+                    <!-- Modal: Quên mật khẩu - Bước 1 (Nhập email) -->
                     <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Quên mật khẩu</h5>
+                                    <h5 class="modal-title" id="forgotPasswordModalLabel">Khôi phục mật khẩu</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <form id="forgotPasswordForm">
-                                        <div class="mb-3">
-                                            <label for="forgot-email" class="form-label">Nhập email để khôi phục mật khẩu</label>
-                                            <input type="email" class="form-control" id="forgot-email" placeholder="Email" required>
-                                        </div>
-                                        <button type="submit" class="btn btn-warning w-100">Gửi yêu cầu</button>
-                                    </form>
+                                    <div class="mb-3">
+                                        <label for="forgot-email" class="form-label">Email đăng ký</label>
+                                        <input type="email" id="forgot-email" class="form-control" placeholder="Nhập email của bạn" required>
+                                        <div class="invalid-feedback" id="email-feedback">Vui lòng nhập email hợp lệ</div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-primary" id="sendResetEmailBtn">Gửi liên kết</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal: Quên mật khẩu - Bước 2 (Nhập mật khẩu mới) -->
+                    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="resetPasswordModalLabel">Đặt lại mật khẩu</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="new-password" class="form-label">Mật khẩu mới</label>
+                                        <input type="password" id="new-password" class="form-control" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)" required>
+                                        <div class="invalid-feedback">Mật khẩu phải có ít nhất 6 ký tự</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirm-password" class="form-label">Xác nhận mật khẩu</label>
+                                        <input type="password" id="confirm-password" class="form-control" placeholder="Nhập lại mật khẩu mới" required>
+                                        <div class="invalid-feedback">Mật khẩu không khớp</div>
+                                    </div>
+                                    <input type="hidden" id="reset-token">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                    <button type="button" class="btn btn-primary" id="submitNewPasswordBtn">Đổi mật khẩu</button>
                                 </div>
                             </div>
                         </div>

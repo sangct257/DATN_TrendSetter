@@ -42,10 +42,9 @@ body{
 
 form{ width: 100%; }
 
-.form-box{
-    position: absolute;
-    right: 0;
-    width: 50%;
+.form-box {
+    position: relative; /* thay vì absolute */
+    width: 100%; /* từ 50% thành 100% */
     height: 100%;
     background: #fff;
     display: flex;
@@ -54,8 +53,8 @@ form{ width: 100%; }
     text-align: center;
     padding: 40px;
     z-index: 1;
-    transition: .6s ease-in-out 1.2s, visibility 0s 1s;
 }
+
 
     .container.active .form-box{ right: 50%; }
 
