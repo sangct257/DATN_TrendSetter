@@ -173,7 +173,8 @@ public class HoaDonApiController {
                 hoaDon.getNgayTao(),
                 hoaDon.getTongTien(),
                 hoaDon.getTrangThai(),
-                hoaDon.getPhiShip()
+                hoaDon.getPhiShip(),
+                hoaDon.getPhuongThucThanhToan().getId()
         )).collect(Collectors.toList());
 
         // Log danh sách hóa đơn và ID của mỗi hóa đơn

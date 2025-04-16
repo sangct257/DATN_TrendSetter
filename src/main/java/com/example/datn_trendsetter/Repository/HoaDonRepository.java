@@ -47,22 +47,22 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     Float getDoanhSoNgayNay(@Param("now") LocalDateTime now, @Param("trangThai") String trangThai);
 
 
-    @Query("SELECT COALESCE(SUM(l.soTienThanhToan), 0) " +
-            "FROM LichSuThanhToan l " +
-            "WHERE YEAR(l.thoiGianThanhToan) = YEAR(:now)")
-    Float getDoanhThuNamNay(@Param("now") LocalDateTime now);
+    @Query("SELECT COALESCE(SUM(l.tongTien), 0) " +
+            "FROM HoaDon l " +
+            "WHERE YEAR(l.ngayTao) = YEAR(:now) AND l.trangThai = :trangThai")
+    Float getDoanhThuNamNay(@Param("now") LocalDateTime now,String trangThai);
 
-    @Query("SELECT COALESCE(SUM(l.soTienThanhToan), 0) " +
-            "FROM LichSuThanhToan l " +
-            "WHERE MONTH(l.thoiGianThanhToan) = MONTH(:now) AND YEAR(l.thoiGianThanhToan) = YEAR(:now)")
-    Float getDoanhThuThangNay(@Param("now") LocalDateTime now);
+    @Query("SELECT COALESCE(SUM(l.tongTien), 0) " +
+            "FROM HoaDon l " +
+            "WHERE MONTH(l.ngayTao) = MONTH(:now) AND YEAR(l.ngayTao) = YEAR(:now) AND l.trangThai = :trangThai")
+    Float getDoanhThuThangNay(@Param("now") LocalDateTime now,String trangThai);
 
-    @Query("SELECT COALESCE(SUM(l.soTienThanhToan), 0) " +
-            "FROM LichSuThanhToan l " +
-            "WHERE DAY(l.thoiGianThanhToan) = DAY(:now) " +
-            "AND MONTH(l.thoiGianThanhToan) = MONTH(:now) " +
-            "AND YEAR(l.thoiGianThanhToan) = YEAR(:now)")
-    Float getDoanhThuNgayNay(@Param("now") LocalDateTime now);
+    @Query("SELECT COALESCE(SUM(l.tongTien), 0) " +
+            "FROM HoaDon l " +
+            "WHERE DAY(l.ngayTao) = DAY(:now) " +
+            "AND MONTH(l.ngayTao) = MONTH(:now) " +
+            "AND YEAR(l.ngayTao) = YEAR(:now) AND l.trangThai = :trangThai")
+    Float getDoanhThuNgayNay(@Param("now") LocalDateTime now,String trangThai);
 
 
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE MONTH(h.ngayTao) = MONTH(:now) AND YEAR(h.ngayTao) = YEAR(:now) AND h.trangThai = :trangThai")

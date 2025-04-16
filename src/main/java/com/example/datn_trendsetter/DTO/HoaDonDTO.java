@@ -92,7 +92,8 @@ public class HoaDonDTO {
                      LocalDateTime ngayTao,
                      Float tongTien,
                      String trangThai,
-                     Float phiShip) {
+                     Float phiShip,
+                     Integer idPhuongThuocThanhToan) {
         this.id = id;
         this.idKhachHang = idKhachHang;
         this.maHoaDon = maHoaDon;
@@ -102,5 +103,6 @@ public class HoaDonDTO {
         this.loaiHoaDon = loaiHoaDon;
         this.ngayTao = ngayTao;
         this.nguoiTao = nguoiTao;
+        this.idPhuongThucThanhToan = idPhuongThuocThanhToan;
     }
 }
