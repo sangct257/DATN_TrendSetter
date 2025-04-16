@@ -5,6 +5,7 @@ import com.example.datn_trendsetter.Entity.ResetToken;
 import com.example.datn_trendsetter.Repository.KhachHangRepository;
 import com.example.datn_trendsetter.Repository.ResetTokenRepository;
 import com.example.datn_trendsetter.Service.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,18 +33,25 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByEmail(email);
     }
 
-    @Override
+    @Transactional
     public String generateResetToken(String email) {
-        String token = UUID.randomUUID().toString();
-        KhachHang user = userRepository.findByEmail(email).orElseThrow();
+        Optional<KhachHang> userOptional = userRepository.findByEmail(email);
+
+        if (!userOptional.isPresent()) {
+            throw new RuntimeException("User not found with email: " + email);
+        }
+
+        KhachHang user = userOptional.get();
+
+        resetTokenRepository.deleteByUserId(Long.valueOf(user.getId()));
 
         ResetToken resetToken = new ResetToken();
-        resetToken.setToken(token);
+        resetToken.setToken(UUID.randomUUID().toString());
         resetToken.setUser(user);
-        resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(30));
-        resetTokenRepository.save(resetToken);
+        resetToken.setExpiryDate(LocalDateTime.now().plusHours(1));
 
-        return token;
+        resetTokenRepository.save(resetToken);
+        return resetToken.getToken();
     }
 
     @Override
@@ -58,7 +66,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        resetTokenRepository.delete(resetToken); // Xóa token sau khi sử dụng
+        resetTokenRepository.delete(resetToken);
         return true;
     }
 }

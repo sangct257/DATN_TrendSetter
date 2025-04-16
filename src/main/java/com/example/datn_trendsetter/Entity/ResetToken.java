@@ -14,12 +14,18 @@ public class ResetToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String token;
 
+    @Column(nullable = false)
     private LocalDateTime expiryDate;
 
     @OneToOne
+    @JoinColumn(name = "user_id", unique = true) // Đảm bảo mỗi user chỉ có 1 token
     private KhachHang user;
 
-    // Getters and Setters
+    // Thêm constructor để tự động set expiryDate
+    public ResetToken() {
+        this.expiryDate = LocalDateTime.now().plusMinutes(15); // 15 phút hết hạn
+    }
 }
