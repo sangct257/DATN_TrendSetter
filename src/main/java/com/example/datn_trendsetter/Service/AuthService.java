@@ -102,27 +102,21 @@ public class AuthService {
             );
         }
     }
-
     public AuthResponse login(LoginRequest request, HttpSession session, HttpServletResponse response) {
         Optional<NhanVien> optionalNhanVien = nhanVienRepository.findByEmail(request.getEmail());
         if (optionalNhanVien.isPresent()) {
             NhanVien nhanVien = optionalNhanVien.get();
 
-            // Kiểm tra mật khẩu
             if (!passwordEncoder.matches(request.getPassword(), nhanVien.getPassword())) {
                 throw new RuntimeException("Email hoặc mật khẩu không đúng");
             }
 
-            // Kiểm tra trạng thái "Đang Hoạt Động"
             if (!"Đang Hoạt Động".equals(nhanVien.getTrangThai())) {
                 throw new RuntimeException("Tài khoản của bạn không còn hoạt động");
             }
 
-            System.out.println("Nhân viên đăng nhập thành công, ID: " + nhanVien.getId());
-
             String sessionId = UUID.randomUUID().toString();
 
-            // Tạo cookie riêng cho Nhân viên
             Cookie nhanVienCookie = new Cookie("SESSION_NHANVIEN", sessionId);
             nhanVienCookie.setMaxAge(60 * 60);
             nhanVienCookie.setPath("/");
@@ -132,29 +126,26 @@ public class AuthService {
             session.setAttribute("SESSION_NHANVIEN", sessionId);
             session.setAttribute("userNhanVien", nhanVien);
             session.setAttribute("rolesNhanVien", Collections.singletonList("ROLE_" + nhanVien.getVaiTro().name()));
+            session.setAttribute("accountType", "NHANVIEN");
 
-            return new AuthResponse(nhanVien, UserDetails.fromNhanVien(nhanVien), "/admin/", Collections.singletonList("ROLE_" + nhanVien.getVaiTro().name()), sessionId, "NHANVIEN");
+            return new AuthResponse(nhanVien, UserDetails.fromNhanVien(nhanVien), "/admin/",
+                    Collections.singletonList("ROLE_" + nhanVien.getVaiTro().name()), sessionId, "NHANVIEN");
         }
 
         Optional<KhachHang> optionalKhachHang = khachHangRepository.findByEmail(request.getEmail());
         if (optionalKhachHang.isPresent()) {
             KhachHang khachHang = optionalKhachHang.get();
 
-            // Kiểm tra mật khẩu
             if (!passwordEncoder.matches(request.getPassword(), khachHang.getPassword())) {
                 throw new RuntimeException("Email hoặc mật khẩu không đúng");
             }
 
-            // Kiểm tra trạng thái "Đang Hoạt Động"
             if (!"Đang Hoạt Động".equals(khachHang.getTrangThai())) {
                 throw new RuntimeException("Tài khoản của bạn không còn hoạt động");
             }
 
-            System.out.println("Khách hàng đăng nhập thành công, ID: " + khachHang.getId());
-
             String sessionId = UUID.randomUUID().toString();
 
-            // Tạo cookie riêng cho Khách hàng
             Cookie khachHangCookie = new Cookie("SESSION_KHACHHANG", sessionId);
             khachHangCookie.setMaxAge(60 * 60);
             khachHangCookie.setPath("/");
@@ -164,34 +155,40 @@ public class AuthService {
             session.setAttribute("SESSION_KHACHHANG", sessionId);
             session.setAttribute("userKhachHang", khachHang);
             session.setAttribute("rolesKhachHang", Collections.singletonList("ROLE_KHACHHANG"));
+            session.setAttribute("accountType", "KHACHHANG");
 
-            return new AuthResponse(khachHang, UserDetails.fromKhachHang(khachHang), "/trang-chu", Collections.singletonList("ROLE_KHACHHANG"), sessionId, "KHACHHANG");
+            return new AuthResponse(khachHang, UserDetails.fromKhachHang(khachHang), "/trang-chu",
+                    Collections.singletonList("ROLE_KHACHHANG"), sessionId, "KHACHHANG");
         }
 
         throw new RuntimeException("Tài khoản không tồn tại trong hệ thống");
     }
 
-    public void logout(HttpSession session, HttpServletResponse response, String sessionId) {
-        // Lấy thông tin người dùng từ session theo sessionId
-        Object user = session.getAttribute(sessionId);
+    public void logout(HttpSession session, HttpServletResponse response, String accountType) {
+        if ("NHANVIEN".equals(accountType)) {
+            session.removeAttribute("isAuthenticated");
+            session.removeAttribute("SESSION_NHANVIEN");
+            session.removeAttribute("userNhanVien");
+            session.removeAttribute("rolesNhanVien");
 
-        if (user != null) {
-            // Xóa thông tin tài khoản khỏi session
-            session.removeAttribute(sessionId);
+            Cookie cookie = new Cookie("SESSION_NHANVIEN", null);
+            cookie.setMaxAge(0);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+
+        } else if ("KHACHHANG".equals(accountType)) {
+            session.removeAttribute("isAuthenticated");
+            session.removeAttribute("SESSION_KHACHHANG");
+            session.removeAttribute("userKhachHang");
+            session.removeAttribute("rolesKhachHang");
+
+            Cookie cookie = new Cookie("SESSION_KHACHHANG", null);
+            cookie.setMaxAge(0);
+            cookie.setPath("/");
+            response.addCookie(cookie);
         }
 
-        // Xóa cookie
-        Cookie cookie = new Cookie("SESSION_NHANVIEN", null);  // Xóa cookie Nhân viên
-        cookie.setMaxAge(0); // Đặt thời gian sống của cookie là 0
-        cookie.setPath("/"); // Đảm bảo cookie bị xóa
-        response.addCookie(cookie);
-
-        cookie = new Cookie("SESSION_KHACHHANG", null);  // Xóa cookie Khách hàng
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-
-        // Hủy bỏ session hiện tại
+        session.removeAttribute("accountType");
         session.invalidate();
     }
 

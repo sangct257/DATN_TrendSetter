@@ -56,6 +56,10 @@ public class KhachHangService {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
+    public Optional<KhachHang> findByResetToken(String token) {
+        return khachHangRepository.findByResetToken(token);
+    }
+
     public Optional<KhachHang> getKhachHangById(Integer id) {
         return khachHangRepository.findById(id);
     }
@@ -65,7 +69,6 @@ public class KhachHangService {
         if (existingKhachHangOpt.isPresent()) {
             KhachHang existingKhachHang = existingKhachHangOpt.get();
 
-            // Cập nhật các trường thông tin
             existingKhachHang.setHoTen(updatedKhachHang.getHoTen());
             existingKhachHang.setUsername(updatedKhachHang.getUsername());
             existingKhachHang.setEmail(updatedKhachHang.getEmail());
@@ -74,22 +77,29 @@ public class KhachHangService {
             existingKhachHang.setNgaySinh(updatedKhachHang.getNgaySinh());
             existingKhachHang.setTrangThai(updatedKhachHang.getTrangThai());
 
-            // Cập nhật mật khẩu nếu có mật khẩu mới
             if (updatedKhachHang.getPassword() != null && !updatedKhachHang.getPassword().isEmpty()) {
-                existingKhachHang.setPassword(passwordEncoder.encode(updatedKhachHang.getPassword())); // Mã hóa mật khẩu mới
+                existingKhachHang.setPassword(passwordEncoder.encode(updatedKhachHang.getPassword()));
+
+                if (updatedKhachHang.getResetToken() != null) {
+                    existingKhachHang.setResetToken(null);
+                }
             }
 
-            // Cập nhật ảnh nếu có file mới
             if (file != null && !file.isEmpty()) {
+
+
                 String imageUrl = cloudinaryService.uploadImage(file);
                 existingKhachHang.setHinhAnh(imageUrl);
             }
 
-            return khachHangRepository.save(existingKhachHang); // Lưu lại nhân viên đã cập nhật
-        }
-        return null; // Trả về null nếu không tìm thấy nhân viên
-    }
+            if (updatedKhachHang.getResetToken() != null) {
+                existingKhachHang.setResetToken(updatedKhachHang.getResetToken());
+            }
 
+            return khachHangRepository.save(existingKhachHang);
+        }
+        throw new RuntimeException("Không tìm thấy khách hàng với ID: " + id);
+    }
     public Optional<KhachHang> findByEmail(String email) {
         return khachHangRepository.findByEmail(email);
     }
