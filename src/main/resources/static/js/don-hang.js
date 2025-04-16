@@ -57,10 +57,14 @@ function renderDonHangCards(data) {
         const formatMoney = (amount) => new Intl.NumberFormat("vi-VN").format(amount) + " VND";
 
         // Điều kiện hiển thị nút Huỷ đơn
-        const canCancel = ["Chờ Xác Nhận", "Đã Xác Nhận", "Chờ Vận Chuyển"].includes(hoaDon.trangThai);
-        const cancelButton = canCancel
-            ? `<button class="btn btn-danger btn-sm fw-bold me-2" onclick="moModalHuy('${hoaDon.id}')">Huỷ đơn</button>`
-            : "";
+     const canCancel = ["Chờ Xác Nhận", "Đã Xác Nhận", "Chờ Vận Chuyển"].includes(hoaDon.trangThai)
+         && hoaDon.idPhuongThucThanhToan !== 2
+         && hoaDon.idPhuongThucThanhToan !== 3;
+
+     const cancelButton = canCancel
+         ? `<button class="btn btn-danger btn-sm fw-bold me-2" onclick="moModalHuy('${hoaDon.id}')">Huỷ đơn</button>`
+         : "";
+
 
 
         card.innerHTML = `

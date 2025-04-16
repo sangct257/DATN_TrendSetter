@@ -107,12 +107,12 @@
                             <div class="col-md-4">
                                 <div class="card text-white bg-primary mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title">Doanh số tháng này</h5>
+                                        <h5 class="card-title">Doanh thu tháng này</h5>
                                         <p class="display-4" th:text="${soLuongHoaDonThangNay}"></p>
                                         <!-- Hiển thị số lượng hóa đơn -->
-                                        <p class="h4" th:if="${doanhSoThangNay == 0}">0 VND</p>
-                                        <p class="h4" th:if="${doanhSoThangNay != 0}"
-                                           th:text="${#numbers.formatInteger(doanhSoThangNay, 3, 'COMMA') + ' VND'}"></p>
+                                        <p class="h4" th:if="${doanhThuThangNay == 0}">0 VND</p>
+                                        <p class="h4" th:if="${doanhThuThangNay != 0}"
+                                           th:text="${#numbers.formatInteger(doanhThuThangNay, 3, 'COMMA') + ' VND'}"></p>
 
                                     </div>
                                 </div>
@@ -121,12 +121,12 @@
                             <div class="col-md-4">
                                 <div class="card text-white bg-warning mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title">Doanh số hôm nay</h5>
+                                        <h5 class="card-title">Doanh thu hôm nay</h5>
                                         <p class="display-4" th:text="${soLuongHoaDonNgayNay}"></p>
                                         <!-- Hiển thị số lượng hóa đơn -->
-                                        <p class="h4" th:if="${doanhSoNgayNay == 0}">0 VND</p>
-                                        <p class="h4" th:if="${doanhSoNgayNay != 0}"
-                                           th:text="${#numbers.formatInteger(doanhSoNgayNay, 3, 'COMMA') + ' VND'}"></p>
+                                        <p class="h4" th:if="${doanhThuNgayNay == 0}">0 VND</p>
+                                        <p class="h4" th:if="${doanhThuNgayNay != 0}"
+                                           th:text="${#numbers.formatInteger(doanhThuNgayNay, 3, 'COMMA') + ' VND'}"></p>
                                     </div>
                                 </div>
                             </div>
