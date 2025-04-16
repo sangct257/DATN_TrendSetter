@@ -21,7 +21,8 @@ public class KhachHang {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+    @Column(name = "reset_token")
+    private String resetToken;
     @Column(name = "ho_ten",columnDefinition = "NVARCHAR(255)")
     private String hoTen;
 
