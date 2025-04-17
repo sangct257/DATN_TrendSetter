@@ -130,14 +130,14 @@
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
                                 <li class="dropdown-header text-center">
                                     <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle" alt="User Image" width="80" height="80">
-                                    <p class="mt-3 mb-0 text-dark fw-bold" th:text="${session.userKhachHang.hoTen + ' ( ' + session.userKhachHang.username + ' )'}"></p>
+                                    <p class="mt-3 mb-0 text-dark fw-bold" th:text="${session.userKhachHang.hoTen}"></p>
                                 </li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li>
                                     <a class="dropdown-item text-info text-center" href="/thong-tin">Thông tin</a>
-                                    <a class="dropdown-item text-danger text-center" href="#" id="logout-btn">Log out</a>
+                                    <a class="dropdown-item text-danger text-center" href="#" id="logout-btn-khachhang">Log out</a>
                                 </li>
                             </ul>
                         </div>
@@ -198,6 +198,10 @@
                                                 <div class="mb-3">
                                                     <label for="register-password" class="form-label">Mật khẩu</label>
                                                     <input type="password" class="form-control" id="register-password" placeholder="Mật khẩu" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="register-confirm-password" class="form-label">Xác nhận mật khẩu</label>
+                                                    <input type="password" class="form-control" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
                                                 </div>
                                                 <button type="submit" class="btn btn-success w-100">Đăng ký</button>
                                             </form>

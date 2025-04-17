@@ -45,11 +45,11 @@ public class KhachHangClient {
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "user", Map.of(
-                        "hoTen", khachHang.getHoTen(),
-                        "email", khachHang.getEmail(),
-                        "soDienThoai", khachHang.getSoDienThoai(),
-                        "gioiTinh", khachHang.getGioiTinh(),
-                        "ngaySinh", khachHang.getNgaySinh(),
+                        "hoTen", khachHang.getHoTen() != null ? khachHang.getHoTen() : "",
+                        "email", khachHang.getEmail() != null ? khachHang.getEmail() : "",
+                        "soDienThoai", khachHang.getSoDienThoai() != null ? khachHang.getSoDienThoai() : "",
+                        "gioiTinh", khachHang.getGioiTinh() != null ? khachHang.getGioiTinh() : "",
+                        "ngaySinh", khachHang.getNgaySinh() != null ? khachHang.getNgaySinh() : "",
                         "hinhAnh", khachHang.getHinhAnh() != null ? khachHang.getHinhAnh() : "default-avatar.png"
                 )
         ));
