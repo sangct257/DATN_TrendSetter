@@ -181,3 +181,29 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+  const form = document.getElementById("traCuuForm");
+    const input = document.getElementById("maHoaDonInput");
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault(); // Ngăn submit mặc định
+
+        const maHoaDon = input.value.trim();
+        if (!maHoaDon) return;
+
+        fetch(`/api/hoa-don/kiem-tra-ma-hoa-don?maHoaDon=${encodeURIComponent(maHoaDon)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Mã hóa đơn không tồn tại");
+                }
+                // Nếu OK, submit form bình thường
+                form.submit();
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Không tìm thấy',
+                    text: error.message,
+                    confirmButtonColor: '#3085d6'
+                });
+            });
+    });
