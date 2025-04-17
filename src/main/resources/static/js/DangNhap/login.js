@@ -48,52 +48,101 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    document.getElementById("registerForm").addEventListener("submit", async function (event) {
-        event.preventDefault();
+document.getElementById("registerForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
 
-        const formData = {
-            hoTen: document.getElementById("register-name").value,
-            email: document.getElementById("register-email").value,
-            password: document.getElementById("register-password").value,
-            confirmPassword: document.getElementById("register-confirm-password").value,
-            userType: document.querySelector("input[name='registerUserType']:checked").value
-        };
+    // Lấy dữ liệu từ form
+    const formData = {
+        hoTen: document.getElementById("register-name").value.trim(),
+        email: document.getElementById("register-email").value.trim(),
+        password: document.getElementById("register-password").value,
+        confirmPassword: document.getElementById("register-confirm-password").value,
+        userType: "KHACHHANG"
+    };
 
-        // Validate password match
-        if (formData.password !== formData.confirmPassword) {
-            alert("Mật khẩu không khớp!");
-            return;
+    // Kiểm tra các trường bắt buộc
+    if (!formData.hoTen || !formData.email || !formData.password || !formData.confirmPassword) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: "Tất cả các trường đều là bắt buộc.",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return;
+    }
+
+    // Kiểm tra định dạng email
+    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (!emailPattern.test(formData.email)) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: "Email không hợp lệ.",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return;
+    }
+
+    // Kiểm tra mật khẩu
+    if (formData.password.length < 6) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: "Mật khẩu phải có ít nhất 6 ký tự.",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return;
+    }
+
+    // Kiểm tra mật khẩu xác nhận
+    if (formData.password !== formData.confirmPassword) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: "Mật khẩu và xác nhận mật khẩu không khớp.",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return;
+    }
+
+    const registerUrl = formData.userType === "NHANVIEN"
+        ? "/auth/nhanvien/register"
+        : "/auth/khachhang/register";
+
+    try {
+        const response = await fetch(`http://localhost:8080${registerUrl}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData),
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Đăng ký thất bại");
         }
 
-        const registerUrl = formData.userType === "NHANVIEN"
-            ? "/auth/nhanvien/register"
-            : "/auth/khachhang/register";
+        const result = await response.json();
+       // Đăng ký
+       Swal.fire({
+           title: "Đăng ký thành công!",
+           icon: "success",
+           text: "Vui lòng đăng nhập.",
+           confirmButtonText: "OK"
+       }).then(() => location.reload());
+    } catch (error) {
+        console.error("Lỗi đăng ký:", error);
+        Swal.fire({
+            title: "Lỗi đăng ký!",
+            text: error.message || "Vui lòng thử lại.",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+    }
+});
 
-        try {
-            const response = await fetch(`http://localhost:8080${registerUrl}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(formData),
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Đăng ký thất bại");
-            }
-
-            const result = await response.json();
-            alert("Đăng ký thành công! Vui lòng đăng nhập.");
-
-            // Tự động chuyển về form đăng nhập
-            container.classList.remove("active");
-        } catch (error) {
-            console.error("Lỗi đăng ký:", error);
-            alert(error.message || "Lỗi đăng ký. Vui lòng thử lại.");
-        }
-    });
 
     // Xử lý đăng xuất
     document.getElementById("logoutBtn")?.addEventListener("click", async function() {

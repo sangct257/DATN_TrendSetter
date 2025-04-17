@@ -82,6 +82,7 @@ public class AuthService {
             khachHang.setEmail(request.getEmail());
             khachHang.setPassword(encodedPassword);
             khachHang.setHoTen(request.getHoTen());
+            khachHang.setTrangThai("Đang Hoạt Động");
             KhachHang savedKhachHang = khachHangRepository.save(khachHang);
 
             UserDetails userDetails = UserDetails.fromKhachHang(savedKhachHang);
