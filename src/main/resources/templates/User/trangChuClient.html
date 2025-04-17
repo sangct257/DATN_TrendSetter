@@ -218,7 +218,9 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="forgotPasswordModalLabel">Khôi phục mật khẩu</h5>
-                                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i> <!-- Thay vì biểu tượng x mặc định -->
+                                    </button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="mb-3">
@@ -228,7 +230,7 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                                     <button type="button" class="btn btn-primary" id="sendResetEmailBtn">Gửi liên kết</button>
                                 </div>
                             </div>
@@ -241,7 +243,9 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="resetPasswordModalLabel">Đặt lại mật khẩu</h5>
-                                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i> <!-- Thay vì biểu tượng x mặc định -->
+                                    </button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="mb-3">
@@ -257,7 +261,7 @@
                                     <input type="hidden" id="reset-token">
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                                     <button type="button" class="btn btn-primary" id="submitNewPasswordBtn">Đổi mật khẩu</button>
                                 </div>
                             </div>
