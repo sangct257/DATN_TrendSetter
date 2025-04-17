@@ -189,4 +189,15 @@ public class HoaDonApiController {
         ));
     }
 
+    @GetMapping("/kiem-tra-ma-hoa-don")
+    @ResponseBody
+    public ResponseEntity<?> kiemTraHoaDon(@RequestParam("maHoaDon") String maHoaDon) {
+        HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(maHoaDon);
+        if (hoaDon != null) {
+            return ResponseEntity.ok().body("OK");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mã hóa đơn không tồn tại");
+        }
+    }
+
 }
