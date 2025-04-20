@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
             cart = cart.filter(item => !(item.idSanPhamChiTiet == idSanPhamChiTiet && item.size == size && item.color == color));
             localStorage.setItem("cart", JSON.stringify(cart));
             renderCart();  // Cập nhật lại giỏ hàng sau khi xóa sản phẩm
-
+            fetchCoupons(); // Cập nhật lại phiếu giảm giá sau khi thay đổi giỏ hàng
             // Cập nhật số lượng giỏ hàng (badge) sau khi xóa sản phẩm
             updateCartBadge();
         }
@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem("cart", JSON.stringify(cart));
         renderCart();
         fetchCoupons(); // Cập nhật lại phiếu giảm giá sau khi thay đổi giỏ hàng
+        resetDiscount(); // reset giá giảm
         updateCartBadge(); // Cập nhật lại số lượng giỏ hàng ở đây nếu cần
     });
 
@@ -72,6 +73,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
+
+function resetDiscount() {
+    // Set giá giảm về 0
+    document.getElementById("discount-price").innerText = "0đ";
+    document.getElementById("total-price-after-discount").innerText = document.getElementById("total-price").innerText;
+
+    // Xóa mã giảm giá đã chọn trong localStorage (nếu bạn lưu)
+    localStorage.removeItem("selectedCoupon");
+}
 
 function renderCart() {
     let cartData = localStorage.getItem("cart");
