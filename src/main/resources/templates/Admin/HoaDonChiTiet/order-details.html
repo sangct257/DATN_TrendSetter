@@ -645,14 +645,12 @@
                                     </div>
                                     <div class="col-md-6 text-end">
                                         <button class="btn btn-light"
-                                                th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận'
-                    or hoaDon.loaiGiaoDich == 'Đã Thanh Toán'
-                    or hoaDon.phuongThucThanhToan != 1
-                    ? 'disabled' : null}">
-                                            <a class="btn btn-light" data-bs-toggle="modal"
-                                               data-bs-target="#addProductModal">
-                                                <i class="fas fa-cart-plus"></i> Thêm sản phẩm
-                                            </a>
+                                                th:attr="
+            disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich != 'Trả Sau'} ? 'disabled' : null,
+            data-bs-toggle=${hoaDon.trangThai == 'Chờ Xác Nhận' and hoaDon.loaiGiaoDich == 'Trả Sau'} ? 'modal' : null,
+            data-bs-target=${hoaDon.trangThai == 'Chờ Xác Nhận' and hoaDon.loaiGiaoDich == 'Trả Sau'} ? '#addProductModal' : null
+        ">
+                                            <i class="fas fa-cart-plus"></i> Thêm sản phẩm
                                         </button>
 
 
@@ -777,7 +775,7 @@
                                             <td class="text-center">
                                                 <input type="number" name="soLuong" th:value="${hoaDonChiTiet.soLuong}"
                                                        min="1" class="form-control"
-                                                       th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán' or hoaDon.phuongThucThanhToan != 1 ? 'disabled' : null}"
+                                                       th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich != 'Trả Sau'} ? 'disabled' : null"
                                                        required onchange="updateQuantityOrder(this)">
                                                 <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                                 <input type="hidden" name="hoaDonChiTietId"
@@ -798,7 +796,7 @@
                                                     <input type="hidden" name="hoaDonChiTietId" th:value="${hoaDonChiTiet.id}">
                                                     <input type="hidden" name="hoaDonId" th:value="${hoaDon.id}">
                                                     <button type="button" class="btn btn-danger"
-                                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán' or hoaDon.phuongThucThanhToan != 1 ? 'disabled' : null}"
+                                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich != 'Trả Sau'} ? 'disabled' : null"
                                                             onclick="deleteProductOrder(this)">
                                                         <i class="fas fa-trash"></i> Xóa
                                                     </button>
