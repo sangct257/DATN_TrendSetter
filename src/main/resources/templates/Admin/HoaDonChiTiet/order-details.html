@@ -239,7 +239,6 @@
                                         Xác Nhận Thanh Toán
                                     </button>
 
-
                                     <!-- Nút Xác Nhận Hoàn Thành (Chỉ xuất hiện khi Đang Giao Hàng hoặc Đã Thanh Toán) -->
                                     <button type="submit" class="btn btn-warning"
                                             th:if="${not #lists.isEmpty(listLichSuHoaDon)
@@ -323,6 +322,9 @@
                                                             onclick="chonPhuongThuc(this)">
                                                     </button>
                                                 </div>
+
+                                                <!-- ✅ Thêm đoạn này -->
+                                                <div id="paymentInfoSection" class="mt-3"></div>
 
                                                 <div th:if="${hoaDon.tongTien - hoaDon.soTienDaThanhToan == 0}">
                                                     <p>Hóa đơn đã được thanh toán đầy đủ.</p>
@@ -885,7 +887,7 @@
                                                         </div>
 
                                                         <button type="button" id="addPaymentMethodButton"
-                                                                class="btn btn-primary">
+                                                                class="btn btn-primary w-100">
                                                             Cập nhật
                                                         </button>
                                                     </form>
@@ -1151,20 +1153,40 @@
         modal.setAttribute("data-apiEndpoint", apiEndpoint);
     }
 
-    function chonPhuongThuc(button) {
-        let paymentMethod = button.getAttribute('data-value');
-        document.getElementById('paymentMethod').value = paymentMethod;
+   function chonPhuongThuc(button) {
+    let paymentMethod = button.getAttribute('data-value');
+    document.getElementById('paymentMethod').value = paymentMethod;
 
-        // Bỏ chọn tất cả các nút khác
-        document.querySelectorAll("#listPhuongThucThanhToan button").forEach(btn => {
-            btn.classList.remove("btn-primary");
-            btn.classList.add("btn-outline-primary");
-        });
+    // Reset style các nút
+    document.querySelectorAll("#listPhuongThucThanhToan button").forEach(btn => {
+        btn.classList.remove("btn-primary");
+        btn.classList.add("btn-outline-primary");
+    });
 
-        // Đánh dấu nút được chọn
-        button.classList.remove("btn-outline-primary");
-        button.classList.add("btn-primary");
+    // Gán class cho nút được chọn
+    button.classList.remove("btn-outline-primary");
+    button.classList.add("btn-primary");
+
+    // Lấy nội dung nút (ví dụ: "Chuyển khoản") và chuyển về chữ thường để so sánh
+    const tenPhuongThuc = button.textContent.trim().toLowerCase();
+    const paymentInfoSection = document.getElementById('paymentInfoSection');
+
+    // So sánh tên để hiển thị QR code
+    if (tenPhuongThuc.includes('chuyển khoản')) {
+        paymentInfoSection.innerHTML = `
+            <div class="text-center mt-3">
+                <p><strong>Vui lòng quét mã QR để chuyển khoản:</strong></p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Demo+Chuyen+Khoan"
+                     alt="QR Code"
+                     class="img-fluid"
+                     style="max-width: 250px;">
+            </div>
+        `;
+    } else {
+        paymentInfoSection.innerHTML = '';
     }
+}
+
 
     function xacNhanThanhToan() {
         let modal = $('#xacNhanThanhToanModal');
@@ -1172,7 +1194,6 @@
         let apiEndpoint = modal.attr('data-apiEndpoint');
         let paymentMethodElement = document.getElementById('paymentMethod');
 
-        // Kiểm tra nếu không có phần tử chọn phương thức thanh toán
         if (!paymentMethodElement) {
             Swal.fire({
                 icon: 'error',
@@ -1185,7 +1206,6 @@
 
         let paymentMethod = paymentMethodElement.value;
 
-        // Kiểm tra nếu người dùng chưa chọn phương thức thanh toán
         if (!paymentMethod) {
             Swal.fire({
                 icon: 'warning',
@@ -1219,7 +1239,7 @@
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
-                        location.reload(); // Reload lại trang sau khi thanh toán thành công
+                        location.reload();
                     });
                 } else {
                     Swal.fire({
