@@ -234,57 +234,74 @@ function deleteCustomerFromInvoice(button) {
 
 <!--API Phương Thức Thanh Toán-->
 $(document).ready(function () {
-    let paymentOptions = $("input[name='phuongThucThanhToanId']");
-    let paymentDetails = $("#paymentDetails");
-    let paymentMethodText = $("#paymentMethodText");
+    const paymentOptions = $("input[name='phuongThucThanhToanId']");
+    const paymentDetails = $("#paymentDetails");
+    const paymentMethodText = $("#paymentMethodText");
+    const orderInfo = $("#orderInfo");
 
-    // Lấy tổng tiền hóa đơn từ Thymeleaf
-    let tongTienHoaDon = parseFloat('[[${hoaDon != null ? hoaDon.tongTien : 0}]]');
+    function parseMoney(value) {
+        return parseFloat((value || "0").toString().replace(/,/g, "")) || 0;
+    }
 
-    // Xử lý khi chọn phương thức thanh toán
+    const tongTienHoaDon = parseMoney(orderInfo.data("tongtien"));
+    const phiShip = parseMoney(orderInfo.data("phiship"));
+    const maGiamGia = parseMoney(orderInfo.data("magiamgia"));
+    const tongThanhToan = tongTienHoaDon + phiShip - maGiamGia;
+
     paymentOptions.on("change", function () {
-        let selectedText = $("label[for='" + this.id + "']").text().trim();
+        const selectedText = $(`label[for="${this.id}"]`).text().trim();
         paymentDetails.empty();
 
         if (selectedText === "Tiền Mặt") {
             paymentDetails.html(`
                 <div class="mb-3">
-                    <label for="cashAmount" class="form-label"><i class="fas fa-money-bill-wave"></i> Nhập số tiền khách đưa:</label>
-                    <input type="number" id="cashAmount" name="cashAmount" class="form-control" placeholder="Nhập số tiền khách đưa" min="0">
+                    <label for="cashAmount" class="form-label">
+                        <i class="fas fa-money-bill-wave"></i> Nhập số tiền khách đưa:
+                    </label>
+                    <input type="number" id="cashAmount" class="form-control" placeholder="Nhập số tiền khách đưa" min="0">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><i class="fas fa-coins"></i> Số tiền thối lại:</label>
+                    <label class="form-label">
+                        <i class="fas fa-coins"></i> Số tiền cần thanh toán:
+                    </label>
+                    <input type="text" class="form-control" value="${tongTienHoaDon.toLocaleString()} VND" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-money-check-alt"></i> Số tiền thối lại:
+                    </label>
                     <input type="text" id="changeAmount" class="form-control" readonly>
                 </div>
             `);
 
-            let cashInput = $("#cashAmount");
-            let changeOutput = $("#changeAmount");
+            $("#cashAmount").on("input", function () {
+                const cashGiven = parseMoney($(this).val());
 
-            cashInput.on("input", function () {
-                let cashGiven = parseFloat($(this).val()) || 0;
-                let phiShip = parseFloat($("#phiShip").val()) || 0;
-                let maGiamGia = parseFloat($("#listPhieuGiamGia").val()) || 0;
-                let totalAmount = tongTienHoaDon + phiShip - maGiamGia;
+                if (cashGiven < 0) {
+                    $("#changeAmount").val("Số tiền không hợp lệ").css("color", "red");
+                    return;
+                }
 
-                let change = cashGiven - totalAmount;
-                changeOutput.val(change < 0 ? `Thiếu ${Math.abs(change).toLocaleString()} VND` : `${change.toLocaleString()} VND`)
-                    .css("color", change < 0 ? "red" : "green");
+                const change = cashGiven - tongTienHoaDon;
+
+                $("#changeAmount").val(
+                    change < 0
+                        ? `Thiếu ${Math.abs(change).toLocaleString()} VND`
+                        : `${change.toLocaleString()} VND`
+                ).css("color", change < 0 ? "red" : "green");
             });
-
         } else if (selectedText === "Chuyển Khoản") {
             paymentDetails.html(`
                 <div class="mb-3 text-center">
-                    <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                    <img id="qrCodeImage" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Demo+Thanh+Toan+Ngan+Hang" alt="QR Code" class="img-fluid" style="max-width: 250px;">
                 </div>
             `);
         }
     });
 
-    // Xử lý khi nhấn nút "Cập nhật" để chọn phương thức thanh toán
     $("#addPaymentMethodButton").on("click", function () {
-        let formData = $("#paymentMethodForm").serialize();
-        let selectedPayment = $("input[name='phuongThucThanhToanId']:checked").val();
+        const formData = $("#paymentMethodForm").serialize();
+        const selectedPayment = $("input[name='phuongThucThanhToanId']:checked").val();
 
         if (!selectedPayment) {
             Swal.fire({
@@ -309,15 +326,14 @@ $(document).ready(function () {
                     if (response.success) {
                         paymentMethodText.text(response.updatedPaymentMethod);
                         $("#paymentModal").modal("hide");
+
                         Swal.fire({
                             title: "Thành công!",
                             text: "Cập nhật phương thức thanh toán thành công!",
                             icon: "success",
                             timer: 1500,
                             showConfirmButton: false
-                        }).then(() => {
-                            location.reload();
-                        });
+                        }).then(() => location.reload());
                     } else {
                         Swal.fire({
                             title: "Lỗi!",
