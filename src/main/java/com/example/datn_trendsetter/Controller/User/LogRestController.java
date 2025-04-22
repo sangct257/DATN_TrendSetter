@@ -3,51 +3,93 @@ package com.example.datn_trendsetter.Controller.User;
 import com.example.datn_trendsetter.DTO.AuthResponse;
 import com.example.datn_trendsetter.DTO.LoginRequest;
 import com.example.datn_trendsetter.DTO.RegisterRequest;
+import com.example.datn_trendsetter.DTO.ResetPasswordRequest;
 import com.example.datn_trendsetter.Entity.KhachHang;
-import com.example.datn_trendsetter.Entity.NhanVien;
+import com.example.datn_trendsetter.Repository.KhachHangRepository;
 import com.example.datn_trendsetter.Service.AuthService;
+import com.example.datn_trendsetter.Service.EmailService;
+import com.example.datn_trendsetter.Service.KhachHangService;
+import com.example.datn_trendsetter.Service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin("*")
 public class LogRestController {
+
+    private final UserService userService;
+    private final EmailService emailService;
     private final AuthService authService;
+    private final KhachHangRepository khachHangRepository;
 
-    public LogRestController(AuthService authService) {
+    @Autowired
+    private KhachHangService khachHangService;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    public LogRestController(UserService userService, EmailService emailService,
+                             AuthService authService, KhachHangRepository khachHangRepository) {
+        this.userService = userService;
+        this.emailService = emailService;
         this.authService = authService;
+        this.khachHangRepository = khachHangRepository;
     }
 
-    // Đăng ký Nhân viên
-    @PostMapping("/nhanvien/register")
-    public ResponseEntity<?> registerNhanVien(@RequestBody RegisterRequest request, HttpSession session) {
-        try {
-            request.setLoaiTaiKhoan("NHANVIEN");
-            AuthResponse response = authService.register(request, session);
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "redirect", response.getRedirectUrl(),
-                    "user", response.getUserDetails(),
-                    "roles", response.getRoles()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", e.getMessage()
-            ));
+        if (!userService.existsByEmail(email)) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("message", "Email không tồn tại")
+            );
         }
+
+        String token = userService.generateResetToken(email);
+        // Sửa thành link trỏ đến trang reset password của frontend
+        String resetLink = "http://localhost:3000/reset-password?token=" + token;
+        emailService.sendResetPasswordEmail(email, resetLink);
+
+        return ResponseEntity.ok().body(
+                Map.of("message", "Email khôi phục đã được gửi")
+        );
     }
 
-    // Đăng ký Khách hàng
+    @CrossOrigin(origins = "http://localhost:8080")
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        // 1. Kiểm tra token và mật khẩu mới
+        if (request.getToken() == null || request.getNewPassword() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Token và mật khẩu mới là bắt buộc"));
+        }
+
+        // 2. Tìm khách hàng bằng token (chỉ so sánh token, không bao gồm URL)
+        Optional<KhachHang> khachHangOpt = khachHangRepository.findByResetToken(request.getToken());
+        if (!khachHangOpt.isPresent()) {
+            // Log để debug
+            System.err.println("Token không tồn tại trong DB: " + request.getToken());
+            return ResponseEntity.status(400).body(Map.of("error", "Token không hợp lệ hoặc đã hết hạn"));
+        }
+
+        // 3. Cập nhật mật khẩu và xóa token
+        KhachHang khachHang = khachHangOpt.get();
+        khachHang.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        khachHang.setResetToken(null); // Xóa token sau khi dùng
+        khachHangRepository.save(khachHang);
+
+        return ResponseEntity.ok().body(Map.of("message", "Đặt lại mật khẩu thành công"));
+    }
+
+
     @PostMapping("/khachhang/register")
     public ResponseEntity<?> registerKhachHang(@RequestBody RegisterRequest request, HttpSession session) {
         try {
@@ -68,21 +110,20 @@ public class LogRestController {
         }
     }
 
-    // Đăng nhập Nhân viên
-    @PostMapping("/nhanvien/login")
-    public ResponseEntity<?> loginNhanVien(@RequestBody LoginRequest request, HttpSession session) {
+    @PostMapping("/khachhang/login")
+    public ResponseEntity<?> loginKhachHang(@RequestBody LoginRequest request,
+                                            HttpSession session, HttpServletResponse response) {
         try {
-            request.setLoaiTaiKhoan("NHANVIEN");
-            AuthResponse response = authService.login(request, session);
+            request.setLoaiTaiKhoan("KHACHHANG");
+            AuthResponse authResponse = authService.login(request, session, response);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "redirect", response.getRedirectUrl(),
-                    "user", response.getUserDetails(),
-                    "roles", response.getRoles()
-
+                    "redirect", authResponse.getRedirectUrl(),
+                    "user", authResponse.getUserDetails(),
+                    "roles", authResponse.getRoles(),
+                    "accountType", authResponse.getAccountType()
             ));
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
@@ -91,37 +132,39 @@ public class LogRestController {
         }
     }
 
-    // Đăng nhập Khách hàng
-    @PostMapping("/khachhang/login")
-    public ResponseEntity<?> loginKhachHang(@RequestBody LoginRequest request, HttpSession session) {
-        try {
-            request.setLoaiTaiKhoan("KHACHHANG");
-            AuthResponse response = authService.login(request, session);
+    // ==================== OTHER ENDPOINTS ====================
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "redirect", response.getRedirectUrl(),
-                    "user", response.getUserDetails(),
-                    "roles", response.getRoles()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", e.getMessage()
-            ));
-        }
+    @GetMapping("/khachhang/check-email")
+    public ResponseEntity<?> checkEmailExists(@RequestParam("email") String email) {
+        boolean exists = userService.existsByEmail(email);
+        return ResponseEntity.ok(Collections.singletonMap("exists", exists));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         try {
             HttpSession session = request.getSession(false);
             if (session != null) {
-                session.invalidate();
+                String accountType = (String) session.getAttribute("accountType");
+                String redirectUrl = "/";
+
+                if ("NHANVIEN".equals(accountType)) {
+                    redirectUrl = "/auth/home";
+                } else if ("KHACHHANG".equals(accountType)) {
+                    redirectUrl = "/trang-chu";
+                }
+
+                authService.logout(session, response, accountType);
+
+                return ResponseEntity.ok().body(Map.of(
+                        "success", true,
+                        "message", "Đăng xuất thành công",
+                        "redirect", redirectUrl
+                ));
             }
-            return ResponseEntity.ok().body(Map.of(
-                    "success", true,
-                    "message", "Đăng xuất thành công"
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Không tìm thấy session"
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -134,25 +177,26 @@ public class LogRestController {
     @GetMapping("/check-session")
     public ResponseEntity<?> checkSession(HttpSession session) {
         Boolean isAuthenticated = (Boolean) session.getAttribute("isAuthenticated");
+
         if (isAuthenticated != null && isAuthenticated) {
-            Object user = session.getAttribute("user");
-            String userType = (user instanceof NhanVien) ? "NHANVIEN" :
-                    (user instanceof KhachHang) ? "KHACHHANG" : "UNKNOWN";
-
             Map<String, Object> response = new HashMap<>();
-            response.put("isAuthenticated", true);
-            response.put("user", user);
-            response.put("userType", userType);
-            response.put("roles", session.getAttribute("roles"));
-            response.put("accountType", session.getAttribute("accountType"));
 
-            Long loginTime = (Long) session.getAttribute("loginTime");
-            if (loginTime != null) {
-                response.put("sessionTime", (System.currentTimeMillis() - loginTime) / 1000 + " giây");
+            // Get roles based on account type
+            List<String> roles = new ArrayList<>();
+            if (session.getAttribute("rolesNhanVien") != null) {
+                roles = (List<String>) session.getAttribute("rolesNhanVien");
+            } else if (session.getAttribute("rolesKhachHang") != null) {
+                roles = (List<String>) session.getAttribute("rolesKhachHang");
             }
+
+            response.put("isAuthenticated", true);
+            response.put("roles", roles);
+            response.put("user", session.getAttribute("user"));
+            response.put("accountType", session.getAttribute("accountType"));
 
             return ResponseEntity.ok().body(response);
         }
+
         return ResponseEntity.ok().body(Collections.singletonMap("isAuthenticated", false));
     }
 }

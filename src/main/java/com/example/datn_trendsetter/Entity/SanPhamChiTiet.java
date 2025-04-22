@@ -36,10 +36,6 @@ public class SanPhamChiTiet {
     @JoinColumn(name = "id_kich_thuoc", referencedColumnName = "id")
     private KichThuoc kichThuoc;
 
-    @ManyToOne
-    @JoinColumn(name = "id_dot_giam_gia",referencedColumnName = "id")
-    private DotGiamGia dotGiamGia;
-
     @Column(name = "so_luong")
     private Integer soLuong;
 

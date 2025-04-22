@@ -10,12 +10,21 @@ public class AuthResponse {
     private UserDetails userDetails;
     private String redirectUrl;
     private List<String> roles;
+    private String sessionId;  // ✅ Thêm sessionId
+    private String accountType;  // ✅ Thêm loại tài khoản
 
-    public AuthResponse(Object userEntity, UserDetails userDetails, String redirectUrl, List<String> roles) {
+
+    public AuthResponse(Object userEntity, UserDetails userDetails, String redirectUrl, List<String> roles, String sessionId, String accountType) {
         this.userEntity = userEntity;
         this.userDetails = userDetails;
         this.redirectUrl = redirectUrl;
         this.roles = roles;
+        this.sessionId = sessionId;
+        this.accountType = accountType;
+    }
+
+    public String getAccountType() {
+        return accountType;
     }
 
     // Phương thức generic để lấy user entity

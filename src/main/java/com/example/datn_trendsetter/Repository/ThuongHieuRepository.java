@@ -13,4 +13,6 @@ public interface ThuongHieuRepository extends JpaRepository<ThuongHieu,Integer> 
     boolean existsByTenThuongHieu(String tenThuongHieu);
 
     List<ThuongHieu> findByTrangThai(String trangThai, Sort sort);
+
+    List<ThuongHieu> findByDeleted(Boolean deleted, Sort sort);
 }

@@ -57,25 +57,62 @@ public class SanPhamService {
     @Transactional
     public synchronized ResponseEntity<?> addSanPham(SanPhamDTO sanPhamDTO, HttpSession session) {
         try {
+            // Check tên sản phẩm không được để trống hoặc chỉ toàn khoảng trắng
+            if (sanPhamDTO.getTenSanPham() == null || sanPhamDTO.getTenSanPham().trim().isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Tên sản phẩm không được để trống!"));
+            }
+
+            // Check tên sản phẩm không được để trống hoặc chỉ toàn khoảng trắng
+            if (sanPhamDTO.getMoTa() == null || sanPhamDTO.getMoTa().trim().isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Mô tả không được để trống!"));
+            }
+
+            // Check tên sản phẩm không được để trống hoặc chỉ toàn khoảng trắng
+            if (sanPhamDTO.getThuongHieuId() == null) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Thương hiệu không được để trống!"));
+            }
+
+            // Check tên sản phẩm không được để trống hoặc chỉ toàn khoảng trắng
+            if (sanPhamDTO.getXuatXuId() == null) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Xuất xứ không được để trống!"));
+            }
+
+            // Check tên sản phẩm không được để trống hoặc chỉ toàn khoảng trắng
+            if (sanPhamDTO.getChatLieuId() == null) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Chất liệu không được để trống!"));
+            }
+
+            // Check trùng tên sản phẩm (bỏ khoảng trắng thừa nếu có)
             Optional<SanPham> existingSanPhamOpt = sanPhamRepository.findByTenSanPham(
-                    sanPhamDTO.getTenSanPham()
+                    sanPhamDTO.getTenSanPham().trim()
             );
 
             if (existingSanPhamOpt.isPresent()) {
                 return ResponseEntity
                         .status(HttpStatus.CONFLICT) // 409 Conflict
-                        .body(Map.of("message", "Sản phẩm đã tồn tại trong danh mục và thương hiệu này!"));
+                        .body(Map.of("message", "Tên sản phẩm đã tồn tại!"));
             }
 
             // Lấy nhân viên từ session
-            NhanVien nhanVienSession = (NhanVien) session.getAttribute("user");
+            NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
-                throw new Exception("Bạn cần đăng nhập để tạo hóa đơn.");
+                throw new Exception("Bạn cần đăng nhập.");
             }
 
+            // Tạo sản phẩm
             SanPham sanPham = new SanPham();
             sanPham.setMaSanPham(generateMaSanPham());
-            sanPham.setTenSanPham(sanPhamDTO.getTenSanPham());
+            sanPham.setTenSanPham(sanPhamDTO.getTenSanPham().trim()); // luôn trim tên
             sanPham.setSoLuong(sanPhamDTO.getSoLuong());
             sanPham.setMoTa(sanPhamDTO.getMoTa());
             sanPham.setTrangThai("Ngừng Hoạt Động");
@@ -85,7 +122,7 @@ public class SanPhamService {
             sanPham.setNguoiSua(nhanVienSession.getHoTen());
             sanPham.setDeleted(false);
 
-            // Kiểm tra xem các đối tượng có tồn tại trước khi set không
+            // Set các liên kết
             sanPham.setThuongHieu(thuongHieuRepository.findById(sanPhamDTO.getThuongHieuId()).orElseThrow(
                     () -> new RuntimeException("Thương hiệu không tồn tại!")));
             sanPham.setDanhMuc(danhMucRepository.findById(sanPhamDTO.getDanhMucId()).orElseThrow(
@@ -95,10 +132,9 @@ public class SanPhamService {
             sanPham.setXuatXu(xuatXuRepository.findById(sanPhamDTO.getXuatXuId()).orElseThrow(
                     () -> new RuntimeException("Xuất xứ không tồn tại!")));
 
-            // Lưu sản phẩm vào database
+            // Lưu vào DB
             SanPham savedSanPham = sanPhamRepository.save(sanPham);
 
-            // Trả về ID của sản phẩm mới tạo
             return ResponseEntity.ok(Map.of(
                     "message", "Thêm sản phẩm thành công!",
                     "id", savedSanPham.getId()
@@ -190,14 +226,18 @@ public class SanPhamService {
 
     public Page<SanPhamViewDTO> getSanPhams(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<SanPhamViewDTO> allSanPhams = sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
-
-        // Lọc sản phẩm theo trạng thái tại Service
-        List<SanPhamViewDTO> filteredList = allSanPhams.getContent().stream()
-                .filter(sp -> "Đang Hoạt Động".equals(sp.getTrangThai()))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(filteredList, pageable, filteredList.size());
+        return sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
     }
+
+
+    public Page<SanPhamViewDTO> searchSanPhams(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return sanPhamChiTietRepository.searchSanPham(keyword, pageable);
+    }
+    public Page<SanPhamViewDTO> filterSanPhams(String danhMuc, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return sanPhamChiTietRepository.filterSanPham(danhMuc, pageable);
+    }
+
 
 }

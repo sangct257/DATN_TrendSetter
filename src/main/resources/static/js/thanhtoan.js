@@ -1,7 +1,206 @@
 document.addEventListener("DOMContentLoaded", function () {
     validateCartBeforeCheckout();
     loadCheckoutCart();
+    loadDiaChi();
+    setupAddressDropdownEvents(); // Gắn sự kiện onchange cho các dropdown
 });
+
+let showAll = false;
+let diaChis = [];
+let selectedDiaChiId = null;
+
+let provinceMap = {};
+let districtMap = {};
+
+function loadDiaChi() {
+    fetch("/api/dia-chi/list", { method: "GET", credentials: "include" })
+        .then(response => response.json())
+        .then(apiResponse => {
+            if (apiResponse && Array.isArray(apiResponse.data) && apiResponse.data.length > 0) {
+                diaChis = apiResponse.data;
+                const diaChi = diaChis[0];
+                console.log("Dữ liệu địa chỉ từ API của bạn:", diaChi);
+
+                document.getElementById("fullName").value = diaChi.hoTen || "N/A";
+                document.getElementById("phoneNumber").value = diaChi.soDienThoai || "N/A";
+                document.getElementById("email").value = diaChi.email || "N/A";
+                document.getElementById("specific-address").value = diaChi.diaChiCuThe || "N/A";
+
+                fillProvinces()
+                    .then(() => {
+                        const provinceCode = provinceMap[diaChi.thanhPho];
+                        if (provinceCode) {
+                            setProvince(provinceCode, diaChi.thanhPho);
+                            setTimeout(() => {
+                                const districtCode = districtMap[diaChi.huyen];
+                                if (districtCode) {
+                                    setDistrict(districtCode, diaChi.huyen);
+                                    setTimeout(() => setWard(diaChi.phuong), 300);
+                                } else {
+                                    console.warn("Không tìm thấy mã quận/huyện:", diaChi.huyen);
+                                }
+                            }, 300);
+                        } else {
+                            console.warn("Không tìm thấy mã tỉnh:", diaChi.thanhPho);
+                        }
+                    });
+            } else {
+                loadDiaChiFromGHN();
+            }
+        })
+        .catch(error => {
+            console.error("Lỗi khi tải danh sách địa chỉ:", error);
+            loadDiaChiFromGHN();
+        });
+}
+
+function loadDiaChiFromGHN() {
+    fetch("https://api.giaohangnhanh.vn/v1/address/default", { method: "GET", credentials: "include" })
+        .then(response => response.json())
+        .then(ghnResponse => {
+            if (ghnResponse && ghnResponse.data) {
+                const diaChiGHN = ghnResponse.data;
+
+                console.log("Dữ liệu địa chỉ từ Giao Hàng Nhanh:", diaChiGHN);
+
+                document.getElementById("fullName").value = diaChiGHN.full_name || "N/A";
+                document.getElementById("phoneNumber").value = diaChiGHN.phone || "N/A";
+                document.getElementById("email").value = diaChiGHN.email || "N/A";
+                document.getElementById("specific-address").value = diaChiGHN.specific_address || "N/A";
+
+                fillProvinces()
+                    .then(() => {
+                        const provinceCode = provinceMap[diaChiGHN.city];
+                        if (provinceCode) {
+                            setProvince(provinceCode, diaChiGHN.city);
+                            setTimeout(() => {
+                                const districtCode = districtMap[diaChiGHN.district];
+                                if (districtCode) {
+                                    setDistrict(districtCode, diaChiGHN.district);
+                                    setTimeout(() => setWard(diaChiGHN.ward), 300);
+                                } else {
+                                    console.warn("Không tìm thấy mã quận/huyện từ GHN:", diaChiGHN.district);
+                                }
+                            }, 300);
+                        } else {
+                            console.warn("Không tìm thấy mã tỉnh từ GHN:", diaChiGHN.city);
+                        }
+                    });
+            } else {
+                // Nếu không có địa chỉ GHN, chỉ load Tỉnh để người dùng tự chọn
+                fillProvinces();
+            }
+        })
+        .catch(error => {
+            console.error("Lỗi khi tải địa chỉ từ Giao Hàng Nhanh:", error);
+            fillProvinces(); // fallback để user tự chọn
+        });
+}
+
+function fillProvinces() {
+    return fetch("https://provinces.open-api.vn/api/?depth=1")
+        .then(response => response.json())
+        .then(provinces => {
+            const provinceSelect = document.getElementById("province");
+            provinceSelect.innerHTML = "<option value=''>Chọn Tỉnh/Thành phố</option>";
+            provinces.forEach(province => {
+                const option = document.createElement("option");
+                option.value = province.code;
+                option.textContent = province.name;
+                provinceSelect.appendChild(option);
+                provinceMap[province.name] = province.code;
+            });
+
+            // Cho phép người dùng chọn
+            provinceSelect.disabled = false;
+            document.getElementById("district").disabled = false;
+            document.getElementById("ward").disabled = false;
+        });
+}
+
+function setProvince(provinceCode, provinceName) {
+    console.log("Chọn tỉnh:", provinceName);
+    document.getElementById("province").value = provinceCode;
+    loadDistrictsByProvince(provinceCode);
+}
+
+function loadDistrictsByProvince(provinceCode) {
+    const districtSelect = document.getElementById("district");
+    const wardSelect = document.getElementById("ward");
+
+    districtSelect.innerHTML = "<option value=''>Chọn Quận/Huyện</option>";
+    wardSelect.innerHTML = "<option value=''>Chọn Phường/Xã</option>";
+    districtMap = {};
+
+    fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+        .then(response => response.json())
+        .then(provinceData => {
+            provinceData.districts.forEach(district => {
+                const option = document.createElement("option");
+                option.value = district.code;
+                option.textContent = district.name;
+                districtSelect.appendChild(option);
+                districtMap[district.name] = district.code;
+            });
+        })
+        .catch(error => console.error("Lỗi khi tải danh sách quận/huyện:", error));
+}
+
+function setDistrict(districtCode, districtName) {
+    console.log("Chọn quận/huyện:", districtName);
+    document.getElementById("district").value = districtCode;
+    loadWardsByDistrict(districtCode);
+}
+
+function loadWardsByDistrict(districtCode) {
+    const wardSelect = document.getElementById("ward");
+    wardSelect.innerHTML = "<option value=''>Chọn Phường/Xã</option>";
+
+    fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+        .then(response => response.json())
+        .then(districtData => {
+            districtData.wards.forEach(ward => {
+                const option = document.createElement("option");
+                option.value = ward.name;
+                option.textContent = ward.name;
+                wardSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error("Lỗi khi tải danh sách phường/xã:", error));
+}
+
+function setWard(wardName) {
+    console.log("Chọn phường/xã:", wardName);
+    const wardSelect = document.getElementById("ward");
+    const options = wardSelect.getElementsByTagName("option");
+    for (let option of options) {
+        if (option.value.toLowerCase().trim() === wardName.toLowerCase().trim()) {
+            option.selected = true;
+            break;
+        }
+    }
+}
+
+// Gắn sự kiện onchange cho dropdown
+function setupAddressDropdownEvents() {
+    const provinceSelect = document.getElementById("province");
+    const districtSelect = document.getElementById("district");
+
+    provinceSelect.addEventListener("change", function () {
+        const provinceCode = this.value;
+        if (provinceCode) {
+            loadDistrictsByProvince(provinceCode);
+        }
+    });
+
+    districtSelect.addEventListener("change", function () {
+        const districtCode = this.value;
+        if (districtCode) {
+            loadWardsByDistrict(districtCode);
+        }
+    });
+}
+
 
 function validateCartBeforeCheckout() {
     let currentCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -59,60 +258,42 @@ function loadCheckoutCart() {
     }
 }
 
+// document.addEventListener("DOMContentLoaded", function () {
+//     loadProvinces(); // Tải danh sách tỉnh/thành khi trang tải
+//     renderDiaChiCards(data)
+// });
+function validateForm() {
+    clearErrors();
+    let isValid = true;
 
+    let requiredFields = [
+        { id: "fullName", message: "Vui lòng nhập họ tên." },
+        { id: "phoneNumber", message: "Vui lòng nhập số điện thoại." },
+        { id: "specific-address", message: "Vui lòng nhập địa chỉ cụ thể." },
+        { id: "province", message: "Vui lòng chọn tỉnh/thành phố." },
+        { id: "district", message: "Vui lòng chọn quận/huyện." },
+        { id: "ward", message: "Vui lòng chọn phường/xã." }
+    ];
 
-document.addEventListener("DOMContentLoaded", function () {
-    loadProvinces(); // Tải danh sách tỉnh/thành khi trang tải
+    requiredFields.forEach(field => {
+        let element = document.getElementById(field.id);
+        if (!element || element.value.trim() === "") {
+            showError(field.id, field.message);
+            isValid = false;
+        }
+    });
 
-    async function loadProvinces() {
-        let response = await fetch("https://provinces.open-api.vn/api/?depth=1");
-        let data = await response.json();
-        let provinceSelect = document.getElementById("province");
-
-        data.forEach(province => {
-            let option = document.createElement("option");
-            option.value = province.code;
-            option.textContent = province.name;
-            provinceSelect.appendChild(option);
-        });
+    // Kiểm tra email (có thể để trống nhưng nếu nhập phải hợp lệ)
+    let emailField = document.getElementById("email");
+    if (emailField.value.trim() !== "" && !isValidEmail(emailField.value)) {
+        showError("email", "Vui lòng nhập email hợp lệ.");
+        isValid = false;
     }
-});
 
-async function loadDistricts() {
-    let provinceCode = document.getElementById("province").value;
-    let districtSelect = document.getElementById("district");
-    districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-
-    if (!provinceCode) return;
-
-    let response = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
-    let data = await response.json();
-
-    data.districts.forEach(district => {
-        let option = document.createElement("option");
-        option.value = district.code;
-        option.textContent = district.name;
-        districtSelect.appendChild(option);
-    });
+    return isValid;
 }
 
-async function loadWards() {
-    let districtCode = document.getElementById("district").value;
-    let wardSelect = document.getElementById("ward");
-    wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-    if (!districtCode) return;
-
-    let response = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
-    let data = await response.json();
-
-    data.wards.forEach(ward => {
-        let option = document.createElement("option");
-        option.value = ward.code;
-        option.textContent = ward.name;
-        wardSelect.appendChild(option);
-    });
-}
+// ⚠️ Hiển thị lỗi bên dưới input
 function showError(inputId, message) {
     const inputElement = document.getElementById(inputId);
     if (!inputElement) return;
@@ -126,6 +307,7 @@ function showError(inputId, message) {
     inputElement.insertAdjacentHTML("afterend", `<div class="invalid-feedback">${message}</div>`);
 }
 
+// ✅ Xóa lỗi khi người dùng nhập lại
 function clearErrors() {
     document.querySelectorAll(".is-invalid").forEach(element => {
         element.classList.remove("is-invalid");
@@ -135,54 +317,36 @@ function clearErrors() {
     });
 }
 
-async function placeOrder() {
-    console.log("🔹 [DEBUG] Bắt đầu đặt hàng...");
+// 📧 Hàm kiểm tra email hợp lệ
+function isValidEmail(email) {
+    let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
 
-    //
-    // if (!validateForm()) {
-    //     console.log("❌ [DEBUG] Form không hợp lệ!");
-    //     return;
-    // }
+// 📌 Xử lý đặt hàng
+async function placeOrder() {
+    if (!validateForm()) return;
 
     let cartData = localStorage.getItem("cart");
     if (!cartData || JSON.parse(cartData).length === 0) {
-        console.log("❌ [DEBUG] Giỏ hàng trống!");
-        Swal.fire({
-            icon: "error",
-            title: "Giỏ hàng trống!",
-            text: "Vui lòng thêm sản phẩm vào giỏ trước khi đặt hàng."
-        });
+        Swal.fire({ icon: "error", title: "Giỏ hàng trống!", text: "Vui lòng thêm sản phẩm vào giỏ trước khi đặt hàng." });
         return;
     }
 
     let cart = JSON.parse(cartData);
-    console.log("🛒 [DEBUG] Dữ liệu giỏ hàng:", cart);
-
-    // ✅ Chuyển đổi giá từ chuỗi thành số trước khi tính toán
-    let subtotal = cart.reduce((sum, item) => {
-        let price = Number(item.price.toString().replace(/\D/g, "")); // Chuyển "450.000" -> 450000
-        return sum + (price * item.quantity);
-    }, 0);
-
-    let shippingFee = 30000; // Giả sử phí ship là 30,000 VND
-
-    // ✅ Kiểm tra mã giảm giá
+    let subtotal = cart.reduce((sum, item) => sum + (Number(item.price.replace(/\D/g, "")) * item.quantity), 0);
+    let shippingFee = 30000;
     let discount = 0;
     let discountId = null;
+
     let discountData = JSON.parse(sessionStorage.getItem("checkoutCart"));
-    if (discountData && discountData.discount) {
+    if (discountData?.discount) {
         discount = Number(discountData.discount.value) || 0;
         discountId = discountData.discount.id || null;
     }
 
     let totalAmount = subtotal + shippingFee - discount;
 
-    console.log("💰 [DEBUG] Tổng tiền hàng:", subtotal.toLocaleString('vi-VN'), "VND");
-    console.log("🚚 [DEBUG] Phí vận chuyển:", shippingFee.toLocaleString('vi-VN'), "VND");
-    console.log("🎁 [DEBUG] Giảm giá:", discount.toLocaleString('vi-VN'), "VND");
-    console.log("💵 [DEBUG] Tổng tiền cuối cùng:", totalAmount.toLocaleString('vi-VN'), "VND");
-
-    // ✅ Chuẩn bị dữ liệu để gửi lên API
     let orderInfo = {
         nguoiNhan: document.getElementById("fullName").value.trim(),
         soDienThoai: document.getElementById("phoneNumber").value.trim(),
@@ -193,18 +357,51 @@ async function placeOrder() {
         phuong: document.getElementById("ward").options[document.getElementById("ward").selectedIndex].text,
         tongTien: totalAmount,
         phiShip: shippingFee,
-        idPhuongThucThanhToan: document.getElementById("cod").checked ? 1 : 2, // 1: COD, 2: Chuyển khoản
-        idPhieuGiamGia: discountId, // ✅ Gửi mã giảm giá nếu có
+        idPhuongThucThanhToan: document.getElementById("cod").checked ? 1 : 3,
+        idPhieuGiamGia: discountId,
         hoaDonChiTiet: cart.map(item => ({
             idSanPhamChiTiet: item.idSanPhamChiTiet,
             soLuong: item.quantity,
-            gia: Number(item.price.toString().replace(/\D/g, "")) // Chuyển đổi giá chính xác
+            gia: Number(item.price.replace(/\D/g, ""))
         }))
     };
-    console.log("📦 [DEBUG] Dữ liệu gửi lên API hóa đơn:", JSON.stringify(orderInfo, null, 2));
-    console.log("📦 [DEBUG] Dữ liệu gửi lên API hóa đơn:", orderInfo);
 
     try {
+        // 🔥 Chuẩn bị danh sách sản phẩm cần giảm số lượng
+        let stockUpdates = orderInfo.hoaDonChiTiet.map(item => ({
+            idSanPhamChiTiet: item.idSanPhamChiTiet,
+            soLuong: item.soLuong
+        }));
+
+        // 🔥 Gửi 1 request duy nhất để giảm số lượng nhiều sản phẩm cùng lúc
+        let stockResponse = await fetch("/api/san-pham-chi-tiet/reduce-stock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(stockUpdates)
+        });
+
+        let stockResult = await stockResponse.json();
+
+        if (!stockResponse.ok) {
+            Swal.fire({ icon: "error", title: "Lỗi giảm số lượng!", text: "Không thể giảm số lượng sản phẩm." });
+            return;
+        }
+
+        // ✅ Kiểm tra phản hồi từ server
+        let failedProducts = Object.entries(stockResult)
+            .filter(([_, message]) => message.includes("Không đủ hàng"))
+            .map(([productId]) => productId);
+
+        if (failedProducts.length > 0) {
+            Swal.fire({
+                icon: "error",
+                title: "Không đủ hàng!",
+                text: `Sản phẩm không đủ hàng: ${failedProducts.join(", ")}`
+            });
+            return;
+        }
+
+        // ✅ Tạo hóa đơn
         let response = await fetch("/api/hoa-don/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -213,13 +410,20 @@ async function placeOrder() {
 
         let result = await response.json();
 
-        if (response.ok) {
-            console.log("✅ [DEBUG] Đặt hàng thành công! ID hóa đơn:", result.id);
-            console.log("📜 [DEBUG] Mã hóa đơn:", result.maHoaDon);
+        if (!response.ok) {
+            Swal.fire({ icon: "error", title: "Lỗi tạo hóa đơn!", text: result.message || "Không thể tạo hóa đơn." });
+            return;
+        }
 
-            // ✅ Xóa giỏ hàng sau khi đặt hàng thành công
+        // 🔄 Lưu order tạm (nếu cần thiết)
+        sessionStorage.setItem("pendingOrder", JSON.stringify(orderInfo));
+
+        // 🔹 Nếu thanh toán COD → thông báo thành công
+        if (orderInfo.idPhuongThucThanhToan === 1) {
             localStorage.removeItem("cart");
             sessionStorage.removeItem("checkoutCart");
+            sessionStorage.removeItem("discountCode");
+            localStorage.removeItem("discountCode");
 
             Swal.fire({
                 icon: "success",
@@ -230,26 +434,60 @@ async function placeOrder() {
                 cancelButtonText: "Về trang chủ"
             }).then((res) => {
                 if (res.isConfirmed) {
-                    window.location.href = "/don-hang";
+                    window.location.href = `/don-hang?maHoaDon=${result.maHoaDon}`;
                 } else {
-                    window.location.href = "/";
+                    window.location.href = "/trang-chu";
                 }
             });
-        } else {
-            console.error("❌ [ERROR] Lỗi từ API hóa đơn:", result.message);
-            Swal.fire({
-                icon: "error",
-                title: "Lỗi đặt hàng!",
-                text: result.message || "Đã có lỗi xảy ra, vui lòng thử lại."
-            });
         }
+        // 🔹 Nếu thanh toán VNPay → tạo thanh toán và chuyển hướng
+        else {
+            sessionStorage.setItem("pendingOrder", JSON.stringify(orderInfo));
+
+            let vnpayResponse = await fetch("/api/payment/create-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    orderId: result.maHoaDon,
+                    amount: totalAmount
+                })
+            });
+
+            let vnpayData = await vnpayResponse.json();
+
+            if (vnpayResponse.ok) {
+                window.location.href = vnpayData.paymentUrl;
+            } else {
+                Swal.fire({ icon: "error", title: "Lỗi VNPay!", text: vnpayData.message || "Không thể tạo thanh toán VNPay." });
+            }
+        }
+
     } catch (error) {
-        console.error("❌ [ERROR] Lỗi hệ thống khi gửi hóa đơn:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Lỗi hệ thống!",
-            text: "Không thể kết nối đến máy chủ, vui lòng thử lại sau."
-        });
+        Swal.fire({ icon: "error", title: "Lỗi hệ thống!", text: "Không thể kết nối đến máy chủ." });
     }
+}
+fetch("/auth")
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById("authContainer").innerHTML = html;
+    })
+    .catch(error => console.error("Lỗi tải auth.html:", error));
+
+// Hàm mở modal với tab được chọn
+function openAuthModal(authType = "login") {
+    // Kiểm tra xem modal đã được tải vào DOM chưa
+    if (!document.getElementById("authModal")) {
+        console.error("Modal chưa tải xong. Chờ thêm 100ms...");
+        setTimeout(() => openAuthModal(authType), 100); // Gọi lại sau 100ms
+        return;
+    }
+
+    if (authType === "register") {
+        document.querySelector("#register-tab").click();
+    } else {
+        document.querySelector("#login-tab").click();
+    }
+
+    new bootstrap.Modal(document.getElementById("authModal")).show();
 }
 

@@ -22,4 +22,8 @@ public interface KhachHangRepository extends JpaRepository<KhachHang,Integer> {
             "LOWER(k.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "k.soDienThoai LIKE CONCAT('%', :keyword, '%')")
     List<KhachHang> searchKhachHang(@Param("keyword") String keyword);
+
+    boolean existsByEmail(String email);
+    @Query("SELECT k FROM KhachHang k WHERE k.resetToken = :token")
+    Optional<KhachHang> findByResetToken(@Param("token") String token);
 }

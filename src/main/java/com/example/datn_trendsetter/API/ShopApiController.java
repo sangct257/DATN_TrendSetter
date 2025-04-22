@@ -8,6 +8,7 @@ import com.example.datn_trendsetter.Entity.HoaDon;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
+import com.example.datn_trendsetter.Repository.KhachHangRepository;
 import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import com.example.datn_trendsetter.Service.ShopService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,12 +28,14 @@ public class ShopApiController {
     @Autowired
     private ShopService shopService;
 
+    @Autowired
+    private KhachHangRepository khachHangRepository;
 
     @PostMapping("/create")
     public ResponseEntity<?> createHoaDon(HttpSession session) {
         try {
             // Lấy trực tiếp đối tượng NhanVien từ session
-            NhanVien nhanVien = (NhanVien) session.getAttribute("user");
+            NhanVien nhanVien = (NhanVien) session.getAttribute("userNhanVien");
 
             if (nhanVien == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -64,11 +67,12 @@ public class ShopApiController {
     public ResponseEntity<Map<String, String>> deleteHoaDon(@PathVariable("id") Integer hoaDonId, HttpSession session) {
         Map<String, String> response = new HashMap<>();
         try {
-            // Kiểm tra quyền trước khi xóa
-            Object user = session.getAttribute("user");
-            if (!(user instanceof NhanVien)) {
-                response.put("error", "🚨 Chỉ nhân viên mới có thể xóa hóa đơn");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            // Lấy trực tiếp đối tượng NhanVien từ session
+            NhanVien nhanVien = (NhanVien) session.getAttribute("userNhanVien");
+
+            if (nhanVien == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Vui lòng đăng nhập"));
             }
 
             shopService.deleteHoaDon(hoaDonId);
@@ -88,19 +92,26 @@ public class ShopApiController {
                                                   @RequestParam("khachHangId") Integer khachHangId,
                                                   HttpSession session) {
         try {
-            // Kiểm tra quyền
-            Object user = session.getAttribute("user");
-            if (!(user instanceof NhanVien)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Collections.singletonMap("error", "Chỉ nhân viên mới có thể thêm khách hàng vào hóa đơn"));
+            // Lấy trực tiếp đối tượng NhanVien từ session
+            NhanVien nhanVien = (NhanVien) session.getAttribute("userNhanVien");
+
+            if (nhanVien == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Vui lòng đăng nhập"));
             }
 
-            String message = shopService.addCustomerToInvoice(hoaDonId, khachHangId);
+            // Tìm khách hàng từ khachHangId
+            KhachHang khachHang = khachHangRepository.findById(khachHangId)
+                    .orElseThrow(() -> new IllegalArgumentException("Khách hàng không tồn tại!"));
+
+            // Gọi service để thêm khách hàng vào hóa đơn
+            String message = shopService.addCustomerToInvoice(hoaDonId, khachHang);
             return ResponseEntity.ok(Collections.singletonMap("message", message));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));
         }
     }
+
 
     @PostMapping("/delete-customer")
     public ResponseEntity<Map<String, String>> deleteCustomerToInvoice(@RequestParam("hoaDonId") Integer hoaDonId) {
@@ -214,11 +225,12 @@ public class ShopApiController {
     public ResponseEntity<Map<String, Object>> capNhatLoaiGiaoDich(@PathVariable Integer id, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Kiểm tra quyền
-            Object user = session.getAttribute("user");
-            if (!(user instanceof NhanVien)) {
-                response.put("errorMessage", "Chỉ nhân viên mới có thể cập nhật loại giao dịch");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            // Lấy trực tiếp đối tượng NhanVien từ session
+            NhanVien nhanVien = (NhanVien) session.getAttribute("userNhanVien");
+
+            if (nhanVien == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Vui lòng đăng nhập"));
             }
 
             Optional<HoaDon> hoaDonOpt = hoaDonRepository.findById(id);

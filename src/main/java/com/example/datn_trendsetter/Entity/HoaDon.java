@@ -1,6 +1,7 @@
 package com.example.datn_trendsetter.Entity;
 
 import com.example.datn_trendsetter.Repository.HoaDonChiTietRepository;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,12 +31,14 @@ public class HoaDon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore // Bỏ qua thuộc tính này khi chuyển thành JSON
     @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")
     private KhachHang khachHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_nhan_vien")
+    @JsonIgnore // Bỏ qua thuộc tính này khi chuyển thành JSON
+    @JoinColumn(name = "id_nhan_vien",referencedColumnName = "id")
     private NhanVien nhanVien;
 
     @ManyToOne
@@ -49,9 +52,6 @@ public class HoaDon {
     @Column(name = "ma_hoa_don",columnDefinition = "NVARCHAR(255)")
     private String maHoaDon;
 
-    @Column(name = "ma_giao_dich",columnDefinition = "NVARCHAR(255)")
-    private String maGiaoDich;
-
     @Column(name = "tong_tien")
     private Float tongTien;
 
@@ -64,7 +64,7 @@ public class HoaDon {
     @Column(name = "email",columnDefinition = "NVARCHAR(255)")
     private String email;
 
-    @Column(name = "ten_duong",columnDefinition = "NVARCHAR(255)")
+    @Column(name = "dia_chi_cu_the",columnDefinition = "NVARCHAR(255)")
     private String diaChiCuThe;
 
     @Column(name = "huyen",columnDefinition = "NVARCHAR(255)")
@@ -93,9 +93,6 @@ public class HoaDon {
 
     @Column(name = "trang_thai",columnDefinition = "NVARCHAR(255)")
     private String trangThai;
-
-    @Column(name = "qr_image",columnDefinition = "NVARCHAR(255)")
-    private String qrImage;
 
     @Column(name = "ghi_chu",columnDefinition = "NVARCHAR(255)")
     private String ghiChu;
@@ -160,10 +157,6 @@ public class HoaDon {
             } else {
                 this.phieuGiamGia = null;
             }
-        }
-
-        if (tongTienSanPham >= 500_000) {
-            this.phiShip = 0F;
         }
 
         float phiShip = Objects.requireNonNullElse(this.phiShip, 0F);

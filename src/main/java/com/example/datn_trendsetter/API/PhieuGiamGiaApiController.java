@@ -1,27 +1,18 @@
 package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.DTO.PhieuGiamGiaDTO;
-import com.example.datn_trendsetter.Entity.DotGiamGia;
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
-import com.example.datn_trendsetter.Entity.PhieuGiamGiaScheduler;
-import com.example.datn_trendsetter.Entity.SanPham;
-import com.example.datn_trendsetter.Repository.DotGiamGiaRepository;
+import com.example.datn_trendsetter.Component.PhieuGiamGiaScheduler;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
-import com.example.datn_trendsetter.Service.DotGiamGiaService;
 import com.example.datn_trendsetter.Service.PhieuGiamGiaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +72,7 @@ public class PhieuGiamGiaApiController {
         PhieuGiamGia pgg = phieuGiamGiaOpt.get();
 
         // Lấy danh sách vai trò từ session
-        List<String> userRoles = (List<String>) session.getAttribute("roles");
+        List<String> userRoles = (List<String>) session.getAttribute("rolesNhanVien");
 
         // Nếu không có vai trò, đặt mặc định là NHANVIEN
         if (userRoles == null) {
@@ -107,12 +98,12 @@ public class PhieuGiamGiaApiController {
 
     @PostMapping("/add/multiple")
     public ResponseEntity<PhieuGiamGia> addPhieuGiamGiaForMultipleCustomers(
-            @RequestBody Map<String, Object> requestBody) {
+            @RequestBody Map<String, Object> requestBody , HttpSession session) throws Exception {
         // Chuyển đổi từ map nhận được từ requestBody sang đối tượng DTO
         PhieuGiamGiaDTO dto = new ObjectMapper().convertValue(requestBody.get("phieuGiamGia"), PhieuGiamGiaDTO.class);
 
         // Thêm phiếu giảm giá
-        PhieuGiamGia phieuGiamGia = phieuGiamGiaService.addPhieuGiamGiaForMultipleCustomers(dto);
+        PhieuGiamGia phieuGiamGia = phieuGiamGiaService.addPhieuGiamGiaForMultipleCustomers(dto,session);
         return ResponseEntity.ok(phieuGiamGia);
     }
 
@@ -129,8 +120,9 @@ public class PhieuGiamGiaApiController {
     @PutMapping("/update/{id}")
     public ResponseEntity<PhieuGiamGia> updatePhieuGiamGia(
             @PathVariable Integer id,
-            @RequestBody Map<String, Object> requestBody) {
-        return ResponseEntity.ok(phieuGiamGiaService.updatePhieuGiamGia(id, requestBody));
+            @RequestBody Map<String, Object> requestBody,
+            HttpSession session) throws Exception {
+        return ResponseEntity.ok(phieuGiamGiaService.updatePhieuGiamGia(id, requestBody,session));
     }
 
 }

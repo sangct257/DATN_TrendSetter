@@ -47,11 +47,11 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
 
     @Query("SELECT YEAR(h.hoaDon.ngayTao), MONTH(h.hoaDon.ngayTao), DAY(h.hoaDon.ngayTao), SUM(h.soLuong) " +
             "FROM HoaDonChiTiet h " +
-            "WHERE h.hoaDon.trangThai = :trangThai " +
+            "WHERE h.hoaDon.trangThai IN :trangThaiHoaDon " +
             "GROUP BY YEAR(h.hoaDon.ngayTao), MONTH(h.hoaDon.ngayTao), DAY(h.hoaDon.ngayTao) " +
             "ORDER BY YEAR(h.hoaDon.ngayTao), MONTH(h.hoaDon.ngayTao), DAY(h.hoaDon.ngayTao)")
-    List<Object[]> getTotalProductsByDateMonthYear(@Param("trangThai") String trangThai);
-
+    List<Object[]> getTotalProductsByDateMonthYear(
+            @Param("trangThaiHoaDon") List<String> trangThaiHoaDon);
 
 
     @Query("SELECT COUNT(hdc.soLuong) FROM HoaDonChiTiet hdc WHERE hdc.hoaDon.ngayTao BETWEEN :startDate AND :endDate")

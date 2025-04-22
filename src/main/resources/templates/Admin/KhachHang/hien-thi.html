@@ -77,6 +77,7 @@
                                                         Tên</label>
                                                     <input type="text" class="form-control" name="hoTen"
                                                            placeholder="Nhập họ tên" required>
+                                                    <div id="error-hoTen" class="invalid-feedback"></div>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
@@ -84,12 +85,14 @@
                                                             Username</label>
                                                         <input type="text" class="form-control" name="username"
                                                                placeholder="Nhập username" required>
+                                                        <div id="error-username" class="invalid-feedback"></div>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label"><i class="bi bi-key"></i> Mật
                                                             Khẩu</label>
                                                         <input type="password" class="form-control" name="password"
                                                                placeholder="Nhập mật khẩu" required>
+                                                        <div id="error-password" class="invalid-feedback"></div>
                                                     </div>
                                                 </div>
                                                 <div class="row">
@@ -98,11 +101,13 @@
                                                             Email</label>
                                                         <input type="email" class="form-control" name="email"
                                                                placeholder="Nhập email" required>
+                                                        <div id="error-email" class="invalid-feedback"></div>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label"><i class="bi bi-key"></i> So Dien Thoai</label>
                                                         <input type="text" class="form-control" name="soDienThoai"
                                                                placeholder="Nhập so dien thoai" required>
+                                                        <div id="error-soDienThoai" class="invalid-feedback"></div>
                                                     </div>
                                                 </div>
                                                 <div class="mb-3">
@@ -119,11 +124,14 @@
                                                             <option value="true">Nam</option>
                                                             <option value="false">Nữ</option>
                                                         </select>
+                                                        <div id="error-gioiTinh" class="invalid-feedback"></div>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label"><i class="bi bi-calendar"></i> Ngày
                                                             Sinh</label>
                                                         <input type="date" class="form-control" name="ngaySinh">
+                                                        <div id="error-ngaySinh" class="invalid-feedback"></div>
+
                                                     </div>
                                                 </div>
                                                 <div class="mb-3">
@@ -132,6 +140,7 @@
                                                         <option value="Đang Hoạt Động">Đang Hoạt Động</option>
                                                         <option value="Ngừng Hoạt Động">Ngừng Hoạt Động</option>
                                                     </select>
+                                                    <div id="error-trangThai" class="invalid-feedback"></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -296,7 +305,7 @@
             });
         }
 
-        fetch('http://localhost:8080/api/khach-hang')
+        fetch('http://localhost:8080/api/khach-hang/list')
             .then(response => response.text()) // Lấy dữ liệu dạng text để debug
             .then(text => {
                 try {
@@ -400,147 +409,209 @@
             });
     }
 
-    async function saveKhachHang() {
-        const btnSubmit = document.getElementById("btnSave");
-        if (!btnSubmit) return;
+   function showFieldError(fieldName, message) {
+            const field = document.querySelector(`[name="${fieldName}"]`);
+            const errorDiv = document.querySelector(`#error-${fieldName}`);
 
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
-
-        const formData = new FormData();
-
-        function getValue(name) {
-            const element = document.querySelector(`[name="${name}"]`);
-            return element ? element.value.trim() : "";
+            if (field) field.classList.add("is-invalid");
+            if (errorDiv) {
+                errorDiv.innerText = message;
+                errorDiv.style.display = "block";
+            }
         }
 
-        formData.append("hoTen", getValue("hoTen"));
-        formData.append("username", getValue("username"));
-        formData.append("password", getValue("password"));
-        formData.append("email", getValue("email"));
-        formData.append("soDienThoai", getValue("soDienThoai"));
-        formData.append("gioiTinh", getValue("gioiTinh") === "true");
-        formData.append("ngaySinh", getValue("ngaySinh"));
-        formData.append("trangThai", getValue("trangThai"));
-
-        // Xử lý file ảnh
-        const fileInput = document.querySelector('[name="hinhAnh"]');
-        if (fileInput && fileInput.files.length > 0) {
-            formData.append("file", fileInput.files[0]);
-        }
-
-        console.log("Dữ liệu gửi đi:", Object.fromEntries(formData.entries()));
-
-        try {
-            const response = await fetch("http://localhost:8080/api/khach-hang/add", {
-                method: "POST",
-                body: formData
+        function clearAllErrors() {
+            document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+            document.querySelectorAll(".invalid-feedback").forEach(el => {
+                el.innerText = "";
+                el.style.display = "none";
             });
+        }
 
-            const responseData = await response.json();
+        async function saveKhachHang() {
+            const btnSubmit = document.getElementById("btnSave");
+            if (!btnSubmit) return;
 
-            if (!response.ok) {
-                throw new Error(responseData.message || "Có lỗi xảy ra khi thêm khách hàng.");
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+            clearAllErrors();
+
+            const formData = new FormData();
+
+            function getValue(name) {
+                const element = document.querySelector(`[name="${name}"]`);
+                return element ? element.value.trim() : "";
+            }
+
+            formData.append("hoTen", getValue("hoTen"));
+            formData.append("username", getValue("username"));
+            formData.append("password", getValue("password"));
+            formData.append("email", getValue("email"));
+            formData.append("soDienThoai", getValue("soDienThoai"));
+            formData.append("gioiTinh", getValue("gioiTinh") === "true");
+            formData.append("ngaySinh", getValue("ngaySinh"));
+            formData.append("trangThai", getValue("trangThai"));
+
+            const fileInput = document.querySelector('[name="hinhAnh"]');
+            if (fileInput && fileInput.files.length > 0) {
+                formData.append("file", fileInput.files[0]);
+            }
+
+            try {
+                const response = await fetch("http://localhost:8080/api/khach-hang/add", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const responseData = await response.json();
+
+                if (responseData.status === "warning") {
+                    for (const [field, msg] of Object.entries(responseData.messages)) {
+                        showFieldError(field, msg);
+                    }
+
+                    await Swal.fire({
+                        title: "Thông tin chưa hợp lệ!",
+                        text: "Vui lòng kiểm tra lại các trường được đánh dấu.",
+                        icon: "warning",
+                        confirmButtonText: "OK"
+                    });
+
+                    return;
+                }
+
+                if (responseData.status !== "success") {
+                    throw new Error(responseData.message || "Có lỗi xảy ra khi thêm khách hàng.");
+                }
+
+                await Swal.fire({
+                    title: "Thành công!",
+                    text: "Khách hàng đã được thêm thành công!",
+                    icon: "success",
+                    confirmButtonText: "OK"
+                });
+
+                setTimeout(() => location.reload(), 1500);
+
+            } catch (error) {
+                Swal.fire({
+                    title: "Lỗi!",
+                    text: error.message,
+                    icon: "error",
+                    confirmButtonText: "Thử lại"
+                });
+            } finally {
+                setTimeout(() => {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = `Thêm khách hàng`;
+                }, 1500);
+            }
+        }
+
+
+   async function updateKhachHang() {
+    const btnSubmit = document.getElementById("btnUpdate");
+    const form = document.getElementById('updateKhachHangForm');
+    if (!btnSubmit || !form) return;
+
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+    // Clear lỗi cũ nếu có
+    clearAllErrors();
+
+    const updatedKhachHang = {
+        id: form.querySelector('input[name="id"]').value,
+        hoTen: form.querySelector('input[name="hoTen"]').value.trim(),
+        username: form.querySelector('input[name="username"]').value.trim(),
+        email: form.querySelector('input[name="email"]').value.trim(),
+        soDienThoai: form.querySelector('input[name="soDienThoai"]').value.trim(),
+        gioiTinh: form.querySelector('select[name="gioiTinh"]').value === "true",
+        ngaySinh: form.querySelector('input[name="ngaySinh"]').value,
+        trangThai: form.querySelector('select[name="trangThai"]').value,
+        password: form.querySelector('input[name="password"]').value
+    };
+
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(updatedKhachHang)) {
+        formData.append(key, value);
+    }
+
+    const fileInput = form.querySelector('input[name="hinhAnh"]');
+    if (fileInput.files && fileInput.files[0]) {
+        formData.append('file', fileInput.files[0]);
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8080/api/khach-hang/update/${updatedKhachHang.id}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        const responseData = await response.json();
+
+        if (responseData.status === "warning") {
+            for (const [field, msg] of Object.entries(responseData.messages)) {
+                showFieldError(field, msg);
             }
 
             await Swal.fire({
-                title: "Thành công!",
-                text: "Khách hàng đã được thêm thành công!",
-                icon: "success",
+                title: "Thông tin chưa hợp lệ!",
+                text: "Vui lòng kiểm tra lại các trường được đánh dấu.",
+                icon: "warning",
                 confirmButtonText: "OK"
             });
 
-            setTimeout(() => location.reload(), 1500);
-
-        } catch (error) {
-            Swal.fire({
-                title: "Lỗi!",
-                text: error.message,
-                icon: "error",
-                confirmButtonText: "Thử lại"
-            });
-        } finally {
-            setTimeout(() => {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `Thêm khách hàng`;
-            }, 2000);
+            return;
         }
+
+        if (responseData.status !== "success") {
+            throw new Error(responseData.message || "Có lỗi xảy ra khi cập nhật khách hàng.");
+        }
+
+        await Swal.fire({
+            title: "Cập nhật thành công!",
+            text: "Thông tin khách hàng đã được cập nhật.",
+            icon: "success",
+            confirmButtonText: "OK"
+        });
+
+        setTimeout(() => location.reload(), 1500);
+
+    } catch (error) {
+        console.error("Lỗi xảy ra:", error);
+        Swal.fire({
+            title: "Lỗi!",
+            text: error.message,
+            icon: "error",
+            confirmButtonText: "Thử lại"
+        });
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `Cập nhật Khách Hàng`;
     }
+}
 
-    async function updateKhachHang() {
-        const btnSubmit = document.getElementById("btnUpdate");
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+    function showFieldError(fieldName, message) {
+    const field = document.querySelector(`[name="${fieldName}"]`);
+    const errorDiv = document.querySelector(`#error-${fieldName}`);
 
-        const form = document.getElementById('updateKhachHangForm');
-        const updatedKhachHang = {
-            id: form.querySelector('input[name="id"]').value,
-            hoTen: form.querySelector('input[name="hoTen"]').value,
-            username: form.querySelector('input[name="username"]').value,
-            email: form.querySelector('input[name="email"]').value,
-            soDienThoai: form.querySelector('input[name="soDienThoai"]').value,
-            gioiTinh: form.querySelector('select[name="gioiTinh"]').value === "true",
-            ngaySinh: form.querySelector('input[name="ngaySinh"]').value,
-            trangThai: form.querySelector('select[name="trangThai"]').value,
-            password: form.querySelector('input[name="password"]').value
-        };
-
-        console.log("Dữ liệu khách hàng trước khi gửi:", updatedKhachHang); // Log dữ liệu
-
-        const formData = new FormData();
-        formData.append('id', updatedKhachHang.id);
-        formData.append('hoTen', updatedKhachHang.hoTen);
-        formData.append('username', updatedKhachHang.username);
-        formData.append('email', updatedKhachHang.email);
-        formData.append('soDienThoai', updatedKhachHang.soDienThoai);
-        formData.append('gioiTinh', updatedKhachHang.gioiTinh);
-        formData.append('ngaySinh', updatedKhachHang.ngaySinh);
-        formData.append('trangThai', updatedKhachHang.trangThai);
-        formData.append('password', updatedKhachHang.password);
-
-        const fileInput = form.querySelector('input[name="hinhAnh"]');
-        if (fileInput.files && fileInput.files[0]) {
-            formData.append('file', fileInput.files[0]);
-        }
-
-        console.log("Dữ liệu FormData trước khi gửi:");
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-
-        try {
-            const response = await fetch(`http://localhost:8080/api/khach-hang/update/${updatedKhachHang.id}`, {
-                method: 'PUT',
-                body: formData
-            });
-
-            console.log("Response status:", response.status);
-
-            if (response.ok) {
-                Swal.fire({
-                    title: "Cập nhật thành công!",
-                    text: "Thông tin khách hàng đã được cập nhật.",
-                    icon: "success",
-                    confirmButtonText: "OK"
-                }).then(() => location.reload());
-            } else {
-                const errorText = await response.text();
-                console.error("Lỗi khi cập nhật:", errorText);
-                throw new Error("Lỗi khi cập nhật thông tin khách hàng.");
-            }
-        } catch (error) {
-            console.error("Lỗi xảy ra:", error);
-            Swal.fire({
-                title: "Lỗi!",
-                text: error.message,
-                icon: "error",
-                confirmButtonText: "OK"
-            });
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = `Cập nhật Khách Hàng`;
-        }
+    if (field) field.classList.add("is-invalid");
+    if (errorDiv) {
+        errorDiv.innerText = message;
+        errorDiv.style.display = "block";
     }
+}
+
+function clearAllErrors() {
+    document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+    document.querySelectorAll(".invalid-feedback").forEach(el => {
+        el.innerText = "";
+        el.style.display = "none";
+    });
+}
+
 
 </script>
 <script>
@@ -874,103 +945,108 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        const thanhPhoSelect = document.getElementById("thanhPho");
-        const huyenSelect = document.getElementById("huyen");
-        const phuongSelect = document.getElementById("phuong");
+    const thanhPhoSelect = document.getElementById("thanhPho");
+    const huyenSelect = document.getElementById("huyen");
+    const phuongSelect = document.getElementById("phuong");
 
-        const thanhPhoHidden = document.getElementById("thanhPhoHidden");
-        const huyenHidden = document.getElementById("huyenHidden");
-        const phuongHidden = document.getElementById("phuongHidden");
+    const thanhPhoHidden = document.getElementById("thanhPhoHidden");
+    const huyenHidden = document.getElementById("huyenHidden");
+    const phuongHidden = document.getElementById("phuongHidden");
 
-        function fetchProvinces(selectedValue = "") {
-            fetch("/api/ghn/provinces")
-                .then(response => response.json())
-                .then(data => {
-                    thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
-                    let selectedProvinceId = "";
+    // Load danh sách tỉnh/thành phố
+    async function fetchProvinces(selectedValue = "") {
+        try {
+            let response = await fetch("https://provinces.open-api.vn/api/p/");
+            let data = await response.json();
 
-                    data.data.forEach(province => {
-                        const selected = province.ProvinceName === selectedValue ? "selected" : "";
-                        if (selected) selectedProvinceId = province.ProvinceID;
-                        thanhPhoSelect.innerHTML += `<option value="${province.ProvinceName}" data-id="${province.ProvinceID}" ${selected}>${province.ProvinceName}</option>`;
-                    });
+            thanhPhoSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+            let selectedProvinceCode = "";
 
-                    if (selectedProvinceId) fetchDistricts(selectedProvinceId, huyenHidden.value);
-                })
-                .catch(error => console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error));
+            data.forEach(province => {
+                const selected = province.name === selectedValue ? "selected" : "";
+                if (selected) selectedProvinceCode = province.code;
+                thanhPhoSelect.innerHTML += `<option value="${province.name}" data-code="${province.code}" ${selected}>${province.name}</option>`;
+            });
+
+            if (selectedProvinceCode) {
+                fetchDistricts(selectedProvinceCode, huyenHidden.value);
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách tỉnh/thành phố:", error);
         }
+    }
 
-        function fetchDistricts(provinceId, selectedValue = "") {
-            fetch(`/api/ghn/districts?province_id=${provinceId}`)
-                .then(response => response.json())
-                .then(data => {
-                    huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-                    let selectedDistrictId = "";
-
-                    data.data.forEach(district => {
-                        const selected = district.DistrictName === selectedValue ? "selected" : "";
-                        if (selected) selectedDistrictId = district.DistrictID;
-                        huyenSelect.innerHTML += `<option value="${district.DistrictName}" data-id="${district.DistrictID}" ${selected}>${district.DistrictName}</option>`;
-                    });
-
-                    if (selectedDistrictId) fetchWards(selectedDistrictId, phuongHidden.value);
-                })
-                .catch(error => console.error("Lỗi khi lấy danh sách quận/huyện:", error));
-        }
-
-        function fetchWards(districtId, selectedValue = "") {
-            fetch(`/api/ghn/wards?district_id=${districtId}`)
-                .then(response => response.json())
-                .then(data => {
-                    phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-                    data.data.forEach(ward => {
-                        const selected = ward.WardName === selectedValue ? "selected" : "";
-                        phuongSelect.innerHTML += `<option value="${ward.WardName}" data-id="${ward.WardCode}" ${selected}>${ward.WardName}</option>`;
-                    });
-                })
-                .catch(error => console.error("Lỗi khi lấy danh sách phường/xã:", error));
-        }
-
-        // Cập nhật giá trị ẩn khi thay đổi lựa chọn
-        thanhPhoSelect.addEventListener("change", function () {
-            const selectedOption = this.options[this.selectedIndex];
-            const provinceId = selectedOption.getAttribute("data-id");
-
-            thanhPhoHidden.value = selectedOption.value;
-            huyenHidden.value = "";
-            phuongHidden.value = "";
+    // Load danh sách quận/huyện dựa trên tỉnh
+    async function fetchDistricts(provinceCode, selectedValue = "") {
+        try {
+            let response = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+            let data = await response.json();
 
             huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            let selectedDistrictCode = "";
+
+            data.districts.forEach(district => {
+                const selected = district.name === selectedValue ? "selected" : "";
+                if (selected) selectedDistrictCode = district.code;
+                huyenSelect.innerHTML += `<option value="${district.name}" data-code="${district.code}" ${selected}>${district.name}</option>`;
+            });
+
+            if (selectedDistrictCode) {
+                fetchWards(selectedDistrictCode, phuongHidden.value);
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách quận/huyện:", error);
+        }
+    }
+
+    // Load danh sách phường/xã dựa trên quận/huyện
+    async function fetchWards(districtCode, selectedValue = "") {
+        try {
+            let response = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+            let data = await response.json();
+
             phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
 
-            if (provinceId) {
-                fetchDistricts(provinceId);
-            }
-        });
+            data.wards.forEach(ward => {
+                const selected = ward.name === selectedValue ? "selected" : "";
+                phuongSelect.innerHTML += `<option value="${ward.name}" ${selected}>${ward.name}</option>`;
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách phường/xã:", error);
+        }
+    }
 
-        huyenSelect.addEventListener("change", function () {
-            const districtId = this.options[this.selectedIndex].getAttribute("data-id");
-            huyenHidden.value = this.value;
-            phuongHidden.value = "";
-            phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-            if (districtId) {
-                fetchWards(districtId);
-            }
-        });
-
-        phuongSelect.addEventListener("change", function () {
-            phuongHidden.value = this.value;
-        });
-
-        // Nếu có dữ liệu cũ, hiển thị trước rồi cho phép thay đổi
-        if (thanhPhoHidden.value) {
-            fetchProvinces(thanhPhoHidden.value);
-        } else {
-            fetchProvinces();
+    // Sự kiện khi chọn tỉnh/thành phố
+    thanhPhoSelect.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const code = selectedOption.getAttribute("data-code") || "";
+        thanhPhoHidden.value = this.value;
+        huyenSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+        phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        if (code) {
+            fetchDistricts(code);
         }
     });
+
+    // Sự kiện khi chọn quận/huyện
+    huyenSelect.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const code = selectedOption.getAttribute("data-code") || "";
+        huyenHidden.value = this.value;
+        phuongSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        if (code) {
+            fetchWards(code);
+        }
+    });
+
+    // Sự kiện khi chọn phường/xã
+    phuongSelect.addEventListener("change", function () {
+        phuongHidden.value = this.value;
+    });
+
+    // Gọi khi trang load để điền lại nếu có dữ liệu cũ
+    fetchProvinces(thanhPhoHidden.value);
+});
 
 </script>
 

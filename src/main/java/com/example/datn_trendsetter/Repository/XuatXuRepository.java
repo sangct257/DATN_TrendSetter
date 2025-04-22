@@ -12,4 +12,7 @@ public interface XuatXuRepository extends JpaRepository<XuatXu,Integer> {
     boolean existsByQuocGia(String quocGia);
 
     List<XuatXu> findByTrangThai(String trangThai, Sort sort);
+
+    List<XuatXu> findByDeleted(Boolean deleted, Sort sort);
+
 }

@@ -41,7 +41,7 @@ public class SanPhamController {
 
     @RequestMapping("admin/san-pham")
     public String SanPham(Model model) {
-        List<SanPham> sanPham = sanPhamRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<SanPham> sanPham = sanPhamRepository.findByDeleted(false,Sort.by(Sort.Direction.DESC, "id"));
         model.addAttribute("sanPham",sanPham);
         return "Admin/SanPham/hien-thi";
     }
@@ -105,12 +105,12 @@ public class SanPhamController {
 
 
         // Lấy danh sách các thuộc tính liên quan
-        List<ChatLieu> chatLieu = chatLieuRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-        List<ThuongHieu> thuongHieu = thuongHieuRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-        List<XuatXu> xuatXu = xuatSuRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-        List<MauSac> mauSac = mauSacRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-        List<KichThuoc> kichThuoc = kichThuocRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-        List<DanhMuc> danhMuc = danhMucRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<ChatLieu>  chatLieu = chatLieuRepository.findByTrangThai("Đang Hoạt Động",Sort.by(Sort.Direction.DESC, "id"));
+        List<ThuongHieu> thuongHieu = thuongHieuRepository.findByTrangThai("Đang Hoạt Động",Sort.by(Sort.Direction.DESC, "id"));
+        List<XuatXu> xuatXu = xuatSuRepository.findByTrangThai("Đang Hoạt Động",Sort.by(Sort.Direction.DESC, "id"));
+        List<DanhMuc> danhMuc = danhMucRepository.findByTrangThai("Đang Hoạt Động",Sort.by(Sort.Direction.DESC, "id"));
+        List<MauSac> mauSac = mauSacRepository.findByTrangThai("Đang Hoạt Động",Sort.by(Sort.Direction.DESC, "id"));
+        List<KichThuoc> kichThuoc = kichThuocRepository.findByTrangThai("Đang Hoạt Động",Sort.by(Sort.Direction.DESC, "id"));
 
         // Đưa dữ liệu vào Model
         model.addAttribute("sanPham", sanPham);

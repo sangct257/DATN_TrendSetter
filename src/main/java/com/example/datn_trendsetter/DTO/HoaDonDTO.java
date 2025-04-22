@@ -47,4 +47,62 @@ public class HoaDonDTO {
     private Float soTienDaThanhToan;
 
     private List<HoaDonChiTietDTO> hoaDonChiTiet;
+
+    // Constructor tuỳ chỉnh
+    public HoaDonDTO(Integer id, Integer idKhachHang, Integer idNhanVien, String maHoaDon, String maGiaoDich,
+                     Float tongTien, Float phiShip, String nguoiNhan, String soDienThoai, String email,
+                     String diaChiCuThe, String huyen, String phuong, String thanhPho, String ghiChu,
+                     String trangThai, String loaiHoaDon, String loaiGiaoDich, String qrImage,
+                     LocalDateTime ngayTao, LocalDateTime ngaySua, LocalDate thoiGianNhanDuKien,
+                     String nguoiTao, String nguoiSua, int tongSanPham, Float soTienDaThanhToan,
+                     List<HoaDonChiTietDTO> hoaDonChiTiet) {
+        this.id = id;
+        this.idKhachHang = idKhachHang;
+        this.idNhanVien = idNhanVien;
+        this.maHoaDon = maHoaDon;
+        this.maGiaoDich = maGiaoDich;
+        this.tongTien = tongTien;
+        this.phiShip = phiShip;
+        this.nguoiNhan = nguoiNhan;
+        this.soDienThoai = soDienThoai;
+        this.email = email;
+        this.diaChiCuThe = diaChiCuThe;
+        this.huyen = huyen;
+        this.phuong = phuong;
+        this.thanhPho = thanhPho;
+        this.ghiChu = ghiChu;
+        this.trangThai = trangThai;
+        this.loaiHoaDon = loaiHoaDon;
+        this.loaiGiaoDich = loaiGiaoDich;
+        this.qrImage = qrImage;
+        this.ngayTao = ngayTao;
+        this.ngaySua = ngaySua;
+        this.thoiGianNhanDuKien = thoiGianNhanDuKien;
+        this.nguoiTao = nguoiTao;
+        this.nguoiSua = nguoiSua;
+        this.tongSanPham = tongSanPham;
+        this.soTienDaThanhToan = soTienDaThanhToan;
+        this.hoaDonChiTiet = hoaDonChiTiet;
+    }
+
+    public HoaDonDTO(Integer id, String maHoaDon,
+                     Integer idKhachHang,
+                     String nguoiTao,
+                     String loaiHoaDon,
+                     LocalDateTime ngayTao,
+                     Float tongTien,
+                     String trangThai,
+                     Float phiShip,
+                     Integer idPhuongThuocThanhToan) {
+        this.id = id;
+        this.idKhachHang = idKhachHang;
+        this.maHoaDon = maHoaDon;
+        this.tongTien = tongTien;
+        this.phiShip = phiShip;
+        this.trangThai = trangThai;
+        this.loaiHoaDon = loaiHoaDon;
+        this.ngayTao = ngayTao;
+        this.nguoiTao = nguoiTao;
+        this.idPhuongThucThanhToan = idPhuongThuocThanhToan;
+    }
 }

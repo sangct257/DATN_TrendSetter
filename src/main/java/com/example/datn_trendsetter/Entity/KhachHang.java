@@ -21,7 +21,8 @@ public class KhachHang {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+    @Column(name = "reset_token")
+    private String resetToken;
     @Column(name = "ho_ten",columnDefinition = "NVARCHAR(255)")
     private String hoTen;
 
@@ -51,4 +52,7 @@ public class KhachHang {
 
     @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
     private List<DiaChi> diaChis = new ArrayList<>();
+
+    @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
+    private List<HoaDon> hoaDons = new ArrayList<>();
 }

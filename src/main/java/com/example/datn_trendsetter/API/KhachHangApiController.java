@@ -1,5 +1,6 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.DTO.KhachHangDTO;
 import com.example.datn_trendsetter.Entity.DiaChi;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.NhanVien;
@@ -15,8 +16,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -28,10 +33,25 @@ public class KhachHangApiController {
     private DiaChiService diaChiService;
 
 
-    @GetMapping
-    public List<KhachHang> getKhachHang() {
-        return khachHangService.getAllKhachHang();
+    @GetMapping("/list")
+    public List<KhachHangDTO> getAllKhachHangDTO() {
+        return khachHangService.getAllKhachHang().stream()
+                .map(kh -> {
+                    KhachHangDTO dto = new KhachHangDTO();
+                    dto.setId(kh.getId());
+                    dto.setHoTen(kh.getHoTen());
+                    dto.setUsername(kh.getUsername());
+                    dto.setSoDienThoai(kh.getSoDienThoai());
+                    dto.setEmail(kh.getEmail());
+                    dto.setGioiTinh(kh.getGioiTinh());
+                    dto.setNgaySinh(kh.getNgaySinh());
+                    dto.setTrangThai(kh.getTrangThai());
+                    dto.setHinhAnh(kh.getHinhAnh());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
+
 
     @GetMapping("/{id}/dia-chi-mac-dinh")
     public ResponseEntity<DiaChi> getDiaChiMacDinh(@PathVariable Integer id) {
@@ -69,29 +89,82 @@ public class KhachHangApiController {
             @RequestParam("email") String email,
             @RequestParam("soDienThoai") String soDienThoai,
             @RequestParam("gioiTinh") Boolean gioiTinh,
-            @RequestParam("ngaySinh") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngaySinh,
+            @RequestParam("ngaySinh") String ngaySinhStr,
             @RequestParam("trangThai") String trangThai,
             @RequestParam(value = "file", required = false) MultipartFile file) {
 
+        Map<String, String> warnings = new HashMap<>();
+
+        if (hoTen == null || hoTen.trim().isEmpty()) {
+            warnings.put("hoTen", "Vui lòng nhập họ tên.");
+        }
+
+        if (username == null || username.trim().isEmpty()) {
+            warnings.put("username", "Vui lòng nhập tên đăng nhập.");
+        }
+
+        if (password == null || password.length() < 6) {
+            warnings.put("password", "Mật khẩu phải từ 6 ký tự trở lên.");
+        }
+
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            warnings.put("email", "Email không hợp lệ.");
+        }
+
+        if (soDienThoai == null || !soDienThoai.matches("^(0[1-9][0-9]{8})$")) {
+            warnings.put("soDienThoai", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.");
+        }
+
+        LocalDate ngaySinh = null; // Khai báo bên ngoài
+
+        try {
+            ngaySinh = LocalDate.parse(ngaySinhStr); // parse thành công thì gán
+            if (ngaySinh.isAfter(LocalDate.now())) {
+                warnings.put("ngaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
+            }
+        } catch (DateTimeParseException e) {
+            warnings.put("ngaySinh", "Ngày sinh không đúng định dạng (yyyy-MM-dd).");
+        }
+
+
+        if (trangThai == null || (!trangThai.equalsIgnoreCase("Hoạt động") && !trangThai.equalsIgnoreCase("Không hoạt động"))) {
+            warnings.put("trangThai", "Vui lòng chọn trạng thái hợp lệ.");
+        }
+
+        // Nếu có cảnh báo, trả về kèm HTTP 200 và warning
+        if (!warnings.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "warning");
+            response.put("messages", warnings);
+            return ResponseEntity.ok(response); // status 200, không phải lỗi nghiêm trọng
+        }
+
         try {
             KhachHang khachHang = new KhachHang();
-            khachHang.setHoTen(hoTen);
-            khachHang.setUsername(username);
-            khachHang.setPassword(password);
-            khachHang.setEmail(email);
-            khachHang.setSoDienThoai(soDienThoai);
+            khachHang.setHoTen(hoTen.trim());
+            khachHang.setUsername(username.trim());
+            khachHang.setPassword(password.trim());
+            khachHang.setEmail(email.trim());
+            khachHang.setSoDienThoai(soDienThoai.trim());
             khachHang.setGioiTinh(gioiTinh);
             khachHang.setNgaySinh(ngaySinh);
-            khachHang.setTrangThai(trangThai);
+            khachHang.setTrangThai(trangThai.trim());
 
             KhachHang savedKhachHang = khachHangService.addKhachHang(khachHang, file);
-            return ResponseEntity.ok(savedKhachHang);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "data", savedKhachHang
+            ));
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi thêm khách hàng: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", "Lỗi khi thêm khách hàng: " + e.getMessage()
+                    ));
         }
     }
-
 
 
     @GetMapping("/check-password")
@@ -118,7 +191,7 @@ public class KhachHangApiController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<KhachHang> updateKhachHang(
+    public ResponseEntity<?> updateKhachHang(
             @PathVariable Integer id,
             @RequestParam("hoTen") String hoTen,
             @RequestParam("username") String username,
@@ -128,33 +201,92 @@ public class KhachHangApiController {
             @RequestParam("gioiTinh") Boolean gioiTinh,
             @RequestParam("ngaySinh") String ngaySinh,
             @RequestParam("trangThai") String trangThai,
-            @RequestParam(value = "file", required = false) MultipartFile file) {
-
-        KhachHang updatedKhachHang = new KhachHang();
-        updatedKhachHang.setHoTen(hoTen);
-        updatedKhachHang.setUsername(username);
-        updatedKhachHang.setEmail(email);
-        updatedKhachHang.setSoDienThoai(soDienThoai);
-        updatedKhachHang.setGioiTinh(gioiTinh);
-        updatedKhachHang.setNgaySinh(LocalDate.parse(ngaySinh));
-        updatedKhachHang.setTrangThai(trangThai);
-
-        // Nếu có mật khẩu mới, thêm vào
-        if (password != null && !password.isEmpty()) {
-            updatedKhachHang.setPassword(password);
-        }
-
+            @RequestParam(value = "file", required = false) MultipartFile file
+    ) {
         try {
-            KhachHang savedKhachHang = khachHangService.updateKhachHang(id, updatedKhachHang, file);
-            if (savedKhachHang != null) {
-                return ResponseEntity.ok(savedKhachHang);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            Map<String, String> messages = new HashMap<>();
+
+            if (hoTen == null || hoTen.trim().isEmpty()) {
+                messages.put("hoTen", "Họ tên không được để trống.");
             }
+
+            if (username == null || username.trim().isEmpty()) {
+                messages.put("username", "Tên đăng nhập không được để trống.");
+            }
+
+            if (password != null && password.length() < 6) {
+                messages.put("password", "Mật khẩu phải có ít nhất 6 ký tự.");
+            }
+
+            if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                messages.put("email", "Email không hợp lệ.");
+            }
+
+            if (soDienThoai == null || !soDienThoai.matches("^(0[1-9][0-9]{8})$")) {
+                messages.put("soDienThoai", "Số điện thoại không hợp lệ. Ví dụ: 0981234567");
+            }
+
+            LocalDate parsedNgaySinh = null;
+            try {
+                parsedNgaySinh = LocalDate.parse(ngaySinh);
+                if (parsedNgaySinh.isAfter(LocalDate.now())) {
+                    messages.put("ngaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
+                }
+            } catch (DateTimeParseException e) {
+                messages.put("ngaySinh", "Ngày sinh không đúng định dạng (yyyy-MM-dd).");
+            }
+
+            if (!trangThai.equalsIgnoreCase("Đang Hoạt động") && !trangThai.equalsIgnoreCase("Ngừng Hoạt Động")) {
+                messages.put("trangThai", "Trạng thái phải là 'Đang Hoạt động' hoặc 'Ngừng Hoạt Động'.");
+            }
+
+            if (!messages.isEmpty()) {
+                return ResponseEntity.ok(Map.of("status", "warning", "messages", messages));
+            }
+
+            KhachHang updatedKhachHang = new KhachHang();
+            updatedKhachHang.setHoTen(hoTen.trim());
+            updatedKhachHang.setUsername(username.trim());
+            updatedKhachHang.setEmail(email.trim());
+            updatedKhachHang.setSoDienThoai(soDienThoai.trim());
+            updatedKhachHang.setGioiTinh(gioiTinh);
+            updatedKhachHang.setNgaySinh(parsedNgaySinh);
+            updatedKhachHang.setTrangThai(trangThai.trim());
+
+            if (password != null && !password.trim().isEmpty()) {
+                updatedKhachHang.setPassword(password.trim()); // Gợi ý mã hóa tại service
+            }
+
+            KhachHang saved = khachHangService.updateKhachHang(id, updatedKhachHang, file);
+
+            if (saved != null) {
+                KhachHangDTO dto = new KhachHangDTO(
+                        saved.getId(),
+                        saved.getHoTen(),
+                        saved.getUsername(),
+                        saved.getEmail(),
+                        saved.getSoDienThoai(),
+                        saved.getGioiTinh(),
+                        saved.getNgaySinh(),
+                        saved.getTrangThai(),
+                        saved.getHinhAnh()
+                );
+
+                return ResponseEntity.ok(Map.of("status", "success", "data", dto));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("status", "error", "message", "Không tìm thấy khách hàng để cập nhật."));
+            }
+
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "error", "message", "Lỗi xử lý file: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "error", "message", "Lỗi hệ thống: " + e.getMessage()));
         }
     }
+
 
 
 }

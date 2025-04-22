@@ -1,4 +1,3 @@
-
 <html lang="en">
 
 <head>
@@ -13,8 +12,8 @@
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
@@ -151,6 +150,36 @@
             border-radius: 5px;
         }
 
+        .buy-button,
+        .buy-now-button {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            border-radius: var(--border-radius);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .buy-button:hover,
+        .buy-now-button:hover {
+            background: #c0877d;
+            transform: scale(1.05);
+        }
+
+        .buy-button-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+
+        .buy-button-wrapper {
+            display: flex;
+            gap: 12px; /* khoảng cách giữa 2 nút */
+        }
+
         .buy-button {
             background: var(--primary);
             color: white;
@@ -238,51 +267,7 @@
             color: #333;
             line-height: 1.4;
         }
-        .size-guide-btn {
-            background-color: #ff9cbe;
-            color: white;
-            border: none;
-            padding: 4px 152px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        .size-guide-btn:hover {
-            background-color: #e91e63;
-        }
-        .popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-        }
-        .popup-content {
-            position: relative;
-            background: white;
-            border-radius: 8px;
-            text-align: center;
-            max-width: 40%;
-        }
-        .popup-content img {
-            max-width: 100%;
-            height: auto;
-        }
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        body.no-scroll {
-            overflow: hidden;
-        }
+
     </style>
 
 </head>
@@ -293,38 +278,41 @@
     <div class="row align-items-center py-3 px-xl-5">
         <!-- Logo -->
         <div class="col-lg-3 d-none d-lg-block">
-            <a href="" class="text-decoration-none">
+            <a href="/trang-chu" class="text-decoration-none">
                 <h1 class="m-0 display-5 font-weight-semi-bold">
-                    <span class="text-primary font-weight-bold border px-3 mr-1">E</span>Tên shop
+                    <span class="text-primary font-weight-bold border px-3 mr-1">E</span>TrendSetter
                 </h1>
             </a>
         </div>
 
         <!-- Ô tìm kiếm (Tăng rộng) -->
         <div class="col-lg-5 col-6 text-left">
-            <form action="">
+            <form id="searchForm">
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm sản phẩm">
                     <div class="input-group-append">
-                        <span class="input-group-text bg-transparent text-primary">
-                            <i class="fa fa-search"></i>
-                        </span>
+            <span class="input-group-text bg-transparent text-primary" id="searchButton">
+                <i class="fa fa-search"></i>
+            </span>
                     </div>
                 </div>
             </form>
+            <div id="searchResults"></div>
         </div>
 
         <!-- Ô nhập mã hóa đơn (Giữ vừa) -->
         <div class="col-lg-2 col-6 text-center">
             <div class="input-group shadow-sm">
-                <input type="text" class="form-control border-primary rounded-start px-2"
-                       placeholder="Nhập mã hóa đơn"
-                       style="border-right: none; box-shadow: none;">
-                <div class="input-group-append">
-                    <button class="btn btn-primary rounded-end px-3">Tra cứu</button>
-                </div>
+                <!-- Form tra cứu hóa đơn -->
+                <form id="traCuuForm" action="/don-hang" method="GET" class="input-group shadow-sm">
+                    <input type="text" class="form-control border-primary rounded-start px-2"
+                           name="maHoaDon" id="maHoaDonInput" placeholder="Nhập mã hóa đơn"
+                           style="border-right: none; box-shadow: none;" required>
+                    <button type="submit" class="btn btn-primary rounded-end px-3">Tra cứu</button>
+                </form>
             </div>
         </div>
+
 
         <!-- Nút giỏ hàng (Hợp lý) -->
         <div class="col-lg-2 col-6 text-right">
@@ -342,27 +330,25 @@
 <div class="container-fluid">
     <div class="row border-top px-xl-5">
         <div class="col-lg-3 d-none d-lg-block">
-            <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100" data-toggle="collapse" href="#navbar-vertical" style="height: 65px; margin-top: -1px; padding: 0 30px;">
+            <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
+               data-toggle="collapse" href="#navbar-vertical"
+               style="height: 65px; margin-top: -1px; padding: 0 30px; margin-left: 12px;">
                 <h6 class="m-0">Thể loại</h6>
                 <i class="fa fa-angle-down text-dark"></i>
             </a>
-            <nav class="collapse position-absolute navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0 bg-light" id="navbar-vertical" style="width: calc(100% - 30px); z-index: 1;">
-                <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
-                    <a href="" class="nav-item nav-link">Váy</a>
-                    <a href="" class="nav-item nav-link">Quần</a>
-                    <a href="" class="nav-item nav-link">Áo sơ mi</a>
-                    <a href="" class="nav-item nav-link">Đồ ngủ</a>
-                    <a href="" class="nav-item nav-link">Đồ thể thao</a>
-                    <a href="" class="nav-item nav-link">Áo khoác</a>
-                    <a href="" class="nav-item nav-link">Áo khoác blazer</a>
-                    <a href="" class="nav-item nav-link">Áo hoodie </a>
+            <nav class="collapse position-absolute navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0 bg-light"
+                 id="navbar-vertical"
+                 style="width: calc(100% - 30px); z-index: 1;">
+                <div class="navbar-nav w-100 overflow-hidden" style="height: 410px" id="danh-muc-list">
+                    <!-- Danh mục sẽ được thêm vào đây bằng JavaScript -->
                 </div>
             </nav>
         </div>
         <div class="col-lg-9">
             <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
                 <a href="" class="text-decoration-none d-block d-lg-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+                    <h1 class="m-0 display-5 font-weight-semi-bold"><span
+                            class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
                 </a>
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
                     <span class="navbar-toggler-icon"></span>
@@ -371,46 +357,176 @@
                     <div class="navbar-nav mr-auto py-0">
                         <a href="trang-chu" class="nav-item nav-link active">Trang chủ</a>
                         <a href="san-pham" class="nav-item nav-link">Sản phẩm</a>
-                        <a href="chi-tiet-san-pham" class="nav-item nav-link">Thông tin sản phẩm</a>
-                        <div class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Trang</a>
-                            <div class="dropdown-menu rounded-0 m-0">
-                                <a href="gio-hang" class="dropdown-item">Giỏ hàng</a>
-                                <a href="thanh-toan" class="dropdown-item">Thanh toán</a>
-                                <a href="thong-tin" class="dropdown-item">Thông tin </a>
-                                <a href="don-hang" class="dropdown-item">Tra cứu</a>
-                            </div>
-                        </div>
+                        <a href="gio-hang" class="nav-item nav-link">Giỏ hàng</a>
+                        <a href="thanh-toan" class="nav-item nav-link">Thanh toán</a>
                     </div>
                     <div class="navbar-nav ml-auto py-0">
                         <!-- Nếu chưa đăng nhập -->
-                        <a th:if="${session.user == null}" href="/auth/home" class="nav-item nav-link">Đăng nhập</a>
+                        <div th:if="${session.userKhachHang == null}" class="nav-item">
+                            <a href="#" class="nav-link text-primary fw-bold" data-bs-toggle="modal"
+                               data-bs-target="#authModal">Đăng nhập</a>
+                        </div>
+                        <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
+                        <div th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}"
+                             class="nav-item dropdown">
 
-                        <!-- Nếu đã đăng nhập -->
-                        <li th:if="${session.user != null}" class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center"
                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <img th:src="${session.user.hinhAnh}" class="rounded-circle user-image" alt="User Image"
-                                     width="40" height="40">
-                                <span class="d-none d-md-inline ms-2" th:text="${session.user.hoTen}"></span>
+                                <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle user-image"
+                                     alt="User Image" width="40" height="40">
+                                <span class="d-none d-md-inline ms-2" th:text="${session.userKhachHang.hoTen}"></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
                                 <li class="dropdown-header text-center">
-                                    <img th:src="${session.user.hinhAnh}" class="rounded-circle" alt="User Image"
-                                         width="80" height="80">
+                                    <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle"
+                                         alt="User Image" width="80" height="80">
                                     <p class="mt-3 mb-0 text-dark fw-bold"
-                                       th:text="${session.user.hoTen + ' ( ' + session.user.username + ' )'}"></p>
+                                       th:text="${session.userKhachHang.hoTen}"></p>
                                 </li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li>
-                                    <a class="dropdown-item text-info text-center" href="/thong-tin">Thông tin </a>
-                                    <a class="dropdown-item text-danger text-center" href="#" id="logout-btn">Log out</a>
+                                    <a class="dropdown-item text-info text-center" href="/thong-tin">Thông tin</a>
+                                    <a class="dropdown-item text-danger text-center" href="#" id="logout-btn-khachhang">Log out</a>
                                 </li>
                             </ul>
-                        </li>
+                        </div>
                     </div>
+
+                    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="authModalLabel">Tài khoản</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i> <!-- Thay vì biểu tượng x mặc định -->
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Tabs -->
+                                    <ul class="nav nav-tabs" id="authTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab"
+                                                    data-bs-target="#login" type="button" role="tab">Đăng nhập
+                                            </button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="register-tab" data-bs-toggle="tab"
+                                                    data-bs-target="#register" type="button" role="tab">Đăng ký
+                                            </button>
+                                        </li>
+                                    </ul>
+
+                                    <div class="tab-content mt-3">
+                                        <!-- Tab Đăng nhập -->
+                                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                                            <form id="loginForm">
+                                                <input type="hidden" name="userType" value="KHACHHANG">
+                                                <div class="mb-3">
+                                                    <label for="login-email" class="form-label">Email</label>
+                                                    <input type="text" class="form-control" id="login-email"
+                                                           placeholder="Email" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="login-password" class="form-label">Mật khẩu</label>
+                                                    <input type="password" class="form-control" id="login-password"
+                                                           placeholder="Mật khẩu" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+                                            </form>
+                                            <div class="text-center mt-2">
+                                                <a href="#" class="text-danger" data-bs-toggle="modal"
+                                                   data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">Quên
+                                                    mật khẩu?</a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tab Đăng ký -->
+                                        <div class="tab-pane fade" id="register" role="tabpanel">
+                                            <form id="registerForm">
+                                                <input type="hidden" name="userType" value="KHACHHANG">
+                                                <div class="mb-3">
+                                                    <label for="register-name" class="form-label">Họ và tên</label>
+                                                    <input type="text" class="form-control" id="register-name"
+                                                           placeholder="Họ và tên" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="register-email" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="register-email"
+                                                           placeholder="Email" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="register-password" class="form-label">Mật khẩu</label>
+                                                    <input type="password" class="form-control" id="register-password"
+                                                           placeholder="Mật khẩu" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-success w-100">Đăng ký</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal: Quên mật khẩu - Bước 1 (Nhập email) -->
+                    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="forgotPasswordModalLabel">Khôi phục mật khẩu</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i> <!-- Thay vì biểu tượng x mặc định -->
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="forgot-email" class="form-label">Email đăng ký</label>
+                                        <input type="email" id="forgot-email" class="form-control" placeholder="Nhập email của bạn" required>
+                                        <div class="invalid-feedback" id="email-feedback">Vui lòng nhập email hợp lệ</div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-primary" id="sendResetEmailBtn">Gửi liên kết</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal: Quên mật khẩu - Bước 2 (Nhập mật khẩu mới) -->
+                    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="resetPasswordModalLabel">Đặt lại mật khẩu</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i> <!-- Thay vì biểu tượng x mặc định -->
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="new-password" class="form-label">Mật khẩu mới</label>
+                                        <input type="password" id="new-password" class="form-control" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)" required>
+                                        <div class="invalid-feedback">Mật khẩu phải có ít nhất 6 ký tự</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirm-password" class="form-label">Xác nhận mật khẩu</label>
+                                        <input type="password" id="confirm-password" class="form-control" placeholder="Nhập lại mật khẩu mới" required>
+                                        <div class="invalid-feedback">Mật khẩu không khớp</div>
+                                    </div>
+                                    <input type="hidden" id="reset-token">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                    <button type="button" class="btn btn-primary" id="submitNewPasswordBtn">Đổi mật khẩu</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </nav>
         </div>
@@ -441,9 +557,14 @@
     </div>
     <div class="product-details">
         <h2 class="product-title"></h2>
-        <p class="product-description"></p>
         <div class="product-price"></div>
 
+        <!-- Thông tin bên trái -->
+        <div class="options">
+            <p><strong>Chất Liệu:</strong> <span class="product-chatLieu">Cotton</span></p>
+            <p><strong>Xuất Xứ:</strong> <span class="product-xuatXu">Việt Nam</span></p>
+            <p><strong>Thương Hiệu:</strong> <span class="product-thuongHieu">Nike</span></p>
+        </div>
         <!-- Chọn Size -->
         <div class="options">
             <label>Kích cỡ:</label>
@@ -455,11 +576,6 @@
             <label>Màu sắc:</label>
             <div id="color-options" class="color-options"></div>
         </div>
-        <div class="options">
-            <button class="size-guide-btn" onclick="openSizeGuide()">
-                <span class="btn-text" style="text-align: left">Hướng dẫn chọn size</span>
-            </button>
-        </div>
 
         <!-- Chọn Số lượng -->
         <div class="options">
@@ -468,190 +584,109 @@
                 <button class="quantity-btn" onclick="decreaseQuantity()">-</button>
                 <input type="number" id="quantity" class="quantity-input" value="1">
                 <button class="quantity-btn" onclick="increaseQuantity()">+</button>
+                <p><span class="product-soLuong">20 sản phẩm</span></p>
             </div>
         </div>
 
-        <a href="#" class="buy-button">Mua Ngay</a>
+        <div class="buy-button-wrapper">
+            <a href="#" class="buy-button">Thêm Vào Giỏ Hàng</a>
+            <a href="#" class="buy-now-button">Mua Ngay</a>
+        </div>
+
+
 
         <!-- 🔥 Thêm phần cố định về chính sách giao hàng & đổi trả -->
-        <div class="product-support">
-            <div class="support-item">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy_miamlfa0FdR27RiUhtn92vJhntsfEle0w&s" alt="Đổi trả">
-                <p>Miễn phí đổi trả <br>30 ngày kể từ ngày mua</p>
-            </div>
-            <div class="support-item">
-                <img src="https://cdn-icons-png.flaticon.com/512/10473/10473448.png" alt="Vận chuyển">
-                <p>Miễn phí vận chuyển <br>cho đơn hàng trên 599k</p>
-            </div>
-            <div class="support-item">
-                <img src="https://png.pngtree.com/png-clipart/20210606/original/pngtree-flat-design-clipart-pink-vector-cod-cash-on-delivery-bayar-di-png-image_6389313.jpg" alt="COD">
-                <p>Thanh toán khi nhận hàng (COD)</p>
-            </div>
-            <div class="support-item">
-                <img src="https://i.pinimg.com/736x/ca/1b/69/ca1b692b048514d5ec11f19754476c49.jpg" alt="Hotline">
-                <p>Hotline 0837 837 779 <br>hỗ trợ từ 8h30 - 22h mỗi ngày</p>
-            </div>
-            <div class="support-item">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7_nXvZQ6MWi9zX-t0niXUHx5jzjy1faLXwQ&s" alt="Hoàn tiền">
-                <p>Đến tận nơi nhận hàng trả, <br>hoàn tiền trong 24h</p>
-            </div>
-            <div class="support-item">
-                <img src="https://img.icons8.com/m_outlined/512/F25081/checked.png" alt="Kiểm tra">
-                <p>Kiểm tra hàng trước khi thanh toán</p>
-            </div>
-        </div>
+<!--        <div class="product-support">-->
+<!--            <div class="support-item">-->
+<!--                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy_miamlfa0FdR27RiUhtn92vJhntsfEle0w&s"-->
+<!--                     alt="Đổi trả">-->
+<!--                <p>Miễn phí đổi trả <br>30 ngày kể từ ngày mua</p>-->
+<!--            </div>-->
+<!--            <div class="support-item">-->
+<!--                <img src="https://cdn-icons-png.flaticon.com/512/10473/10473448.png" alt="Vận chuyển">-->
+<!--                <p>Miễn phí vận chuyển <br>cho đơn hàng trên 599k</p>-->
+<!--            </div>-->
+<!--            <div class="support-item">-->
+<!--                <img src="https://png.pngtree.com/png-clipart/20210606/original/pngtree-flat-design-clipart-pink-vector-cod-cash-on-delivery-bayar-di-png-image_6389313.jpg"-->
+<!--                     alt="COD">-->
+<!--                <p>Thanh toán khi nhận hàng (COD)</p>-->
+<!--            </div>-->
+<!--            <div class="support-item">-->
+<!--                <img src="https://i.pinimg.com/736x/ca/1b/69/ca1b692b048514d5ec11f19754476c49.jpg" alt="Hotline">-->
+<!--                <p>Hotline 0837 837 779 <br>hỗ trợ từ 8h30 - 22h mỗi ngày</p>-->
+<!--            </div>-->
+<!--            <div class="support-item">-->
+<!--                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7_nXvZQ6MWi9zX-t0niXUHx5jzjy1faLXwQ&s"-->
+<!--                     alt="Hoàn tiền">-->
+<!--                <p>Đến tận nơi nhận hàng trả, <br>hoàn tiền trong 24h</p>-->
+<!--            </div>-->
+<!--            <div class="support-item">-->
+<!--                <img src="https://img.icons8.com/m_outlined/512/F25081/checked.png" alt="Kiểm tra">-->
+<!--                <p>Kiểm tra hàng trước khi thanh toán</p>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 </div>
-
-<div id="sizeGuidePopup" class="popup" onclick="closeSizeGuide(event)">
-    <div class="popup-content" onclick="event.stopPropagation()">
-        <span class="close-btn" onclick="closeSizeGuide(event)">&times;</span>
-        <img src="https://res.cloudinary.com/dsuehugin/image/upload/v1742635122/fv6qxn9nsriw3gqhdnak.png" alt="Hướng dẫn chọn size">
+<div class="product-container">
+    <!-- Mô Tả -->
+    <div class="options">
+        <p><strong>Mô Tả:</strong></p>
+        <p class="form-control-plaintext"><span class="product-description"></span></p>
     </div>
 </div>
-
 
 <!-- Shop Detail End -->
-
-
-<!-- Products Start -->
-<div class="container-fluid py-5">
-    <div class="text-center mb-4">
-        <h2 class="section-title px-5"><span class="px-2">You May Also Like</span></h2>
-    </div>
-    <div class="row px-xl-5">
-        <div class="col">
-            <div class="owl-carousel related-carousel">
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-1.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-2.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-3.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-4.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-5.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Products End -->
-
 
 <!-- Footer Start -->
 <div class="container-fluid bg-secondary text-dark mt-5 pt-5">
     <div class="row px-xl-5 pt-5">
         <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
             <a href="" class="text-decoration-none">
-                <h1 class="mb-4 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper</h1>
+                <h1 class="mb-4 display-5 font-weight-semi-bold">
+                    <span class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>TrendSetter
+                </h1>
             </a>
-            <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum dolore amet erat.</p>
-            <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
-            <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
-            <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            <p>Thời trang là cách bạn thể hiện bản thân. Hãy để chúng tôi giúp bạn tỏa sáng với phong cách riêng.</p>
+            <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Đường ABC, TP.HCM, Việt Nam</p>
+            <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>lienhe@etrendsetter.vn</p>
+            <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+84 123 456 789</p>
         </div>
         <div class="col-lg-8 col-md-12">
             <div class="row">
                 <div class="col-md-4 mb-5">
-                    <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
+                    <h5 class="font-weight-bold text-dark mb-4">Liên kết nhanh</h5>
                     <div class="d-flex flex-column justify-content-start">
-                        <a class="text-dark mb-2" href="trangChuClient.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                        <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
-                        <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
+                        <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
+                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Chi tiết sản phẩm</a>
+                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
+                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
+                        <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-5">
-                    <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
+                    <h5 class="font-weight-bold text-dark mb-4">Liên kết nhanh</h5>
                     <div class="d-flex flex-column justify-content-start">
-                        <a class="text-dark mb-2" href="trangChuClient.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                        <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
-                        <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
+                        <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
+                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Chi tiết sản phẩm</a>
+                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
+                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
+                        <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-5">
-                    <h5 class="font-weight-bold text-dark mb-4">Newsletter</h5>
+                    <h5 class="font-weight-bold text-dark mb-4">Đăng ký nhận tin</h5>
                     <form action="">
                         <div class="form-group">
-                            <input type="text" class="form-control border-0 py-4" placeholder="Your Name" required="required" />
+                            <input type="text" class="form-control border-0 py-4" placeholder="Họ tên của bạn" required="required" />
                         </div>
                         <div class="form-group">
-                            <input type="email" class="form-control border-0 py-4" placeholder="Your Email"
+                            <input type="email" class="form-control border-0 py-4" placeholder="Email của bạn"
                                    required="required" />
                         </div>
                         <div>
-                            <button class="btn btn-primary btn-block border-0 py-3" type="submit">Subscribe Now</button>
+                            <button class="btn btn-primary btn-block border-0 py-3" type="submit">Đăng ký ngay</button>
                         </div>
                     </form>
                 </div>
@@ -661,18 +696,16 @@
     <div class="row border-top border-light mx-xl-5 py-4">
         <div class="col-md-6 px-xl-0">
             <p class="mb-md-0 text-center text-md-left text-dark">
-                &copy; <a class="text-dark font-weight-semi-bold" href="#">Your Site Name</a>. All Rights Reserved. Designed
-                by
+                &copy; <a class="text-dark font-weight-semi-bold" href="#">ETrendSetter</a>. Đã đăng ký bản quyền. Thiết kế bởi
                 <a class="text-dark font-weight-semi-bold" href="https://htmlcodex.com">HTML Codex</a>
             </p>
         </div>
         <div class="col-md-6 px-xl-0 text-center text-md-right">
-            <img class="img-fluid" src="img/payments.png" alt="">
+            <img class="img-fluid" src="img/payments.png" alt="Phương thức thanh toán">
         </div>
     </div>
 </div>
 <!-- Footer End -->
-
 
 <!-- Back to Top -->
 <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
@@ -688,14 +721,18 @@
 <!-- Contact Javascript File -->
 <script src="mail/jqBootstrapValidation.min.js"></script>
 <script src="mail/contact.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- Template Javascript -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="/js/main.js"></script>
-<script src="/js/DangNhap/login.js"></script>
-<script src="/js/DangNhap/logout.js"></script>
+<script src="js/main.js"></script>
+<script src="js/DangNhap/login.js"></script>
+<script src="js/DangNhap/logout.js"></script>
+<script src="/js/auth.js"></script>
+
 <script src="js/sanphamchitiet.js"></script>
-<!--<script src="js/giohang.js"></script>-->
+<script src="js/sanpham.js"></script>
+<script src="js/giohang.js"></script>
 </body>
 
 </html>

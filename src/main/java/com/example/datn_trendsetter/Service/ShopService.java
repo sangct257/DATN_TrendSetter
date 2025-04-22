@@ -150,6 +150,11 @@ public class ShopService {
                     nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
         }
 
+        if (!existingMethods.contains("VNPAY")) {
+            newMethods.add(new PhuongThucThanhToan("VNPAY", "Thành Công", LocalDate.now(), LocalDate.now(),
+                    nhanVienSession.getHoTen(), nhanVienSession.getHoTen(), false));
+        }
+
         if (!newMethods.isEmpty()) {
             phuongThucThanhToanRepository.saveAll(newMethods);
         }
@@ -316,6 +321,9 @@ public class ShopService {
         // Lấy danh sách khách hàng và phương thức thanh toán
         Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
         List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
+        listPhuongThucThanhToan = listPhuongThucThanhToan.stream()
+                .filter(p -> !"VNPAY".equals(p.getTenPhuongThuc()))
+                .collect(Collectors.toList());
 
         model.addAttribute("khachHangs", khachHangs);
         model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);
@@ -332,10 +340,10 @@ public class ShopService {
     }
 
     //     Thêm khách hàng vào hóa đơn
-    public String addCustomerToInvoice(Integer hoaDonId, Integer khachHangId) {
+    public String addCustomerToInvoice(Integer hoaDonId, KhachHang khachHang) {
         // Kiểm tra đầu vào hợp lệ
-        if (hoaDonId == null || khachHangId == null) {
-            throw new IllegalArgumentException("ID hóa đơn và ID khách hàng không được null");
+        if (hoaDonId == null || khachHang == null || khachHang.getId() == null) {
+            throw new IllegalArgumentException("ID hóa đơn và khách hàng không được null");
         }
 
         // Tìm hóa đơn
@@ -346,10 +354,6 @@ public class ShopService {
         if (hoaDon.getKhachHang() != null) {
             throw new IllegalStateException("Hóa đơn này đã có khách hàng, không thể thêm mới!");
         }
-
-        // Tìm khách hàng
-        KhachHang khachHang = khachHangRepository.findById(khachHangId)
-                .orElseThrow(() -> new IllegalArgumentException("Khách hàng không tồn tại!"));
 
         // Kiểm tra thông tin khách hàng có đầy đủ không
         if (khachHang.getHoTen() == null || khachHang.getSoDienThoai() == null || khachHang.getEmail() == null) {

@@ -5,10 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 @Getter
 @Setter
 @Data
@@ -21,17 +19,24 @@ public class SanPhamChiTietViewDTO {
     private String moTa;
     private String trangThai;
     private List<String> sizes = new ArrayList<>(); // Danh sách kích thước
-    private List<String> hinhAnh = new ArrayList<>(); // Danh sách hình ảnh
+    private Set<String> hinhAnh = new HashSet<>(); // Sử dụng Set để tránh trùng lặp
     private Map<String, Integer> soLuongTheoSize = new HashMap<>(); // Số lượng theo size
+    private String tenChatLieu;  // Chất liệu
+    private String tenThuongHieu;  // Thương hiệu
+    private String quocGia;  // Xuất xứ
 
     // Constructor đầy đủ dữ liệu từ @Query
     public SanPhamChiTietViewDTO(Integer idSanPhamChiTiet, String tenSanPham, Float gia, String moTa,
-                                 String tenKichThuoc, String tenMauSac, String hinhAnh, Integer soLuong) {
+                                 String tenKichThuoc, String tenMauSac, String hinhAnh, Integer soLuong,
+                                 String tenChatLieu, String tenThuongHieu, String quocGia) {
         this.idSanPhamChiTiet = idSanPhamChiTiet;
         this.tenSanPham = tenSanPham;
         this.gia = gia;
         this.moTa = moTa;
         this.tenMauSac = tenMauSac;
+        this.tenChatLieu = tenChatLieu;
+        this.tenThuongHieu = tenThuongHieu;
+        this.quocGia = quocGia;
 
         // Thêm size và số lượng ngay khi khởi tạo
         if (tenKichThuoc != null) {

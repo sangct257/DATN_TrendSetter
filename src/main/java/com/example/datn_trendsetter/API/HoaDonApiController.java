@@ -1,17 +1,23 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.DTO.HoaDonDTO;
+import com.example.datn_trendsetter.DTO.HoaDonResponseDto;
+import com.example.datn_trendsetter.Entity.DiaChi;
 import com.example.datn_trendsetter.Entity.HoaDon;
+import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Service.ShopService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/hoa-don")
@@ -44,6 +50,7 @@ public class HoaDonApiController {
 //
 //        return "redirect:/admin/sell-counter";
 //    }
+
 
     @PutMapping("/toggle-delivery/{id}")
     public ResponseEntity<Map<String, Object>> toggleDelivery(@PathVariable Integer id) {
@@ -83,7 +90,7 @@ public class HoaDonApiController {
         if (trangThai != null && !trangThai.isEmpty()) {
             hoaDonList = hoaDonRepository.findByTrangThai(trangThai, Sort.by(Sort.Direction.DESC, "id"));
         } else {
-            hoaDonList = hoaDonRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+            hoaDonList = hoaDonRepository.findByTrangThaiNot("Đang Xử Lý", Sort.by(Sort.Direction.DESC, "id"));
         }
 
         // Chuyển đổi danh sách hóa đơn sang JSON hợp lệ
@@ -109,17 +116,20 @@ public class HoaDonApiController {
         long choXacNhan = hoaDonRepository.countByTrangThai("Chờ Xác Nhận");
         long daXacNhan = hoaDonRepository.countByTrangThai("Đã Xác Nhận");
         long choVanChuyen = hoaDonRepository.countByTrangThai("Chờ Vận Chuyển");
+        long dangGiaoHang = hoaDonRepository.countByTrangThai("Đang Giao Hàng");
         long daThanhToan = hoaDonRepository.countByTrangThai("Đã Thanh Toán");
         long daHoanThanh = hoaDonRepository.countByTrangThai("Đã Hoàn Thành");
         long hoanTra = hoaDonRepository.countByTrangThai("Hoàn Trả");
         long daHuy = hoaDonRepository.countByTrangThai("Đã Hủy");
-        long tong = hoaDonRepository.count();
+        // Tổng tất cả trừ "Đang Xử Lý"
+        long tong = hoaDonRepository.countByTrangThaiNot("Đang Xử Lý");
 
         Map<String, Long> coutMap = Map.of(
                 "Đang Xử Lý",dangXuLy,
                 "Chờ Xác Nhận",choXacNhan,
                 "Đã Xác Nhận",daXacNhan,
                 "Chờ Vận Chuyển",choVanChuyen,
+                "Đang Giao Hàng",dangGiaoHang,
                 "Đã Thanh Toán",daThanhToan,
                 "Đã Hoàn Thành",daHoanThanh,
                 "Hoàn Trả",hoanTra,
@@ -128,6 +138,66 @@ public class HoaDonApiController {
         );
 
         return ResponseEntity.ok().body(coutMap);
+    }
+
+    @GetMapping("/list-all")
+    public ResponseEntity<?> getHoaDonByKhachHang(HttpSession session) {
+        // Kiểm tra đăng nhập
+        KhachHang khachHang = (KhachHang) session.getAttribute("userKhachHang");
+        if (khachHang == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", "Chưa đăng nhập"
+            ));
+        }
+
+        System.out.println("KhachHang ID từ session: " + khachHang.getId());
+
+        // Gọi phương thức tìm kiếm với JOIN FETCH
+        List<HoaDon> danhSachHoaDon = hoaDonRepository.findByKhachHangIdWithKhachHang(khachHang.getId());
+
+        if (danhSachHoaDon.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of(
+                    "success", false,
+                    "message", "Không có hóa đơn nào"
+            ));
+        }
+
+        // Chuyển đổi danh sách HoaDon thành danh sách DTO
+        List<HoaDonDTO> hoaDonDTOList = danhSachHoaDon.stream().map(hoaDon -> new HoaDonDTO(
+                hoaDon.getId(),
+                hoaDon.getMaHoaDon(),
+                hoaDon.getKhachHang().getId(),
+                hoaDon.getNguoiTao(),
+                hoaDon.getLoaiHoaDon(),
+                hoaDon.getNgayTao(),
+                hoaDon.getTongTien(),
+                hoaDon.getTrangThai(),
+                hoaDon.getPhiShip(),
+                hoaDon.getPhuongThucThanhToan().getId()
+        )).collect(Collectors.toList());
+
+        // Log danh sách hóa đơn và ID của mỗi hóa đơn
+        for (HoaDonDTO hoaDonDTO : hoaDonDTOList) {
+            System.out.println("Hoa Don ID: " + hoaDonDTO.getMaHoaDon() + ", Khach Hang ID: " + khachHang.getId());
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Lấy danh sách hóa đơn thành công",
+                "data", hoaDonDTOList
+        ));
+    }
+
+    @GetMapping("/kiem-tra-ma-hoa-don")
+    @ResponseBody
+    public ResponseEntity<?> kiemTraHoaDon(@RequestParam("maHoaDon") String maHoaDon) {
+        HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(maHoaDon);
+        if (hoaDon != null) {
+            return ResponseEntity.ok().body("OK");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mã hóa đơn không tồn tại");
+        }
     }
 
 }

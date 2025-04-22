@@ -22,4 +22,21 @@ public class SanPhamRest {
         Page<SanPhamViewDTO> sanPhams = sanPhamService.getSanPhams(page, 6);
         return ResponseEntity.ok(sanPhams);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<SanPhamViewDTO>> searchSanPhams(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page) {
+        Page<SanPhamViewDTO> sanPhams = sanPhamService.searchSanPhams(keyword, page, 6);
+        return ResponseEntity.ok(sanPhams);
+    }
+    @GetMapping("/filter")
+    public ResponseEntity<Page<SanPhamViewDTO>> filterSanPhams(
+            @RequestParam String danh_muc,
+            @RequestParam(defaultValue = "0") int page) {
+        Page<SanPhamViewDTO> sanPhams = sanPhamService.filterSanPhams(danh_muc, page, 6);
+        return ResponseEntity.ok(sanPhams);
+    }
+
+
 }
