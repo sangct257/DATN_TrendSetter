@@ -274,21 +274,36 @@ $(document).ready(function () {
                 </div>
             `);
 
+            // Tự động điền số tiền khách đưa = số tiền cần thanh toán
+            $("#cashAmount").val(tongTienHoaDon);
+
+            // Tính số tiền thối lại khi bắt đầu
+            const change = tongTienHoaDon - tongTienHoaDon;
+            $("#changeAmount").val(`${change.toLocaleString()} VND`).css("color", change < 0 ? "red" : "green");
+
+            // Kiểm tra và tính số tiền thối lại khi người dùng nhập
             $("#cashAmount").on("input", function () {
                 const cashGiven = parseMoney($(this).val());
 
-                if (cashGiven < 0) {
-                    $("#changeAmount").val("Số tiền không hợp lệ").css("color", "red");
+                // Nếu số tiền khách đưa nhỏ hơn số tiền cần thanh toán, không cho phép cập nhật
+                if (cashGiven < tongTienHoaDon) {
+                    $("#changeAmount").val(`Thiếu ${Math.abs(cashGiven - tongTienHoaDon).toLocaleString()} VND`).css("color", "red");
+                    $("#addPaymentMethodButton").prop("disabled", true);  // Vô hiệu hóa nút Cập nhật
                     return;
                 }
 
+                // Tính số tiền thối lại
                 const change = cashGiven - tongTienHoaDon;
 
+                // Cập nhật số tiền thối lại
                 $("#changeAmount").val(
                     change < 0
                         ? `Thiếu ${Math.abs(change).toLocaleString()} VND`
                         : `${change.toLocaleString()} VND`
                 ).css("color", change < 0 ? "red" : "green");
+
+                // Kích hoạt lại nút Cập nhật nếu số tiền khách đưa đủ
+                $("#addPaymentMethodButton").prop("disabled", false);
             });
         } else if (selectedText === "Chuyển Khoản") {
             paymentDetails.html(`
@@ -296,12 +311,31 @@ $(document).ready(function () {
                     <img id="qrCodeImage" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Demo+Thanh+Toan+Ngan+Hang" alt="QR Code" class="img-fluid" style="max-width: 250px;">
                 </div>
             `);
+
+             // Kích hoạt lại nút Cập nhật nếu số tiền khách đưa đủ
+             $("#addPaymentMethodButton").prop("disabled", false);
         }
     });
+
+    // Kiểm tra lại số tiền cần thanh toán khi quay lại phương thức thanh toán tiền mặt
+    paymentOptions.filter(":checked").trigger("change");
 
     $("#addPaymentMethodButton").on("click", function () {
         const formData = $("#paymentMethodForm").serialize();
         const selectedPayment = $("input[name='phuongThucThanhToanId']:checked").val();
+        const cashGiven = parseMoney($("#cashAmount").val());
+
+        // Kiểm tra nếu số tiền khách đưa nhỏ hơn số tiền cần thanh toán
+        if (selectedPayment === "Tiền Mặt" && cashGiven < tongTienHoaDon) {
+            Swal.fire({
+                title: "Lỗi!",
+                text: "Số tiền khách đưa không đủ để thanh toán!",
+                icon: "error",
+                timer: 1500,
+                showConfirmButton: false
+            });
+            return;  // Dừng lại và không gửi yêu cầu
+        }
 
         if (!selectedPayment) {
             Swal.fire({
@@ -314,6 +348,7 @@ $(document).ready(function () {
             return;
         }
 
+        // Gửi dữ liệu đi nếu mọi thứ đúng
         $.ajax({
             url: '/add-payment-method',
             method: 'POST',
@@ -668,34 +703,31 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("#addCustomerForm");
 
-    if (!form) {
-        console.warn("Không tìm thấy form #addCustomerForm");
-        return;
-    }
+    if (!form) return;
 
     form.addEventListener("submit", function (event) {
-        event.preventDefault(); // Ngăn chặn gửi form mặc định
+        event.preventDefault();
 
         const formData = new FormData(form);
         const hoaDonId = formData.get("hoaDonId");
         const nguoiNhan = formData.get("nguoiNhan").trim();
         const soDienThoai = formData.get("soDienThoai").trim();
 
-        // Xóa lỗi cũ
+        // Reset lỗi
         document.getElementById("nguoiNhanError").textContent = "";
         document.getElementById("soDienThoaiError").textContent = "";
 
         let isValid = true;
 
-        // Kiểm tra ID hóa đơn hợp lệ
+        // Validate ID hóa đơn
         if (!hoaDonId || isNaN(hoaDonId)) {
             Swal.fire("Lỗi!", "ID hóa đơn không hợp lệ!", "error");
             return;
         }
 
-        // Kiểm tra họ tên (chỉ chứa chữ cái, khoảng trắng, có ít nhất 2 từ)
+        // Validate họ tên
         const nameRegex = /^[A-Za-zÀ-ỹ\s]+$/;
-        const words = nguoiNhan.split(/\s+/).filter(word => word.length > 0); // Tách thành các từ
+        const words = nguoiNhan.split(/\s+/).filter(word => word.length > 0);
 
         if (!nguoiNhan) {
             document.getElementById("nguoiNhanError").textContent = "Họ tên không được để trống!";
@@ -708,7 +740,7 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        // Kiểm tra số điện thoại (bắt đầu bằng 0, có tổng 10-11 số)
+        // Validate số điện thoại
         const phoneRegex = /^(0\d{9,10})$/;
         if (!soDienThoai) {
             document.getElementById("soDienThoaiError").textContent = "Số điện thoại không được để trống!";
@@ -718,33 +750,40 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        if (!isValid) return; // Dừng nếu có lỗi
+        if (!isValid) return;
 
-        // Gửi yêu cầu đến API
+        // Gửi API
         fetch("/add-new-customer", {
             method: "POST",
             body: formData,
         })
             .then(response => response.json().then(data => {
-                if (!response.ok) {
-                    throw new Error(data.error || "Lỗi từ server");
-                }
+                if (!response.ok) throw new Error(data.message || "Lỗi từ server");
                 return data;
             }))
             .then(data => {
+                const status = data.status || "info";
+                const titleMap = {
+                    success: "Thành công!",
+                    warning: "Cảnh báo!",
+                    error: "Lỗi!",
+                    info: "Thông báo"
+                };
+
                 Swal.fire({
-                    title: data.success ? "Thành công!" : "Lỗi!",
-                    text: data.success || data.error || "Có lỗi xảy ra!",
-                    icon: data.success ? "success" : "error"
+                    title: titleMap[status] || "Thông báo",
+                    text: data.message || "Có lỗi xảy ra!",
+                    icon: status
                 }).then(() => {
-                    if (data.success) {
+                    if (status === "success") {
+                        form.reset(); // Reset form
                         setTimeout(() => location.reload(), 500);
                     }
                 });
             })
             .catch(error => {
                 console.error("Lỗi:", error);
-                Swal.fire("Lỗi!", "Lỗi khi cập nhật thông tin khách hàng!", "error");
+                Swal.fire("Lỗi!", error.message || "Lỗi khi cập nhật thông tin khách hàng!", "error");
             });
     });
 });

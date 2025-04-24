@@ -78,7 +78,7 @@
                                 </thead>
                                 <tbody class="text-center">
                                 <tr th:each="hoaDon, i : ${hoaDon}"
-                                    th:if="${hoaDon.trangThai != 'Đang Xử Lý'}"
+                                    th:if="${hoaDon.trangThai != 'Đang Xử Lý' and hoaDon.trangThai != 'Chưa Thanh Toán' and hoaDon.trangThai != null}"
                                     class="text-center">
                                     <td th:text="${i.index + 1}"></td>
                                     <td th:text="${hoaDon.maHoaDon}"></td>

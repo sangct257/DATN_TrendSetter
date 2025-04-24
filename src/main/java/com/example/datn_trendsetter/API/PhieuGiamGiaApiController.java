@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -58,10 +59,8 @@ public class PhieuGiamGiaApiController {
         return ResponseEntity.ok().body(countMap);
     }
 
-
-    // API để update trạng thái phiếu giảm giá  (khi nhấn vào trạng thái)
     @PutMapping("/toggle-status/{id}")
-    public ResponseEntity<?> togglePhieuGiamGiaStatus(@PathVariable Integer id, HttpSession session) {
+    public ResponseEntity<?> togglePhieuGiamGiaStatus(@PathVariable Integer id) {
         Optional<PhieuGiamGia> phieuGiamGiaOpt = phieuGiamGiaRepository.findById(id);
 
         if (phieuGiamGiaOpt.isEmpty()) {
@@ -71,29 +70,18 @@ public class PhieuGiamGiaApiController {
 
         PhieuGiamGia pgg = phieuGiamGiaOpt.get();
 
-        // Lấy danh sách vai trò từ session
-        List<String> userRoles = (List<String>) session.getAttribute("rolesNhanVien");
-
-        // Nếu không có vai trò, đặt mặc định là NHANVIEN
-        if (userRoles == null) {
-            userRoles = Collections.singletonList("ROLE_NHANVIEN");
+        // Kiểm tra số lượt sử dụng, nếu bằng 0 thì không cho phép cập nhật trạng thái
+        if (pgg.getSoLuotSuDung() == 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Phiếu giảm giá này đã hết lượt sử dụng, không thể cập nhật trạng thái!"));
         }
 
-        System.out.println("Vai trò hiện tại: " + userRoles); // Kiểm tra session
+        // Đổi trạng thái phiếu giảm giá
+        pgg.setTrangThai("Đang Hoạt Động".equalsIgnoreCase(pgg.getTrangThai()) ? "Ngừng Hoạt Động" : "Đang Hoạt Động");
+        phieuGiamGiaRepository.save(pgg);
 
-        // Nếu là ADMIN, có toàn quyền chỉnh sửa
-        if (userRoles.contains("ROLE_ADMIN")) {
-            pgg.setTrangThai("Đang Hoạt Động".equalsIgnoreCase(pgg.getTrangThai()) ? "Ngừng Hoạt Động" : "Đang Hoạt Động");
-            PhieuGiamGiaScheduler.markAsEditedByAdmin(pgg.getId()); // Đánh dấu là ADMIN đã thay đổi trong bộ nhớ
-            phieuGiamGiaRepository.save(pgg);
-            return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công (ADMIN)!"));
-        }
-
-        // ❌ Nếu không phải ADMIN, chặn thao tác
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Collections.singletonMap("error", "Bạn không có quyền thay đổi trạng thái phiếu giảm giá!"));
+        return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công!"));
     }
-
 
 
     @PostMapping("/add/multiple")

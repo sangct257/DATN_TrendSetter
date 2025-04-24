@@ -188,12 +188,13 @@ public class ShopApiController {
 
 
     @PostMapping("/add-new-customer")
-    public ResponseEntity<Map<String, String>> addNewCustomer(@RequestParam("hoaDonId") Integer hoaDonId,
+    public ResponseEntity<Map<String, Object>> addNewCustomer(@RequestParam("hoaDonId") Integer hoaDonId,
                                                               @RequestParam("nguoiNhan") String nguoiNhan,
                                                               @RequestParam("soDienThoai") String soDienThoai) {
-        Map<String, String> response = shopService.addNewCustomer(hoaDonId, nguoiNhan, soDienThoai);
+        Map<String, Object> response = shopService.addNewCustomer(hoaDonId, nguoiNhan, soDienThoai);
 
-        if (response.containsKey("error")) {
+        // Nếu trạng thái không phải success thì trả về Bad Request
+        if (!"success".equals(response.get("status"))) {
             return ResponseEntity.badRequest().body(response);
         }
 

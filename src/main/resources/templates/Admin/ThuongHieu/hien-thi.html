@@ -268,52 +268,50 @@
 }
 
 
+ // Hàm xóa màu sắc
+       function deleteBrand(button) {
+           let row = button.closest("tr");
+           let hiddenInput = row.querySelector("td input[type='hidden']");
+           if (!hiddenInput) {
+               Swal.fire("Lỗi!", "Không tìm thấy ID thương hiệu!", "error");
+               return;
+           }
 
-    // Hàm xóa thương hiệu
-    async function deleteBrand(button) {
-        let row = button.closest("tr");
-        let hiddenInput = row.querySelector("td input[type='hidden']");
+           let brandId = hiddenInput.value;
 
-        if (!hiddenInput) {
-            Swal.fire("Lỗi!", "Không tìm thấy ID thương hiệu!", "error");
-            return;
-        }
+           Swal.fire({
+               title: "Bạn có chắc chắn muốn xóa thương hiệu này?",
+               text: "Hành động này không thể hoàn tác!",
+               icon: "warning",
+               showCancelButton: true,
+               confirmButtonText: "Xóa",
+               cancelButtonText: "Hủy"
+           }).then((result) => {
+               if (result.isConfirmed) {
+                   Swal.fire({
+                       title: "Đang xóa thương hiệu...",
+                       allowOutsideClick: false,
+                       didOpen: () => Swal.showLoading()
+                   });
 
-        let brandId = hiddenInput.value;
-
-        Swal.fire({
-            title: "Bạn có chắc không?",
-            text: "Thao tác này sẽ xóa thương hiệu vĩnh viễn!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Xóa!",
-            cancelButtonText: "Hủy"
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    let response = await fetch(`/api/thuong-hieu/delete/${brandId}`, {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-
-                    if (!response.ok) throw new Error("Xóa thất bại!");
-
-                    let message = await response.text();
-                    Swal.fire({
-                        icon: "success",
-                        title: "Xóa thành công!",
-                        text: message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => row.remove());
-                } catch (error) {
-                    Swal.fire("Lỗi!", error.message, "error");
-                }
-            }
-        });
-    }
+                   fetch(`/api/thuong-hieu/delete/${brandId}`, {
+                       method: 'DELETE',
+                       headers: { 'Content-Type': 'application/json' }
+                   })
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data.success) {
+                           Swal.fire("Đã xóa!", data.message, "success").then(() => {
+                               row.remove();
+                           });
+                       } else {
+                           Swal.fire("Lỗi!", data.message, "warning");
+                       }
+                   })
+                   .catch(() => Swal.fire("Lỗi!", "Không thể xóa thương hiệu này!", "error"));
+               }
+           });
+       }
 
     // Hàm cập nhật thương hiệu
  async function updateBrand() {

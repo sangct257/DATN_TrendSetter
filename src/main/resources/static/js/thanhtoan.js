@@ -18,7 +18,10 @@ function loadDiaChi() {
         .then(apiResponse => {
             if (apiResponse && Array.isArray(apiResponse.data) && apiResponse.data.length > 0) {
                 diaChis = apiResponse.data;
-                const diaChi = diaChis[0];
+
+                // 👉 Ưu tiên địa chỉ có trạng thái "Mặc Định"
+                const diaChi = diaChis.find(dc => dc.trangThai === "Mặc Định") || diaChis[0];
+
                 console.log("Dữ liệu địa chỉ từ API của bạn:", diaChi);
 
                 document.getElementById("fullName").value = diaChi.hoTen || "N/A";
@@ -368,38 +371,38 @@ async function placeOrder() {
 
     try {
         // 🔥 Chuẩn bị danh sách sản phẩm cần giảm số lượng
-        let stockUpdates = orderInfo.hoaDonChiTiet.map(item => ({
-            idSanPhamChiTiet: item.idSanPhamChiTiet,
-            soLuong: item.soLuong
-        }));
-
-        // 🔥 Gửi 1 request duy nhất để giảm số lượng nhiều sản phẩm cùng lúc
-        let stockResponse = await fetch("/api/san-pham-chi-tiet/reduce-stock", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(stockUpdates)
-        });
-
-        let stockResult = await stockResponse.json();
-
-        if (!stockResponse.ok) {
-            Swal.fire({ icon: "error", title: "Lỗi giảm số lượng!", text: "Không thể giảm số lượng sản phẩm." });
-            return;
-        }
-
-        // ✅ Kiểm tra phản hồi từ server
-        let failedProducts = Object.entries(stockResult)
-            .filter(([_, message]) => message.includes("Không đủ hàng"))
-            .map(([productId]) => productId);
-
-        if (failedProducts.length > 0) {
-            Swal.fire({
-                icon: "error",
-                title: "Không đủ hàng!",
-                text: `Sản phẩm không đủ hàng: ${failedProducts.join(", ")}`
-            });
-            return;
-        }
+//        let stockUpdates = orderInfo.hoaDonChiTiet.map(item => ({
+//            idSanPhamChiTiet: item.idSanPhamChiTiet,
+//            soLuong: item.soLuong
+//        }));
+//
+//        // 🔥 Gửi 1 request duy nhất để giảm số lượng nhiều sản phẩm cùng lúc
+//        let stockResponse = await fetch("/api/san-pham-chi-tiet/reduce-stock", {
+//            method: "POST",
+//            headers: { "Content-Type": "application/json" },
+//            body: JSON.stringify(stockUpdates)
+//        });
+//
+//        let stockResult = await stockResponse.json();
+//
+//        if (!stockResponse.ok) {
+//            Swal.fire({ icon: "error", title: "Lỗi giảm số lượng!", text: "Không thể giảm số lượng sản phẩm." });
+//            return;
+//        }
+//
+//        // ✅ Kiểm tra phản hồi từ server
+//        let failedProducts = Object.entries(stockResult)
+//            .filter(([_, message]) => message.includes("Không đủ hàng"))
+//            .map(([productId]) => productId);
+//
+//        if (failedProducts.length > 0) {
+//            Swal.fire({
+//                icon: "error",
+//                title: "Không đủ hàng!",
+//                text: `Sản phẩm không đủ hàng: ${failedProducts.join(", ")}`
+//            });
+//            return;
+//        }
 
         // ✅ Tạo hóa đơn
         let response = await fetch("/api/hoa-don/create", {
@@ -414,6 +417,9 @@ async function placeOrder() {
             Swal.fire({ icon: "error", title: "Lỗi tạo hóa đơn!", text: result.message || "Không thể tạo hóa đơn." });
             return;
         }
+
+        // Lưu mã hóa đơn vào sessionStorage
+        sessionStorage.setItem("orderId", result.maHoaDon); // Lưu maHoaDon vào sessionStorage
 
         // 🔄 Lưu order tạm (nếu cần thiết)
         sessionStorage.setItem("pendingOrder", JSON.stringify(orderInfo));

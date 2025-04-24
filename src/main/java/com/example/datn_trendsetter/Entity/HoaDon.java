@@ -112,6 +112,9 @@ public class HoaDon {
     @OneToMany(mappedBy = "hoaDon",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LichSuHoaDon> lichSuHoaDon = new ArrayList<>();
 
+    @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LichSuThanhToan> lichSuThanhToan = new ArrayList<>();
+
     @Transient // Không lưu vào cơ sở dữ liệu
     private int tongSanPham;
 

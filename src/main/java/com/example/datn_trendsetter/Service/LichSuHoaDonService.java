@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -85,6 +86,13 @@ public class LichSuHoaDonService {
                     .orElse(0F);
 
             hoaDon.setSoTienDaThanhToan(soTienDaThanhToan);
+
+            // Trong Controller
+            Float tongTienThanhToan = hoaDon.getLichSuThanhToan().stream()
+                    .map(t -> t.getSoTienThanhToan() != null ? t.getSoTienThanhToan() : 0F)
+                    .reduce(0F, Float::sum);
+
+            model.addAttribute("tongTienThanhToan", tongTienThanhToan);
 
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();

@@ -94,9 +94,6 @@ function renderDonHangCards(data) {
         <div class="col-md-6">
             <strong>Ngày Tạo:</strong> <span>${hoaDon.ngayTao ? new Date(hoaDon.ngayTao).toLocaleString() : 'Không rõ ngày'}</span>
         </div>
-        <div class="col-md-6">
-            <strong>Tiền Giảm:</strong> <span>${hoaDon.phieuGiamGia ? formatMoney(hoaDon.phieuGiamGia.giaTriGiam) : '0 VND'}</span>
-        </div>
     </div>
 
     <!-- Thông tin Tổng Tiền -->

@@ -1,5 +1,7 @@
 package com.example.datn_trendsetter.Controller.User;
 
+import com.example.datn_trendsetter.Entity.HoaDon;
+import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Service.VnPayService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ import java.util.Map;
 public class VnPayController {
     @Autowired
     private VnPayService vnPayService;
+
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
 
     @PostMapping("/create-payment")
     public ResponseEntity<?> createPayment(@RequestBody Map<String, Object> requestData, HttpServletRequest request) {
@@ -71,6 +76,15 @@ public class VnPayController {
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         String formattedDate = LocalDateTime.parse(rawDate, inputFormatter).format(outputFormatter);
 
+        // Cập nhật trạng thái nếu thanh toán thành công
+        if (success) {
+            HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(orderId);
+            if (hoaDon != null) {
+                hoaDon.setTrangThai("Chờ Xác Nhận");
+                hoaDonRepository.save(hoaDon);
+            }
+        }
+
         // Truyền dữ liệu vào Model
         model.addAttribute("orderId", orderId);
         model.addAttribute("totalPrice", Integer.parseInt(vnp_Params.get("vnp_Amount")) / 100); // VNĐ
@@ -79,4 +93,5 @@ public class VnPayController {
 
         return success ? "User/orderSuccess" : "User/orderFail";
     }
+
 }

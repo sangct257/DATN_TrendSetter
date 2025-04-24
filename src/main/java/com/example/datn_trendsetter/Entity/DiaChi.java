@@ -34,7 +34,7 @@ public class DiaChi {
     private String trangThai;
 
     @ManyToOne
-    @JoinColumn(name = "id_khach_hang")
+    @JoinColumn(name = "id_khach_hang",referencedColumnName = "id")
     @JsonIgnore
     private KhachHang khachHang;
 

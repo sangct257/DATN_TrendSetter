@@ -90,7 +90,8 @@ public class HoaDonApiController {
         if (trangThai != null && !trangThai.isEmpty()) {
             hoaDonList = hoaDonRepository.findByTrangThai(trangThai, Sort.by(Sort.Direction.DESC, "id"));
         } else {
-            hoaDonList = hoaDonRepository.findByTrangThaiNot("Đang Xử Lý", Sort.by(Sort.Direction.DESC, "id"));
+            // Lọc các hóa đơn có trạng thái khác "Đang Xử Lý", "Chưa Thanh Toán" và "null"
+            hoaDonList = hoaDonRepository.findByTrangThaiNotInCustom(Arrays.asList("Đang Xử Lý", "Chưa Thanh Toán"), Sort.by(Sort.Direction.DESC, "id"));
         }
 
         // Chuyển đổi danh sách hóa đơn sang JSON hợp lệ

@@ -108,7 +108,7 @@ public class ShopService {
 
         // Gán phương thức thanh toán mặc định là "Tiền Mặt"
         if (!paymentMethods.isEmpty()) {
-            hoaDon.setPhuongThucThanhToan(paymentMethods.get(0)); // Chọn phương thức đầu tiên
+            hoaDon.setPhuongThucThanhToan(null); // Chọn phương thức đầu tiên
         }
 
         // Thiết lập thông tin hóa đơn
@@ -621,13 +621,13 @@ public class ShopService {
 
             // Kiểm tra nếu hóa đơn không có sản phẩm
             if (hoaDon.getHoaDonChiTiet() == null || hoaDon.getHoaDonChiTiet().isEmpty()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Chưa có sản phẩm sao thanh toán má!");
+                redirectAttributes.addFlashAttribute("errorMessage", "Chưa có sản phẩm!");
                 return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
             }
 
             // Kiểm tra nếu chưa chọn phương thức thanh toán
             if (hoaDon.getPhuongThucThanhToan() == null) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Chưa chọn phương thức thanh toán sao thanh toán má!");
+                redirectAttributes.addFlashAttribute("errorMessage", "Chưa chọn phương thức thanh toán!");
                 return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
             }
 
@@ -643,6 +643,13 @@ public class ShopService {
             // ✅ Trừ đi giá trị phiếu giảm giá nếu có
             if (hoaDon.getPhieuGiamGia() != null) {
                 PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+
+                // Kiểm tra nếu phiếu giảm giá đã bị ngừng hoạt động
+                if ("Ngừng Hoạt Động".equals(phieuGiamGia.getTrangThai())) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Phiếu giảm giá này đã ngừng hoạt động!");
+                    return "redirect:/admin/sell-counter?hoaDonId=" + hoaDonId;
+                }
+
                 if (phieuGiamGia.getSoLuotSuDung() > 0) {
                     Float giaTriGiam = Objects.requireNonNullElse(phieuGiamGia.getGiaTriGiam(), 0F);
                     tongTien = Math.max(tongTien - giaTriGiam, 0F); // Đảm bảo không âm
@@ -703,15 +710,15 @@ public class ShopService {
                 hoaDon.setThoiGianNhanDuKien(LocalDate.now().plusDays(3));
 
                 if ("Trả Trước".equals(hoaDon.getLoaiGiaoDich())) {
-                    hoaDon.setTrangThai("Chờ Xác Nhận");
+                    hoaDon.setTrangThai("Đã Xác Nhận");
                     saveLichSuThanhToan(hoaDon, tongTien);
                     redirectAttributes.addFlashAttribute("successMessage", "Thanh toán thành công! Đơn hàng đang chờ xác nhận.");
                 } else if ("Trả Sau".equals(hoaDon.getLoaiGiaoDich())) {
-                    hoaDon.setTrangThai("Chờ Xác Nhận");
-                    saveLichSuThanhToan(hoaDon, 0.0f);
+                    hoaDon.setTrangThai("Đã Xác Nhận");
+//                    saveLichSuThanhToan(hoaDon, 0.0f);
                     redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng sẽ được thanh toán sau, đang chờ xác nhận!");
                 } else {
-                    hoaDon.setTrangThai("Chờ Xác Nhận");
+                    hoaDon.setTrangThai("Đã Xác Nhận");
                     redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng đang chờ giao hàng!");
                 }
 
@@ -772,20 +779,25 @@ public class ShopService {
     }
 
 
-    public Map<String, String> addNewCustomer(Integer hoaDonId, String nguoiNhan, String soDienThoai) {
-        Map<String, String> response = new HashMap<>();
+    public Map<String, Object> addNewCustomer(Integer hoaDonId, String nguoiNhan, String soDienThoai) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            // Kiểm tra nếu nguoiNhan và soDienThoai đều null thì không thực hiện
             if (nguoiNhan == null || nguoiNhan.trim().isEmpty() || soDienThoai == null || soDienThoai.trim().isEmpty()) {
-                response.put("error", "Đã có thông tin người nhận!");
+                response.put("status", "warning");
+                response.put("message", "Thông tin người nhận không hợp lệ!");
                 return response;
             }
 
-            // Lấy hóa đơn từ cơ sở dữ liệu
             HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                     .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại"));
 
-            // Cập nhật họ tên và số điện thoại vào hóa đơn
+            if (hoaDon.getKhachHang() != null) {
+                response.put("status", "warning");
+                response.put("message", "Hóa đơn này đã có thông tin khách hàng. Vui lòng kiểm tra lại.");
+                return response;
+            }
+
+            // Cập nhật thông tin người nhận
             hoaDon.setNguoiNhan(nguoiNhan);
             hoaDon.setSoDienThoai(soDienThoai);
             hoaDon.setDiaChiCuThe(null);
@@ -793,25 +805,21 @@ public class ShopService {
             hoaDon.setHuyen(null);
             hoaDon.setThanhPho(null);
             hoaDon.setKhachHang(null);
+            hoaDon.setPhiShip(0.0F);
 
-            // Kiểm tra nếu không có khách hàng thì set phí ship về 0
-            if (hoaDon.getKhachHang() == null) {
-                hoaDon.setPhiShip(0.0F);
-            } else {
-                hoaDon.setPhiShip(hoaDon.getPhiShip()); // Giữ nguyên phí ship nếu có khách hàng
-            }
-
-            // Lưu hóa đơn sau khi cập nhật
             hoaDonRepository.save(hoaDon);
 
-            // Trả về thông báo thành công
-            response.put("success", "Thông tin khách hàng đã được cập nhật!");
+            response.put("status", "success");
+            response.put("message", "Thông tin người nhận đã được cập nhật!");
             return response;
+
         } catch (RuntimeException e) {
-            response.put("error", e.getMessage());
+            response.put("status", "error");
+            response.put("message", e.getMessage());
             return response;
         } catch (Exception e) {
-            response.put("error", "Có lỗi xảy ra. Vui lòng thử lại.");
+            response.put("status", "error");
+            response.put("message", "Có lỗi xảy ra. Vui lòng thử lại.");
             return response;
         }
     }

@@ -20,13 +20,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!product) return;
 
         if (event.target.classList.contains("btn-plus")) {
-            if (product.quantity < product.availableQuantity) {
+            if (product.quantity < 20 && product.quantity < product.availableQuantity) {
                 product.quantity += 1;
             } else {
                 Swal.fire({
                     icon: "warning",
-                    title: "Không đủ hàng!",
-                    text: `Chỉ còn ${product.availableQuantity - product.quantity} sản phẩm trong kho.`,
+                    title: "Giới hạn số lượng!",
+                    text: "Bạn chỉ có thể mua tối đa 20 sản phẩm mỗi loại, hoặc không đủ hàng.",
                     confirmButtonText: "OK"
                 });
             }
@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem("cart", JSON.stringify(cart));
             renderCart();  // Cập nhật lại giỏ hàng sau khi xóa sản phẩm
             fetchCoupons(); // Cập nhật lại phiếu giảm giá sau khi thay đổi giỏ hàng
-            // Cập nhật số lượng giỏ hàng (badge) sau khi xóa sản phẩm
             updateCartBadge();
         }
 
@@ -121,7 +120,7 @@ function renderCart() {
     <td class="align-middle">${item.name || "Sản phẩm không xác định"}</td>
     <td class="align-middle">
         Màu: ${item.color || "Không rõ"}, Size: ${item.size || "Không rõ"}
-        <br> <small class="text-muted">Tồn kho: ${item.availableQuantity - item.quantity}</small>
+
     </td>
     <td class="align-middle">
         <div class="input-group quantity mx-auto" style="width: 100px;">
@@ -297,7 +296,7 @@ function renderCoupons(coupons) {
         const couponElement = document.createElement('div');
         couponElement.classList.add('coupon');
         couponElement.innerHTML = `
-            <div class="coupon-left">${coupon.giaTriGiam.toLocaleString()} ${coupon.donViTinh}</div>
+            <div class="coupon-left">${coupon.giaTriGiam.toLocaleString()}</div>
             <div class="coupon-right">
                 <div class="coupon-title">${coupon.tenPhieuGiamGia} - <strong>${coupon.maPhieuGiamGia}</strong></div>
                 <div class="coupon-condition">Đơn hàng từ ${coupon.dieuKien.toLocaleString()} ${coupon.donViTinh}</div>

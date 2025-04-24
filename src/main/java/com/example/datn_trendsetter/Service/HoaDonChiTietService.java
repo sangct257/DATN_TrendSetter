@@ -129,6 +129,21 @@ public class HoaDonChiTietService {
             return ResponseEntity.badRequest().body(response);
         }
 
+        // Lấy đối tượng SanPham từ SanPhamChiTiet
+        SanPham sanPham = sanPhamChiTiet.getSanPham();
+        if (sanPham == null) {
+            response.put("errorMessage", "Sản phẩm không tồn tại!");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Kiểm tra trạng thái sản phẩm
+        if ("Ngừng Hoạt Động".equalsIgnoreCase(sanPham.getTrangThai())) {
+            response.put("errorMessage", "Sản phẩm hiện đang ngừng hoạt động và không thể cập nhật số lượng!");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Tiếp tục các bước kiểm tra khác...
+
         int soLuongTonKho = sanPhamChiTiet.getSoLuong();
         int soLuongCu = hoaDonChiTiet.getSoLuong();
         int chenhLechSoLuong = soLuong - soLuongCu;

@@ -8,4 +8,9 @@ import lombok.Setter;
 public class StockUpdateRequest {
     private Integer idSanPhamChiTiet;
     private Integer soLuong;
+
+    public StockUpdateRequest(Integer idSanPhamChiTiet, Integer soLuong) {
+        this.idSanPhamChiTiet = idSanPhamChiTiet;
+        this.soLuong = soLuong;
+    }
 }
