@@ -226,7 +226,7 @@ public class SanPhamService {
 
     public Page<SanPhamViewDTO> getSanPhams(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return sanPhamChiTietRepository.findSanPhamChiTiet(pageable);
+        return sanPhamChiTietRepository.findSanPhamChiTietWithTrangThai(pageable, "Đang Hoạt Động");
     }
 
 

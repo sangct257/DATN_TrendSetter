@@ -946,32 +946,6 @@
 
         updateDisabledSizes(); // Gọi lần đầu để cập nhật trạng thái
 
-        // Kiểm tra hợp lệ số lượng và giá
-        function checkValidQuantityAndPrice() {
-            let isValid = true;
-
-            document.querySelectorAll('.spct-soLuong').forEach(input => {
-                let quantity = parseInt(input.value);
-                if (quantity <= 0) {
-                    isValid = false;
-                    alert("Số lượng không thể nhỏ hơn hoặc bằng 0.");
-                    input.focus();
-                    return;
-                }
-            });
-
-            document.querySelectorAll('.spct-gia').forEach(input => {
-                let price = parseFloat(input.value.replace(' VND', '').replace(',', ''));
-                if (price <= 0) {
-                    isValid = false;
-                    alert("Giá không thể nhỏ hơn hoặc bằng 0.");
-                    input.focus();
-                    return;
-                }
-            });
-
-            return isValid;
-        }
 
         // Khi chọn kích thước, kiểm tra màu sắc nào đã tồn tại
         function updateDisabledColors() {
@@ -999,10 +973,6 @@
                 });
             }
 
-            // Kiểm tra tính hợp lệ của số lượng và giá khi thay đổi kích thước
-            if (!checkValidQuantityAndPrice()) {
-                return; // Dừng xử lý nếu có lỗi
-            }
         }
 
         document.querySelectorAll('.kich-thuoc').forEach(kichThuoc => {

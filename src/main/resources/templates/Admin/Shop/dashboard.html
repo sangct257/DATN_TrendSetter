@@ -525,7 +525,7 @@
                                 <div id="orderInfo"
                                      th:data-tongtien="${hoaDon != null ? hoaDon.tongTien : 0}"
                                      th:data-phiship="${hoaDon != null ? hoaDon.phiShip : 0}"
-                                     th:data-magiamgia="${hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0}">
+                                     th:data-magiamgia="${hoaDon != null && hoaDon.phieuGiamGia != null ? hoaDon.phieuGiamGia.giaTriGiam : 0}">
                                 </div>
 
                                 <div class="d-flex align-items-center mb-4">
@@ -533,7 +533,7 @@
         <i class="fas fa-credit-card"></i>
         <strong>Phương thức thanh toán: </strong>
         <span id="paymentMethodText"
-              th:text="${hoaDon.phuongThucThanhToan != null ? hoaDon.phuongThucThanhToan.tenPhuongThuc : 'Chưa có phương thức'}">
+              th:text="${hoaDon != null && hoaDon.phuongThucThanhToan != null ? hoaDon.phuongThucThanhToan.tenPhuongThuc : 'Chưa có phương thức'}">
         </span>
     </span>
 
@@ -542,6 +542,7 @@
                                         <i class="bi bi-credit-card"></i>
                                     </button>
 
+                                    <!-- Modal để chọn phương thức thanh toán -->
                                     <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
@@ -553,6 +554,7 @@
                                                     <form id="paymentMethodForm">
                                                         <input type="hidden" name="hoaDonId" th:value="${hoaDon != null ? hoaDon.id : ''}"/>
 
+                                                        <!-- Chọn phương thức thanh toán -->
                                                         <div class="mb-3">
                                                             <label class="form-label">
                                                                 <i class="fas fa-credit-card"></i> Phương thức thanh toán:
@@ -562,14 +564,15 @@
                                                                     <input type="radio" class="btn-check" name="phuongThucThanhToanId"
                                                                            th:id="'payment-' + ${pt.id}" th:value="${pt.id}" autocomplete="off">
                                                                     <label class="btn btn-outline-primary"
-                                                                           th:for="'payment-' + ${pt.id}"
-                                                                           th:text="${pt.tenPhuongThuc}"></label>
+                                                                           th:for="'payment-' + ${pt.id}" th:text="${pt.tenPhuongThuc}"></label>
                                                                 </th:block>
                                                             </div>
                                                         </div>
 
+                                                        <!-- Chi tiết phương thức thanh toán -->
                                                         <div id="paymentDetails"></div>
 
+                                                        <!-- Nút Cập nhật -->
                                                         <button type="button" id="addPaymentMethodButton" class="btn btn-primary w-100">
                                                             Cập nhật
                                                         </button>
@@ -579,6 +582,7 @@
                                         </div>
                                     </div>
                                 </div>
+
 
                                 <!-- Phiếu Giảm Giá -->
                                 <div class="d-flex align-items-center mb-4">

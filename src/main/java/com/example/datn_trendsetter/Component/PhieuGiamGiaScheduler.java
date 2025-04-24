@@ -1,4 +1,5 @@
 package com.example.datn_trendsetter.Component;
+
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
 import org.springframework.data.domain.Sort;
@@ -7,18 +8,17 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+
 @Component
 public class PhieuGiamGiaScheduler {
-    private static final ConcurrentHashMap<Integer, Boolean> editedByAdmin = new ConcurrentHashMap<>();
-
     private final PhieuGiamGiaRepository phieuGiamGiaRepository;
 
     public PhieuGiamGiaScheduler(PhieuGiamGiaRepository phieuGiamGiaRepository) {
         this.phieuGiamGiaRepository = phieuGiamGiaRepository;
     }
 
-    @Scheduled(fixedRate = 60000) // Chạy mỗi phút
+    @Scheduled(fixedRate = 1) // Chạy mỗi phút
     public void updatePhieuGiamGiaStatus() {
         List<PhieuGiamGia> phieuGiamGiaList = phieuGiamGiaRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         LocalDate today = LocalDate.now();
@@ -27,48 +27,45 @@ public class PhieuGiamGiaScheduler {
             return;
         }
 
+        ReentrantLock lock = new ReentrantLock();  // Khóa để đảm bảo chỉ một luồng truy cập tại một thời điểm
+
         for (PhieuGiamGia pgg : phieuGiamGiaList) {
             if (pgg == null) continue;
 
-            boolean isEditedByAdmin = editedByAdmin.getOrDefault(pgg.getId(), false);
+            lock.lock();
+            try {
+                String newStatus = pgg.getTrangThai(); // Mặc định giữ nguyên
 
-            if (isEditedByAdmin) {
-                continue; // Bỏ qua cập nhật nếu ADMIN đã thay đổi
-            }
+                LocalDate startDate = pgg.getNgayBatDau();
+                LocalDate endDate = pgg.getNgayKetThuc();
 
-            if (pgg.getNgayBatDau() != null && pgg.getNgayKetThuc() != null) {
-                String newStatus;
-                if (today.isBefore(pgg.getNgayBatDau())) {
-                    newStatus = "Sắp Diễn Ra";
-                } else if (!today.isBefore(pgg.getNgayBatDau()) && !today.isAfter(pgg.getNgayKetThuc())) {
-                    newStatus = "Đang Hoạt Động";
-                } else {
-                    newStatus = "Ngừng Hoạt Động";
-                }
-
-                // Nếu phiếu đã hết hạn, khóa luôn trạng thái (không cho nhân viên chỉnh sửa nữa)
-                if (newStatus.equals("Ngừng Hoạt Động") && today.isAfter(pgg.getNgayKetThuc())) {
-                    editedByAdmin.put(pgg.getId(), true); // Khóa trạng thái
-                }
-
-                // Scheduler chỉ cập nhật nếu ADMIN chưa thay đổi
-                if (!isEditedByAdmin) {
-                    if (!pgg.getTrangThai().equals(newStatus)) {
-                        pgg.setTrangThai(newStatus);
-                        phieuGiamGiaRepository.save(pgg);
+                if (startDate != null && endDate != null) {
+                    // Nếu đã hết lượt sử dụng và đang trong thời gian hoạt động
+                    if (pgg.getSoLuotSuDung() <= 0 &&
+                            !today.isBefore(startDate) &&
+                            !today.isAfter(endDate)) {
+                        newStatus = "Ngừng Hoạt Động";
+                    } else {
+                        // Xử lý trạng thái theo ngày
+                        if (today.isBefore(startDate)) {
+                            newStatus = "Sắp Diễn Ra";
+                        } else if (!today.isAfter(endDate)) {
+                            newStatus = "Đang Hoạt Động";
+                        } else {
+                            newStatus = "Ngừng Hoạt Động";
+                        }
                     }
                 }
+
+                // Chỉ cập nhật nếu trạng thái thay đổi
+                if (!pgg.getTrangThai().equals(newStatus)) {
+                    pgg.setTrangThai(newStatus);
+                    phieuGiamGiaRepository.save(pgg);
+                }
+
+            } finally {
+                lock.unlock();
             }
         }
-    }
-
-    // Cập nhật cờ trong bộ nhớ tạm thời khi ADMIN thay đổi trạng thái
-    public static void markAsEditedByAdmin(Integer id) {
-        editedByAdmin.put(id, true);
-    }
-
-    // Xóa cờ trong bộ nhớ tạm thời khi ADMIN cho phép thay đổi lại
-    public static void removeEditedFlag(Integer id) {
-        editedByAdmin.remove(id);
     }
 }

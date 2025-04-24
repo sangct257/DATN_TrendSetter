@@ -87,13 +87,8 @@ public class HoaDonOnlineService {
             Optional<PhieuGiamGia> optionalPGG = phieuGiamGiaRepository.findById(request.getIdPhieuGiamGia());
             if (optionalPGG.isPresent()) {
                 PhieuGiamGia phieuGiamGia = optionalPGG.get();
-                if (phieuGiamGia.getSoLuotSuDung() > 0) {
-                    phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() - 1);
-                    phieuGiamGiaRepository.save(phieuGiamGia);
-                    hoaDon.setPhieuGiamGia(phieuGiamGia);
-                } else {
-                    throw new IllegalArgumentException("Phiếu giảm giá đã hết lượt sử dụng!");
-                }
+
+                hoaDon.setPhieuGiamGia(phieuGiamGia);
             }
         }
 
@@ -122,8 +117,11 @@ public class HoaDonOnlineService {
         // ✅ Lưu lịch sử thanh toán
         if (!"Tiền Mặt".equals(hoaDon.getPhuongThucThanhToan().getTenPhuongThuc())) {
             saveLichSuThanhToan(hoaDon, hoaDon.getTongTien());
-        } else {
-            saveLichSuThanhToan(hoaDon, 0.0f);
+        }
+
+        // ✅ Nếu phương thức thanh toán là VNPAY, set trạng thái là "Chưa Thanh Toán"
+        if ("VNPAY".equals(hoaDon.getPhuongThucThanhToan().getTenPhuongThuc())) {
+            hoaDon.setTrangThai("Chưa Thanh Toán");
         }
 
         return hoaDon;
@@ -147,11 +145,15 @@ public class HoaDonOnlineService {
         lichSu.setHoaDon(hoaDon);
         lichSu.setHanhDong(hoaDon.getTrangThai());
         lichSu.setNgayTao(LocalDateTime.now());
+        lichSu.setNguoiTao(hoaDon.getNguoiNhan());
+        lichSu.setNguoiSua(hoaDon.getNguoiNhan());
+        lichSu.setKhachHang(hoaDon.getKhachHang());
         lichSu.setDeleted(false);
         lichSu.setGhiChu("Khách hàng đã đặt đơn hàng.");
         lichSuHoaDonRepository.save(lichSu);
         logger.info("Lịch sử hóa đơn đã lưu cho hóa đơn ID: {}", hoaDon.getId());
     }
+
 
     private void saveLichSuThanhToan(HoaDon hoaDon, Float soTien) {
         NhanVien nhanVien = hoaDon.getNhanVien();

@@ -94,7 +94,7 @@ public class DiaChiApiController {
 
         // Set thông tin khách hàng cho địa chỉ
         diaChi.setKhachHang(khachHang);
-
+        diaChi.setTrangThai("Không Hoạt Động");
         // Lưu địa chỉ vào cơ sở dữ liệu
         DiaChi savedDiaChi = diaChiRepository.save(diaChi);
 

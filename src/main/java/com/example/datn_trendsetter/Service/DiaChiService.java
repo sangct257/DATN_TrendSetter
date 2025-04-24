@@ -27,9 +27,9 @@ public class DiaChiService {
         if (diaChiOptional.isPresent()) {
             DiaChi diaChi = diaChiOptional.get();
 
-            // Nếu địa chỉ chưa là "Mac Dinh", đặt nó thành "Mac Dinh" và tất cả địa chỉ khác thành "Khong Mac Dinh"
+            // Nếu địa chỉ chưa là "Mặc Định", đặt nó thành "Mặc Định" và tất cả địa chỉ khác thành "Không Mặc Định"
             if (!"Mặc Định".equals(diaChi.getTrangThai())) {
-                diaChiRepository.updateAllToKhongMacDinh(diaChi.getKhachHang().getId());
+                diaChiRepository.updateAllToKhongMacDinh(diaChi.getKhachHang().getId(), "Không Mặc Định");
                 diaChi.setTrangThai("Mặc Định");
             } else {
                 diaChi.setTrangThai("Không Mặc Định");
@@ -40,6 +40,7 @@ public class DiaChiService {
         }
         return false;
     }
+
 
     public DiaChi addDiaChi(DiaChi diaChi, Integer idKhachHang) {
         if (idKhachHang == null) {

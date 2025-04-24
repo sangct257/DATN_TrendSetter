@@ -5,6 +5,7 @@ import com.example.datn_trendsetter.Entity.ChatLieu;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.ThuongHieu;
 import com.example.datn_trendsetter.Entity.XuatXu;
+import com.example.datn_trendsetter.Repository.SanPhamRepository;
 import com.example.datn_trendsetter.Repository.XuatXuRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class XuatXuApiController {
 
     @Autowired
     private XuatXuRepository xuatXuRepository;
+
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
 
     @PostMapping("add")
     public ResponseEntity<?> add(@RequestBody XuatXu xuatXuRequest, HttpSession session) {
@@ -151,9 +155,9 @@ public class XuatXuApiController {
     }
 
     @DeleteMapping("delete/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id,HttpSession session) {
+    public ResponseEntity<?> delete(@PathVariable Integer id, HttpSession session) {
         try {
-            // Lấy nhân viên từ session
+            // Kiểm tra đăng nhập
             NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
@@ -162,7 +166,7 @@ public class XuatXuApiController {
                 ));
             }
 
-            // Tìm thương hiệu theo ID
+            // Tìm xuất xứ theo ID
             Optional<XuatXu> optionalXuatXu = xuatXuRepository.findById(id);
             if (optionalXuatXu.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -171,18 +175,23 @@ public class XuatXuApiController {
                 ));
             }
 
-            // Xóa mềm
             XuatXu xuatXu = optionalXuatXu.get();
-            xuatXu.setTrangThai("Ngừng Hoạt Động");
-            xuatXu.setDeleted(true);
-            xuatXu.setNgaySua(LocalDate.now());
-            xuatXu.setNguoiSua(nhanVienSession.getHoTen());
 
-            xuatXuRepository.save(xuatXu);
+            // Kiểm tra xem có sản phẩm nào đang dùng xuất xứ này không
+            boolean isUsed = sanPhamRepository.existsByXuatXu(xuatXu);
+            if (isUsed) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Không thể xóa. Xuất xứ này đang được sử dụng trong sản phẩm."
+                ));
+            }
+
+            // Xóa thẳng
+            xuatXuRepository.delete(xuatXu);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Xóa xuất xứ thành công (đã đánh dấu là deleted)"
+                    "message", "Xóa xuất xứ thành công"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
@@ -191,6 +200,7 @@ public class XuatXuApiController {
             ));
         }
     }
+
 
     @PutMapping("update-trang-thai/{id}")
     public ResponseEntity<?> updateTrangThai(@PathVariable Integer id, @RequestBody Map<String, String> request, HttpSession session) {

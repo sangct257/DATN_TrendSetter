@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.MauSacRepository;
+import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ import java.util.UUID;
 public class MauSacApiController {
     @Autowired
     private MauSacRepository mauSacRepository;
+
+    @Autowired
+    private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @PostMapping("add")
     public ResponseEntity<?> add(@RequestBody MauSac mauSacRequest, HttpSession session) {
@@ -149,9 +153,9 @@ public class MauSacApiController {
 
 
     @DeleteMapping("delete/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id,HttpSession session) {
+    public ResponseEntity<?> delete(@PathVariable Integer id, HttpSession session) {
         try {
-            // Lấy nhân viên từ session
+            // Kiểm tra đăng nhập
             NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
@@ -160,7 +164,7 @@ public class MauSacApiController {
                 ));
             }
 
-            // Tìm màu sắc theo ID
+            // Tìm màu sắc
             Optional<MauSac> optionalMauSac = mauSacRepository.findById(id);
             if (optionalMauSac.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -169,18 +173,23 @@ public class MauSacApiController {
                 ));
             }
 
-            // Xóa mềm
             MauSac mauSac = optionalMauSac.get();
-            mauSac.setTrangThai("Ngừng Hoạt Động");
-            mauSac.setDeleted(true);
-            mauSac.setNgaySua(LocalDate.now());
-            mauSac.setNguoiSua(nhanVienSession.getHoTen());
 
-            mauSacRepository.save(mauSac);
+            // Kiểm tra xem màu sắc này có đang được sử dụng trong sản phẩm không
+            boolean isUsed = sanPhamChiTietRepository.existsByMauSac(mauSac);
+            if (isUsed) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Không thể xóa. Màu sắc này đang được sử dụng trong sản phẩm."
+                ));
+            }
+
+            // Xóa khỏi database
+            mauSacRepository.delete(mauSac);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Xóa màu sắc thành công (đã đánh dấu là deleted)"
+                    "message", "Xóa màu sắc thành công"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
@@ -189,6 +198,7 @@ public class MauSacApiController {
             ));
         }
     }
+
 
     @PutMapping("update-trang-thai/{id}")
     public ResponseEntity<?> updateTrangThai(@PathVariable Integer id, @RequestBody Map<String, String> request, HttpSession session) {

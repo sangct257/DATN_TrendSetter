@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
@@ -26,6 +27,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findByTrangThaiNot(String trangThai,Sort sort);
 
     HoaDon findByMaHoaDon(String maHoaDon);
+
     boolean existsByMaHoaDon(String maHoaDon);
 
     @Query("SELECT COALESCE(SUM(h.tongTien - COALESCE(h.phiShip, 0) + COALESCE(h.phieuGiamGia.giaTriGiam, 0)), 0) " +
@@ -85,6 +87,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             @Param("trangThaiHoaDon") List<String> trangThaiHoaDon);
 
 
+    @Query("SELECT h FROM HoaDon h WHERE h.trangThai NOT IN :trangThaiList")
+    List<HoaDon> findByTrangThaiNotInCustom(@Param("trangThaiList") List<String> trangThaiList, Sort sort);
 
 
 

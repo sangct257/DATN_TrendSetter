@@ -178,7 +178,11 @@ function updateProductImages(products) {
 
     // Nếu có hình ảnh, hiển thị ảnh đầu tiên làm ảnh chính
     if (uniqueImages.length > 0) {
-        document.getElementById('mainImage').src = uniqueImages[0]; // Cập nhật ảnh chính
+        const mainImage = document.getElementById('mainImage');
+        // Giữ ảnh chính là ảnh đầu tiên của uniqueImages
+        if (mainImage.src !== uniqueImages[0]) {
+            mainImage.src = uniqueImages[0];
+        }
     } else {
         document.getElementById('mainImage').src = "https://via.placeholder.com/300"; // Nếu không có hình ảnh, hiển thị ảnh mặc định
     }
@@ -246,13 +250,22 @@ function increaseQuantity() {
 
     const availableQuantity = selectedProduct.soLuongTheoSize[selectedSize] || 0;
 
-    if (currentQuantity < availableQuantity) {
-        quantityInput.value = currentQuantity + 1;
+    // Kiểm tra số lượng tối đa là 20
+    if (currentQuantity < 20) {
+        if (currentQuantity < availableQuantity) {
+            quantityInput.value = currentQuantity + 1;
+        } else {
+            Swal.fire({
+                icon: "warning",
+                title: "Vượt quá số lượng tồn kho!",
+                text: `Chỉ còn lại ${availableQuantity} sản phẩm.`,
+                confirmButtonText: "OK"
+            });
+        }
     } else {
         Swal.fire({
             icon: "warning",
-            title: "Vượt quá số lượng tồn kho!",
-            text: `Chỉ còn lại ${availableQuantity} sản phẩm.`,
+            title: "Số lượng tối đa là 20!",
             confirmButtonText: "OK"
         });
     }

@@ -79,19 +79,25 @@
 </div>
 </body>
 <script>
-    // Hàm xóa giỏ hàng và thông tin liên quan khi người dùng quay lại trang chủ
-function clearCartAndGoHome() {
-    // Xóa giỏ hàng và thông tin liên quan sau khi thanh toán VNPay thành công
-    localStorage.removeItem("cart");                  // Xóa giỏ hàng trong localStorage
-    sessionStorage.removeItem("checkoutCart");        // Xóa giỏ hàng trong sessionStorage
-    sessionStorage.removeItem("discountCode");        // Xóa mã giảm giá trong sessionStorage
-    localStorage.removeItem("discountCode");          // Xóa mã giảm giá trong localStorage
-    sessionStorage.removeItem("discountValue");       // Xóa giá trị giảm giá trong sessionStorage
-    localStorage.removeItem("discountValue");         // Xóa giá trị giảm giá trong localStorage
+    function clearCartAndGoHome() {
+        // Xóa dữ liệu ngay lập tức
+        localStorage.removeItem("cart");
+        localStorage.removeItem("discountCode");
+        localStorage.removeItem("discountValue");
+        sessionStorage.removeItem("checkoutCart");
+        sessionStorage.removeItem("discountCode");
+        sessionStorage.removeItem("discountValue");
 
-    // Sau khi xóa dữ liệu, chuyển hướng về trang chủ
-    window.location.href = "/trang-chu";               // Chuyển về trang chủ
-  }
+        // Chuyển trang sau 3 giây
+        setTimeout(() => {
+            window.location.href = "/trang-chu";
+        }, 3000); // delay chuyển trang 3 giây
+    }
 
+    // Tự động thực thi sau 1 giây khi trang load
+    window.addEventListener("load", () => {
+        setTimeout(clearCartAndGoHome, 1000); // Xóa dữ liệu sau 1 giây
+    });
 </script>
+
 </html>

@@ -39,11 +39,36 @@ public class LichSuHoaDonApiController {
     @Autowired
     private PhuongThucThanhToanRepository phuongThucThanhToanRepository;
 
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
+
+    @Autowired
+    private PhieuGiamGiaRepository phieuGiamGiaRepository;
+
     private ResponseEntity<Map<String, Object>> response(String message, boolean success) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", message);
         response.put("success", success);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/xac-nhan")
+    public ResponseEntity<?> xacNhan(@RequestParam("hoaDonId") Integer hoaDonId, HttpSession session) throws Exception {
+        Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
+        if (optionalHoaDon.isEmpty()) {
+            return response("Hóa đơn không tồn tại!", false);
+        }
+
+        HoaDon hoaDon = optionalHoaDon.get();
+
+        // Xử lý trừ số lượng trước khi thay đổi trạng thái
+        ResponseEntity<?> truSoLuongResult = xuLyTruSanPhamVaPhieu(hoaDon);
+        if (truSoLuongResult != null) {
+            return truSoLuongResult; // nếu có lỗi -> trả về
+        }
+
+        // Sau khi trừ xong -> cập nhật trạng thái
+        return thayDoiTrangThaiHoaDon(hoaDonId, "Đã Xác Nhận", "Hoá đơn đã xác nhận", session);
     }
 
     private ResponseEntity<?> thayDoiTrangThaiHoaDon(Integer hoaDonId, String trangThai, String ghiChu, HttpSession session) throws Exception {
@@ -102,13 +127,39 @@ public class LichSuHoaDonApiController {
         lichSuHoaDonRepository.save(lichSu);
     }
 
-    @PostMapping("/xac-nhan")
-    public ResponseEntity<?> xacNhan(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
-        try {
-            return thayDoiTrangThaiHoaDon(hoaDonId,"Đã Xác Nhận" , "Hoá đơn đã xác nhận",session);
-        } catch (Exception e) {
-            return response("Lỗi khi xác nhận hóa đơn: " + e.getMessage(), false);
+    private ResponseEntity<?> xuLyTruSanPhamVaPhieu(HoaDon hoaDon) {
+        for (HoaDonChiTiet cthd : hoaDon.getHoaDonChiTiet()) {
+            SanPhamChiTiet sanPhamChiTiet = cthd.getSanPhamChiTiet();
+
+            if (sanPhamChiTiet.getSoLuong() < cthd.getSoLuong()) {
+                return response("Sản Phẩm Hết Hàng", false);
+            }
+
+            sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() - cthd.getSoLuong());
+            sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+            sanPhamChiTietRepository.save(sanPhamChiTiet);
+
+            SanPham sanPham = sanPhamChiTiet.getSanPham();
+            sanPham.setSoLuong(sanPham.getSoLuong() - cthd.getSoLuong());
+            sanPham.setTrangThai(sanPham.getSoLuong() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
+            sanPhamRepository.save(sanPham);
         }
+
+        if (hoaDon.getPhieuGiamGia() != null) {
+            PhieuGiamGia phieu = hoaDon.getPhieuGiamGia();
+
+            if (phieu.getSoLuotSuDung() <= 0) {
+                phieu.setTrangThai("Ngừng Hoạt Động");
+                phieuGiamGiaRepository.save(phieu);
+                return response("Phiếu giảm giá đã hết lượt sử dụng", false);
+            }
+
+            phieu.setSoLuotSuDung(phieu.getSoLuotSuDung() - 1);
+            phieu.setTrangThai(phieu.getSoLuotSuDung() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
+            phieuGiamGiaRepository.save(phieu);
+        }
+
+        return null; // không lỗi
     }
 
     @PostMapping("/van-chuyen")
@@ -227,14 +278,45 @@ public class LichSuHoaDonApiController {
 
 
     @PostMapping("/quay-lai")
-    public ResponseEntity<?> quayLai(@RequestParam("hoaDonId") Integer hoaDonId,HttpSession session) throws Exception {
+    public ResponseEntity<?> quayLai(@RequestParam("hoaDonId") Integer hoaDonId, HttpSession session) throws Exception {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(hoaDonId);
         if (optionalHoaDon.isPresent()) {
             HoaDon hoaDon = optionalHoaDon.get();
-            hoaDon.setLoaiGiaoDich("Trả Sau");
+
+            // ❌ Ngăn không cho quay lại nếu đã đúng trạng thái theo loại
+            if (("Online".equalsIgnoreCase(hoaDon.getLoaiHoaDon()) && "Chờ Xác Nhận".equalsIgnoreCase(hoaDon.getTrangThai())) ||
+                    ("Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon()) && "Đã Xác Nhận".equalsIgnoreCase(hoaDon.getTrangThai()))) {
+                return response("Không thể quay lại vì hóa đơn đã ở trạng thái hợp lệ!", false);
+            }
+
+            // ✅ Nếu là Online thì hoàn lại số lượng đã trừ
+            if ("Online".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
+                for (HoaDonChiTiet cthd : hoaDon.getHoaDonChiTiet()) {
+                    SanPhamChiTiet ctsp = cthd.getSanPhamChiTiet();
+                    ctsp.setSoLuong(ctsp.getSoLuong() + cthd.getSoLuong());
+
+                    ctsp.setTrangThai(ctsp.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
+                    sanPhamChiTietRepository.save(ctsp);
+
+                    SanPham sp = ctsp.getSanPham();
+                    sp.setSoLuong(sp.getSoLuong() + cthd.getSoLuong());
+                    sp.setTrangThai(sp.getSoLuong() > 0 ? "Đang Hoạt Động" : "Không Hoạt Động");
+                    sanPhamRepository.save(sp);
+                }
+            }
+
+            // ✅ Cập nhật trạng thái hóa đơn
+            hoaDon.setLoaiGiaoDich(hoaDon.getLoaiGiaoDich());
             hoaDon.setTrangThai("Chờ Xác Nhận");
             hoaDonRepository.save(hoaDon);
-            luuLichSuHoaDon(hoaDon, "Chờ Xác Nhận", "Quay lại trạng thái chờ xác nhận",session);
+
+            // ✅ Ghi lại lịch sử theo từng loại hóa đơn
+            String hanhDongLichSu = "Giao Hàng".equalsIgnoreCase(hoaDon.getLoaiHoaDon())
+                    ? "Đã Xác Nhận"
+                    : "Chờ Xác Nhận";
+
+            luuLichSuHoaDon(hoaDon, hanhDongLichSu, "Quay lại trạng thái " + hanhDongLichSu.toLowerCase(), session);
+
             return response("Quay lại trạng thái chờ xác nhận!", true);
         }
         return response("Hóa đơn không tồn tại!", false);
@@ -322,7 +404,8 @@ public class LichSuHoaDonApiController {
     }
 
     @PostMapping("/admin-huy")
-    public ResponseEntity<?> huy(@RequestParam("hoaDonId") Integer hoaDonId,
+    public ResponseEntity<?> huyAdmin(@RequestParam("hoaDonId") Integer hoaDonId,
+                                 @RequestParam("ghiChu") String ghiChu,
                                  HttpSession session) throws Exception {
         // Lấy danh sách chi tiết hóa đơn theo hoaDonId
         List<HoaDonChiTiet> danhSachChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
@@ -388,7 +471,7 @@ public class LichSuHoaDonApiController {
         hoaDonRepository.save(hoaDon);
 
         // Ghi lịch sử hóa đơn (giả sử bạn có phương thức này sẵn)
-        luuLichSuHoaDon(hoaDon, "Đã Hủy", "Nhân viên đã hủy", session);
+        luuLichSuHoaDon(hoaDon, "Đã Hủy", ghiChu, session);
 
         return response("Hóa đơn đã được hủy và cập nhật trạng thái thanh toán phù hợp.", true);
     }

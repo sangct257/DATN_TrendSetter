@@ -202,12 +202,17 @@
                             <div class="d-flex justify-content-between align-items-center mt-3">
                                 <div class="d-flex gap-2">
                                     <!-- Nút Xác Nhận -->
-                                    <button type="button" class="btn btn-warning"
+                                    <button
+                                            type="button"
+                                            class="btn btn-warning"
                                             th:if="${not #lists.isEmpty(listLichSuHoaDon) and listLichSuHoaDon[listLichSuHoaDon.size() - 1].hanhDong == 'Chờ Xác Nhận'}"
-                                            th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/xac-nhan'"
+                                            th:attr="data-hoaDonId=${hoaDon.id},
+           data-apiEndpoint='/api/v2/xac-nhan',
+           data-loaiHoaDon=${hoaDon.loaiHoaDon}"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Xác Nhận
                                     </button>
+
 
 
                                     <!-- Nút Vận Chuyển -->
@@ -231,7 +236,8 @@
                                     <!-- Nút Xác Nhận Thanh Toán (Chỉ xuất hiện khi Đang Giao Hàng) -->
                                     <button type="button" class="btn btn-warning"
                                             th:if="${not #lists.isEmpty(listLichSuHoaDon)
-        and listLichSuHoaDon[__${#lists.size(listLichSuHoaDon) - 1}__].hanhDong == 'Đang Giao Hàng'}"
+        and listLichSuHoaDon[__${#lists.size(listLichSuHoaDon) - 1}__].hanhDong == 'Đang Giao Hàng'
+        and hoaDon.tongTien != tongTienThanhToan}"
                                             th:data-hoaDonId="${hoaDon.id}"
                                             th:data-apiEndpoint="'/api/v2/xac-nhan-thanh-toan'"
                                             onclick="moModalXacNhan(this)"
@@ -252,22 +258,29 @@
 
                                     <!-- Nếu là NHÂN VIÊN -->
                                     <button type="button" class="btn btn-warning"
-                                            th:if="${session.userNhanVien != null and !listLichSuHoaDon.isEmpty() and
-               (listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
-                listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
-                listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đang Giao Hàng' or
-                listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển')}"
+                                            th:if="${session.userNhanVien != null
+        and hoaDon.trangThai != 'Đang Giao Hàng'
+        and hoaDon.trangThai != 'Đã Thanh Toán'
+        and hoaDon.trangThai != 'Đã Hoàn Thành'
+        and !listLichSuHoaDon.isEmpty()
+        and (
+            listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
+            listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
+            listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đang Giao Hàng' or
+            listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'
+        )}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/admin-huy'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Hủy
                                     </button>
 
 
+
                                     <button type="submit" class="btn btn-warning"
-                                            th:if="${!listLichSuHoaDon.isEmpty() and
-           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
-           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
-           listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển'}"
+                                            th:if="${hoaDon.trangThai != 'Chờ Xác Nhận' and !listLichSuHoaDon.isEmpty() and
+        (listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
+         listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
+         listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển')}"
                                             th:attr="data-hoaDonId=${hoaDon.id}, data-apiEndpoint='/api/v2/quay-lai'"
                                             onclick="moModalXacNhanChung(this, 'xacNhanChungModal')">
                                         Quay Lại
