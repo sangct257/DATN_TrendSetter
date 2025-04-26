@@ -184,7 +184,7 @@ public class DanhMucApiController {
             if (isUsed) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                         "success", false,
-                        "message", "Không thể xóa. Danh mục này đang được sử dụng bởi sản phẩm."
+                        "message", "Không thể xóa. Danh mục này đang được sử dụng."
                 ));
             }
 

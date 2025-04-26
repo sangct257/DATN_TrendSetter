@@ -616,6 +616,15 @@
     var cancelledPercentage = [[${cancelledPercentage}]];
     var failedPercentage = [[${failedPercentage}]];
 
+    var processingCount = [[${processingCount}]];
+    var waitingConfirmationCount = [[${waitingConfirmationCount}]];
+    var confirmedCount = [[${confirmedCount}]];
+    var waitingDeliveryCount = [[${waitingDeliveryCount}]];
+    var paidCount = [[${paidCount}]];
+    var finishedCount = [[${finishedCount}]];
+    var cancelledCount = [[${cancelledCount}]];
+    var failedCount = [[${failedCount}]];
+
     var ctx = document.getElementById('orderStatusChart').getContext('2d');
 
     var orderStatusChart = new Chart(ctx, {
@@ -649,7 +658,39 @@
                 tooltip: {
                     callbacks: {
                         label: function (tooltipItem) {
-                            return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            var label = tooltipItem.label;
+                            var percentage = tooltipItem.raw;
+                            var count = 0;
+
+                            // Tính số lượng cụ thể theo từng trạng thái
+                            switch (label) {
+                                case 'Đang Xử Lý':
+                                    count = processingCount;
+                                    break;
+                                case 'Chờ Xác Nhận':
+                                    count = waitingConfirmationCount;
+                                    break;
+                                case 'Đã Xác Nhận':
+                                    count = confirmedCount;
+                                    break;
+                                case 'Chờ Vận Chuyển':
+                                    count = waitingDeliveryCount;
+                                    break;
+                                case 'Đã Thanh Toán':
+                                    count = paidCount;
+                                    break;
+                                case 'Đã Hoàn Thành':
+                                    count = finishedCount;
+                                    break;
+                                case 'Đã Hủy':
+                                    count = cancelledCount;
+                                    break;
+                                case 'Hoàn Trả':
+                                    count = failedCount;
+                                    break;
+                            }
+
+                            return label + ': ' + percentage + '% (' + count.toFixed(0) + ' đơn)';
                         }
                     }
                 }

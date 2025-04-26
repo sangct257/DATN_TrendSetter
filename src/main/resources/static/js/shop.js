@@ -830,9 +830,35 @@ function addProductOrder(button) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sanPhamChiTietId, hoaDonId, soLuong })
     })
-        .then(response => response.json())
-        .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
-        .catch(handleError);
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(error => {
+                throw new Error(error.errorMessage || "Có lỗi xảy ra từ server!");
+            });
+        }
+        return response.json();
+    })
+    .then(response => {
+        handleResponse(response, hoaDonId, sanPhamChiTietId)
+        setTimeout(() => {
+            location.reload();
+        }, 1500); // Reload sau 3 giây
+    })
+    .catch(error => {
+        console.error("Lỗi khi gửi yêu cầu:", error);
+
+        Swal.fire({
+            title: "Lỗi!",
+            text: error.message || "Có lỗi xảy ra!",
+            icon: "error",
+            showConfirmButton: false,
+            timer: 1500
+        });
+
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    });
 }
 
 // API Cập Nhật Số Lượng
@@ -864,9 +890,28 @@ function updateQuantityOrder(input) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
-        .then(response => response.json())
-        .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
-        .catch(handleError);
+    .then(response => response.json())
+    .then(response => {
+        handleResponse(response, hoaDonId, sanPhamChiTietId);
+        setTimeout(() => {
+            location.reload();
+        }, 1500); // Reload sau 3 giây
+    })
+    .catch(error => {
+        console.error("Lỗi khi gửi yêu cầu:", error);
+
+        Swal.fire({
+            title: "Lỗi!",
+            text: error.message || "Có lỗi xảy ra!",
+            icon: "error",
+            showConfirmButton: false,
+            timer: 1500
+        });
+
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    });
 }
 
 // API Xóa Sản Phẩm
@@ -899,7 +944,21 @@ function deleteProductOrder(button) {
             })
                 .then(response => response.json())
                 .then(response => handleResponse(response, hoaDonId, sanPhamChiTietId))
-                .catch(handleError);
+                .catch(error => {
+                    console.error("Lỗi khi gửi yêu cầu:", error);
+
+                    Swal.fire({
+                        title: "Lỗi!",
+                        text: error.message || "Có lỗi xảy ra!",
+                        icon: "error",
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                });
         }
     });
 }
@@ -933,12 +992,35 @@ function handleResponse(response, hoaDonId, sanPhamChiTietId) {
 // Xử lý lỗi chung cho các API
 function handleError(error) {
     console.error("Lỗi khi gửi yêu cầu:", error);
+
+    sessionStorage.clear();
+    localStorage.removeItem('scrollPosition');
+    localStorage.removeItem('highlightProductId');
+    localStorage.removeItem('previousUrl');
+
+    // Chọn một trong hai cách dưới đây:
+
+    // Cách 1: Tự động tắt sau 1.5s
     Swal.fire({
         title: "Lỗi!",
         text: "Có lỗi xảy ra: " + error.message,
-        icon: "error"
-    });
+        icon: "error",
+        showConfirmButton: false,
+        timer: 1500
+    }).then(() => location.reload());
+
+    // Hoặc Cách 2: Người dùng ấn OK mới reload
+    /*
+    Swal.fire({
+        title: "Lỗi!",
+        text: "Có lỗi xảy ra: " + error.message,
+        icon: "error",
+        confirmButtonText: "OK"
+    }).then(() => location.reload());
+    */
 }
+
+
 
 // 🏷️ Chuyển hướng và lưu vị trí cuộn
 function redirectToAppropriatePage(trangThai, hoaDonId) {
@@ -952,12 +1034,15 @@ function redirectToAppropriatePage(trangThai, hoaDonId) {
         redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
     }
 
-    // ✅ Lưu vị trí cuộn trước khi chuyển trang
-    localStorage.setItem('scrollPosition', window.scrollY);
-    localStorage.setItem('highlightProductId', hoaDonId);
+    const currentUrl = window.location.pathname + window.location.search;
 
-    // Chuyển hướng
-    window.location.href = redirectUrl;
+    // Nếu đã ở đúng trang, chỉ cần reload thay vì redirect
+    if (currentUrl === redirectUrl) {
+        window.location.reload();
+    } else {
+        // Chuyển hướng sang URL mới
+        window.location.href = redirectUrl;
+    }
 }
 
 // 🎯 Cuộn lại và highlight sản phẩm

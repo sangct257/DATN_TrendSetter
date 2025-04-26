@@ -108,7 +108,7 @@ public class ShopService {
 
         // Gán phương thức thanh toán mặc định là "Tiền Mặt"
         if (!paymentMethods.isEmpty()) {
-            hoaDon.setPhuongThucThanhToan(null); // Chọn phương thức đầu tiên
+            hoaDon.setPhuongThucThanhToan(paymentMethods.get(0)); // Chọn phương thức đầu tiên
         }
 
         // Thiết lập thông tin hóa đơn
@@ -311,12 +311,20 @@ public class ShopService {
                         && "Đang Hoạt Động".equals(spct.getSanPham().getTrangThai()))
                 .collect(Collectors.toList());
 
+        // ✅ Lọc bỏ những sản phẩm chi tiết đã có trong hóa đơn chi tiết
+        Set<Integer> existingProductIds = hoaDonChiTiet.stream()
+                .map(hoaDonChiTietItem -> hoaDonChiTietItem.getSanPhamChiTiet().getId())
+                .collect(Collectors.toSet());
+
+        filteredSanPhamChiTiet = filteredSanPhamChiTiet.stream()
+                .filter(spct -> !existingProductIds.contains(spct.getId()))
+                .collect(Collectors.toList());
+
         // ✅ Trộn ngẫu nhiên danh sách sản phẩm đã lọc
         Collections.shuffle(filteredSanPhamChiTiet);
 
         // ✅ Đưa danh sách vào model
         model.addAttribute("sanPhamChiTiet", filteredSanPhamChiTiet);
-
 
         // Lấy danh sách khách hàng và phương thức thanh toán
         Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
@@ -551,6 +559,7 @@ public class ShopService {
 
         // Cập nhật phương thức thanh toán cho hóa đơn
         hoaDon.setPhuongThucThanhToan(phuongThucThanhToan);
+        hoaDon.setLoaiGiaoDich("Trả Trước");
         hoaDonRepository.save(hoaDon);
 
         // Trả về thông báo thành công và tên phương thức thanh toán đã được cập nhật

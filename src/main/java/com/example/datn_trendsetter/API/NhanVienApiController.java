@@ -151,8 +151,15 @@ public class NhanVienApiController {
             messages.put("email", "Email đã được sử dụng bởi nhân viên khác.");
         }
 
+        // Nếu có lỗi, trả về các thông báo
         if (!messages.isEmpty()) {
             return ResponseEntity.ok(Map.of("status", "warning", "messages", messages));
+        }
+
+        // Kiểm tra nếu nhân viên cố gắng thay đổi trạng thái của chính mình
+        if (nhanVienSession.getId().equals(id) && !trangThai.equals(nhanVienSession.getTrangThai())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "error", "message", "Không thể thay đổi trạng thái của chính mình."));
         }
 
         // Tạo object NhanVien để cập nhật

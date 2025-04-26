@@ -24,9 +24,8 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     // Phương thức tìm các sản phẩm có trạng thái "Còn Hàng"
     List<SanPhamChiTiet> findByTrangThai(String trangThai);
 
-    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.soLuong <= 10")
+    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.soLuong <= 10 ORDER BY spct.soLuong ASC")
     List<SanPhamChiTiet> findLowStockProducts();
-
 
     List<SanPhamChiTiet> findBySanPhamId(Integer sanPhamId);
 
@@ -95,4 +94,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
 
     boolean existsByMauSac(MauSac mauSac);
 
+    @Query("SELECT COALESCE(SUM(spct.soLuong), 0) FROM SanPhamChiTiet spct WHERE spct.sanPham.id = :sanPhamId")
+    int sumSoLuongBySanPhamId(@Param("sanPhamId") Integer sanPhamId);
 }

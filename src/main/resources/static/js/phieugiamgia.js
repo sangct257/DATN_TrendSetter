@@ -160,7 +160,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Content-Type": "application/json"
                     }
                 })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || "API call failed with status " + response.status);
+                            });
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.message) {
                             Swal.fire({
@@ -175,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             Swal.fire({
                                 icon: "error",
                                 title: "Lỗi",
-                                text: data.error,
+                                text: data.error || "Đã xảy ra lỗi không xác định!",
                                 confirmButtonText: "OK"
                             });
                         }
@@ -185,13 +192,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         Swal.fire({
                             icon: "error",
                             title: "Lỗi",
-                            text: "Đã xảy ra lỗi trong quá trình xử lý!",
+                            text: error.message || "Đã xảy ra lỗi trong quá trình xử lý!",
                             confirmButtonText: "OK"
                         });
                     });
             }
         });
     };
+
 
     // Đảm bảo rằng phần dưới có sự kiện DOMContentLoaded
     document.addEventListener("DOMContentLoaded", function() {
@@ -278,20 +286,23 @@ document.addEventListener("DOMContentLoaded", function () {
     // Cập nhật trạng thái tự động dựa vào ngày bắt đầu
     function updateTrangThai() {
         const ngayBatDauInput = document.getElementById("ngayBatDau");
+        const ngayKetThucInput = document.getElementById("ngayKetThuc");
         const trangThaiSelect = document.getElementById("trangThai");
 
-        if (!ngayBatDauInput.value) return;
+        if (!ngayBatDauInput.value || !ngayKetThucInput.value) return;
 
-        const ngayBatDau = new Date(ngayBatDauInput.value + "T00:00:00"); // Fix lỗi múi giờ
-        if (isNaN(ngayBatDau.getTime())) return; // Kiểm tra ngày hợp lệ
+        const ngayBatDau = new Date(ngayBatDauInput.value + "T00:00:00");
+        const ngayKetThuc = new Date(ngayKetThucInput.value + "T00:00:00");
+
+        if (isNaN(ngayBatDau.getTime()) || isNaN(ngayKetThuc.getTime())) return;
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Đặt giờ về 00:00 để so sánh chính xác
+        today.setHours(0, 0, 0, 0); // reset giờ
 
-        if (ngayBatDau.getTime() === today.getTime()) {
-            trangThaiSelect.value = "Đang Hoạt Động";
-        } else if (ngayBatDau.getTime() > today.getTime()) {
+        if (today < ngayBatDau) {
             trangThaiSelect.value = "Sắp Diễn Ra";
+        } else if (today >= ngayBatDau && today <= ngayKetThuc) {
+            trangThaiSelect.value = "Đang Hoạt Động";
         } else {
             trangThaiSelect.value = "Ngừng Hoạt Động";
         }
@@ -299,6 +310,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("ngayBatDau").addEventListener("change", function () {
         document.getElementById("ngayKetThuc").setAttribute("min", this.value);
+        updateTrangThai();
+    });
+
+    document.getElementById("ngayKetThuc").addEventListener("change", function () {
         updateTrangThai();
     });
 

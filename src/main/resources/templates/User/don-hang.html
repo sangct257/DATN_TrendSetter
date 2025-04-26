@@ -384,37 +384,45 @@
                     <!-- Tổng tiền thanh toán -->
                     <p><strong>Phi Ship:</strong>
                         <span th:text="${(hoaDon.phiShip != null && hoaDon.phiShip != 0) ?
-                    #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}">
-                        </span>
+            #numbers.formatInteger(hoaDon.phiShip, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span>
                     </p>
 
                     <p><strong>Giảm Giá:</strong>
                         <span th:text="${(hoaDon.phieuGiamGia != null && hoaDon.phieuGiamGia.giaTriGiam != 0) ?
-                    #numbers.formatInteger(hoaDon.phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}">
-                        </span>
+            #numbers.formatInteger(hoaDon.phieuGiamGia.giaTriGiam, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span>
                     </p>
 
                     <p><strong>Tiền Hàng:</strong>
                         <span th:text="${(tongThanhTien != null && tongThanhTien != 0) ?
-                    #numbers.formatInteger(tongThanhTien, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}">
-                        </span>
+            #numbers.formatInteger(tongThanhTien, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span>
                     </p>
+
                     <p><strong>Tổng Tiền Thanh Toán:</strong>
                         <span th:text="${(hoaDon.tongTien != null && hoaDon.tongTien != 0) ?
-                    #numbers.formatInteger(hoaDon.tongTien, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}">
-                        </span>
+            #numbers.formatInteger(hoaDon.tongTien, 3, 'COMMA') + ' VNĐ' : '0 VNĐ'}"></span>
                     </p>
 
                     <!-- Số tiền còn lại -->
                     <p><strong>Còn Lại:</strong>
                         <span th:text="${(soTienConLai != null && soTienConLai != 0) ?
-                    #numbers.formatInteger(soTienConLai, 3, 'COMMA') + ' VND' : '0 VND'}">
-                </span>
+            #numbers.formatInteger(soTienConLai, 3, 'COMMA') + ' VND' : '0 VND'}"></span>
                     </p>
+
+                    <!-- Phần hiển thị ghi chú hủy dưới "Còn Lại" -->
+                    <div th:if="${#lists.size(listLichSuHoaDon) > 0}">
+                        <th:block th:each="lichSu : ${listLichSuHoaDon}">
+                            <th:block th:if="${lichSu.hanhDong == 'Đã Hủy' and lichSu.ghiChu != null}">
+                                <div class="cancel-reason">
+                                    <p class="cancel-title"><strong>Lý Do Hủy:</strong>
+                                        <span th:text="${lichSu.ghiChu}" style="color: red; font-weight: bold;"></span> <!-- Nổi bật ghi chú -->
+                                    </p>
+                                </div>
+                            </th:block>
+                        </th:block>
+                    </div>
                 </div>
             </div>
         </div>
-
 
         <div class="card p-4">
             <h4>Sản Phẩm Đã Mua</h4>

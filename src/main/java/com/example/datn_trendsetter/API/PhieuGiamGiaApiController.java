@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -59,8 +60,9 @@ public class PhieuGiamGiaApiController {
         return ResponseEntity.ok().body(countMap);
     }
 
+    // API để update trạng thái phiếu giảm giá  (khi nhấn vào trạng thái)
     @PutMapping("/toggle-status/{id}")
-    public ResponseEntity<?> togglePhieuGiamGiaStatus(@PathVariable Integer id) {
+    public ResponseEntity<?> togglePhieuGiamGiaStatus(@PathVariable Integer id, HttpSession session) {
         Optional<PhieuGiamGia> phieuGiamGiaOpt = phieuGiamGiaRepository.findById(id);
 
         if (phieuGiamGiaOpt.isEmpty()) {
@@ -70,18 +72,39 @@ public class PhieuGiamGiaApiController {
 
         PhieuGiamGia pgg = phieuGiamGiaOpt.get();
 
-        // Kiểm tra số lượt sử dụng, nếu bằng 0 thì không cho phép cập nhật trạng thái
-        if (pgg.getSoLuotSuDung() == 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.singletonMap("error", "Phiếu giảm giá này đã hết lượt sử dụng, không thể cập nhật trạng thái!"));
+        // Kiểm tra vai trò ADMIN trong session
+        List<String> roles = (List<String>) session.getAttribute("rolesNhanVien");
+        if (roles == null || !roles.contains("ROLE_ADMIN")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Bạn không có quyền thay đổi trạng thái phiếu giảm giá!"));
         }
 
-        // Đổi trạng thái phiếu giảm giá
+        // Kiểm tra số lượt sử dụng của phiếu giảm giá
+        if (pgg.getSoLuotSuDung() == 0) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Phiếu giảm giá đã hết lượt sử dụng!"));
+        }
+
+        // Kiểm tra ngày bắt đầu và ngày kết thúc
+        LocalDate currentDate = LocalDate.now();
+        if (pgg.getNgayBatDau().isAfter(currentDate)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Phiếu giảm giá chưa bắt đầu!"));
+        }
+        if (pgg.getNgayKetThuc().isBefore(currentDate)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Phiếu giảm giá đã hết hạn!"));
+        }
+
+        // Nếu tất cả điều kiện hợp lệ, cho phép thay đổi trạng thái
         pgg.setTrangThai("Đang Hoạt Động".equalsIgnoreCase(pgg.getTrangThai()) ? "Ngừng Hoạt Động" : "Đang Hoạt Động");
+        PhieuGiamGiaScheduler.markAsEditedByAdmin(pgg.getId());
         phieuGiamGiaRepository.save(pgg);
 
-        return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công!"));
+        return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công (ADMIN)!"));
     }
+
+
 
 
     @PostMapping("/add/multiple")

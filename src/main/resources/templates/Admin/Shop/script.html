@@ -838,21 +838,15 @@
 
                     // Sau đó chuyển hướng tới URL mới
                     setTimeout(() => {
-                        let redirectUrl;
-                        if (response.trangThai === "Đang Xử Lý") {
-                            redirectUrl = `http://localhost:8080/admin/sell-counter?hoaDonId=${hoaDonId}`;
-                        } else if (response.trangThai === "Chờ Xác Nhận") {
-                            redirectUrl = `http://localhost:8080/admin/order-details?hoaDonId=${hoaDonId}`;
-                        } else {
-                            redirectUrl = `http://localhost:8080/admin/sell-counter?hoaDonId=${hoaDonId}`;
-                        }
-                        window.location.href = redirectUrl;
-                    }, 1500);
+                        location.reload(); // Reload lại trang thay vì chuyển URL
+                    }, 0);
                 } else {
                     Swal.fire({
                         title: "Lỗi!",
                         text: response.errorMessage || "Đặt hàng thất bại!",
                         icon: "error"
+                    }).then(() => {
+                        location.reload();
                     });
                 }
             }
@@ -863,6 +857,8 @@
                     title: "Lỗi!",
                     text: "Có lỗi xảy ra: " + error.message,
                     icon: "error"
+                }).then(() => {
+                    location.reload();
                 });
             }
         }
@@ -942,6 +938,8 @@
                         title: "Lỗi!",
                         text: response.errorMessage || "Cập nhật không thành công!",
                         icon: "error"
+                    }).then(() => {
+                        location.reload();
                     });
                 }
             }
@@ -952,24 +950,17 @@
                     title: "Lỗi!",
                     text: "Có lỗi xảy ra: " + error.message,
                     icon: "error"
+                }).then(() => {
+                    location.reload();
                 });
             }
 
             function closeModalAndReload(trangThai) {
                 setTimeout(() => {
-                    let redirectUrl;
-                    if (trangThai === "Đang Xử Lý") {
-                        redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
-                    } else if (trangThai === "Chờ Xác Nhận") {
-                        redirectUrl = `/admin/order-details?hoaDonId=${hoaDonId}`;
-                    } else {
-                        redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
-                    }
-
-                    // Sau khi chuyển hướng, trang sẽ giữ lại vị trí cuộn
-                    window.location.href = redirectUrl;
-                }, 1500);
+                    location.reload(); // Thay vì chuyển hướng theo URL
+                }, 0);
             }
+
         }
 
         // Đặt lại vị trí cuộn sau khi tải trang mới
@@ -1055,6 +1046,8 @@
                         title: "Lỗi!",
                         text: response.errorMessage || "Xóa không thành công!",
                         icon: "error"
+                    }).then(() => {
+                        location.reload();
                     });
                 }
             }
@@ -1065,23 +1058,15 @@
                     title: "Lỗi!",
                     text: "Có lỗi xảy ra: " + error.message,
                     icon: "error"
+                }).then(() => {
+                    location.reload();
                 });
             }
 
             function closeModalAndReload(trangThai) {
                 setTimeout(() => {
-                    let redirectUrl;
-                    if (trangThai === "Đang Xử Lý") {
-                        redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
-                    } else if (trangThai === "Chờ Xác Nhận") {
-                        redirectUrl = `/admin/order-details?hoaDonId=${hoaDonId}`;
-                    } else {
-                        redirectUrl = `/admin/sell-counter?hoaDonId=${hoaDonId}`;
-                    }
-
-                    // Sau khi chuyển hướng, trang sẽ giữ lại vị trí cuộn
-                    window.location.href = redirectUrl;
-                }, 1500);
+                    location.reload(); // Thay vì chuyển hướng theo URL
+                }, 0);
             }
         }
 
