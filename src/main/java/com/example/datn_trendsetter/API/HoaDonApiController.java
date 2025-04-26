@@ -66,10 +66,10 @@ public class HoaDonApiController {
 
             // Kiểm tra trạng thái và cập nhật
             if ("Tại Quầy".equals(hoaDon.getLoaiHoaDon())) {
-                hoaDon.setLoaiGiaoDich("Trả Sau");
+                hoaDon.setLoaiGiaoDich(hoaDon.getLoaiGiaoDich());
                 hoaDon.setLoaiHoaDon("Giao Hàng");
             } else if ("Giao Hàng".equals(hoaDon.getLoaiHoaDon())) {
-                hoaDon.setLoaiGiaoDich("Đã Thanh Toán");
+                hoaDon.setLoaiGiaoDich(hoaDon.getLoaiGiaoDich());
                 hoaDon.setLoaiHoaDon("Tại Quầy");
             }
 
@@ -154,27 +154,31 @@ public class HoaDonApiController {
 
         System.out.println("KhachHang ID từ session: " + khachHang.getId());
 
-        // Gọi phương thức tìm kiếm với JOIN FETCH
         List<HoaDon> danhSachHoaDon = hoaDonRepository.findByKhachHangIdWithKhachHang(khachHang.getId());
 
-        if (danhSachHoaDon.isEmpty()) {
+        // Bỏ hóa đơn có trạng thái "Chưa Thanh Toán"
+        List<HoaDon> hoaDonDaThanhToan = danhSachHoaDon.stream()
+                .filter(hd -> !"Chưa Thanh Toán".equalsIgnoreCase(hd.getTrangThai()))
+                .collect(Collectors.toList());
+
+        if (hoaDonDaThanhToan.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of(
                     "success", false,
-                    "message", "Không có hóa đơn nào"
+                    "message", "Không có hóa đơn nào (đã loại bỏ hóa đơn chưa thanh toán)"
             ));
         }
 
-        // Chuyển đổi danh sách HoaDon thành danh sách DTO
-        List<HoaDonDTO> hoaDonDTOList = danhSachHoaDon.stream().map(hoaDon -> new HoaDonDTO(
+        // Chuyển sang DTO
+        List<HoaDonDTO> hoaDonDTOList = hoaDonDaThanhToan.stream().map(hoaDon -> new HoaDonDTO(
                 hoaDon.getId(),
                 hoaDon.getMaHoaDon(),
                 hoaDon.getKhachHang().getId(),
-                hoaDon.getNguoiTao(),
+                hoaDon.getNguoiNhan(),
                 hoaDon.getLoaiHoaDon(),
                 hoaDon.getNgayTao(),
                 hoaDon.getTongTien(),
                 hoaDon.getTrangThai(),
-                hoaDon.getPhiShip(),
+                hoaDon.getNguoiTao(),
                 hoaDon.getPhuongThucThanhToan().getId()
         )).collect(Collectors.toList());
 
@@ -194,11 +198,25 @@ public class HoaDonApiController {
     @ResponseBody
     public ResponseEntity<?> kiemTraHoaDon(@RequestParam("maHoaDon") String maHoaDon) {
         HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(maHoaDon);
-        if (hoaDon != null) {
-            return ResponseEntity.ok().body("OK");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mã hóa đơn không tồn tại");
+
+        if (hoaDon == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Mã hóa đơn không tồn tại");
         }
+
+        // Chỉ cho phép tra cứu đơn hàng Online và đã thanh toán hoặc đang xử lý
+        if (!"Online".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Mã hóa đơn không tồn tại");
+        }
+
+        if ("Chưa Thanh Toán".equalsIgnoreCase(hoaDon.getTrangThai())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Mã hóa đơn không tồn tại");
+        }
+
+        return ResponseEntity.ok("OK");
     }
+
 
 }

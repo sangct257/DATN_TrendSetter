@@ -86,6 +86,14 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<Object[]> getInvoiceCountByDateMonthYear(
             @Param("trangThaiHoaDon") List<String> trangThaiHoaDon);
 
+    @Query("SELECT YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao), SUM(hd.tongTien) " +
+            "FROM HoaDon hd " +
+            "WHERE hd.trangThai IN :trangThaiHoaDon " +
+            "GROUP BY YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao) " +
+            "ORDER BY YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao)")
+    List<Object[]> getTotalRevenueByDateMonthYear(
+            @Param("trangThaiHoaDon") List<String> trangThaiHoaDon
+    );
 
     @Query("SELECT h FROM HoaDon h WHERE h.trangThai NOT IN :trangThaiList")
     List<HoaDon> findByTrangThaiNotInCustom(@Param("trangThaiList") List<String> trangThaiList, Sort sort);

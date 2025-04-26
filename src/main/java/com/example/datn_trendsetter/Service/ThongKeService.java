@@ -151,7 +151,7 @@ public class ThongKeService {
     public Map<String, Float> getTotalRevenueByDateMonthYear() {
         List<String> trangThaiHoaDon = List.of("Đã Hoàn Thành");
 
-        List<Object[]> results = lichSuThanhToanRepository
+        List<Object[]> results = hoaDonRepository
                 .getTotalRevenueByDateMonthYear(trangThaiHoaDon);
 
         Map<String, Float> totalRevenueByDateMonthYear = new LinkedHashMap<>();

@@ -75,24 +75,17 @@ function renderDonHangCards(data) {
             <strong>Mã Hóa Đơn:</strong> <span>${hoaDon.maHoaDon || 'N/A'}</span>
         </div>
         <div class="col-md-6">
-            <strong>Tên Khách Hàng:</strong> <span>${hoaDon.nguoiNhan || 'Khách lẻ'}</span>
+            <strong>Người Nhận</strong> <span>${hoaDon.nguoiNhan || 'Khách lẻ'}</span>
         </div>
     </div>
 
     <!-- Thông tin Tên Nhân Viên và Loại Hóa Đơn -->
     <div class="row mb-3">
         <div class="col-md-6">
-            <strong>Tên Nhân Viên:</strong> <span>${hoaDon.nguoiTao || 'N/A'}</span>
+             <strong>Ngày Tạo:</strong> <span>${hoaDon.ngayTao ? new Date(hoaDon.ngayTao).toLocaleString() : 'Không rõ ngày'}</span>
         </div>
         <div class="col-md-6">
             <strong>Loại Hóa Đơn:</strong> <span>${hoaDon.loaiHoaDon || 'Không có dữ liệu'}</span>
-        </div>
-    </div>
-
-    <!-- Thông tin Ngày Tạo và Tiền Giảm -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <strong>Ngày Tạo:</strong> <span>${hoaDon.ngayTao ? new Date(hoaDon.ngayTao).toLocaleString() : 'Không rõ ngày'}</span>
         </div>
     </div>
 
@@ -108,13 +101,16 @@ function renderDonHangCards(data) {
 
     <!-- Nút Chi Tiết - Căn giữa và có icon -->
 <div class="d-flex justify-content-center mt-3">
-    <!-- Nút hủy -->
-    ${cancelButton}
+    <!-- Nút hủy có thêm margin-end -->
+    ${cancelButton.replace('class="', 'class="me-2 ')}
 
+    <!-- Nút Chi Tiết -->
     <a href="/don-hang?maHoaDon=${hoaDon.maHoaDon}" class="btn btn-primary btn-sm fw-bold">
         <i class="bi bi-pencil-square me-2"></i> Chi Tiết
     </a>
 </div>
+
+
 
 <!-- Modal chọn lý do huỷ đơn -->
 <div class="modal fade" id="modalHuyDon" tabindex="-1" aria-labelledby="modalHuyDonLabel" aria-hidden="true">
@@ -122,7 +118,9 @@ function renderDonHangCards(data) {
     <div class="modal-content">
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title" id="modalHuyDonLabel">Xác nhận hủy đơn</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="hoaDonIdHuy">
@@ -141,7 +139,7 @@ function renderDonHangCards(data) {
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
         <button type="button" class="btn btn-danger" onclick="xacNhanHuy()">Xác nhận huỷ</button>
       </div>
     </div>
@@ -173,7 +171,7 @@ function moModalHuy(hoaDonId) {
     new bootstrap.Modal(document.getElementById('modalHuyDon')).show();
   }
 
-  function xacNhanHuy() {
+function xacNhanHuy() {
     const hoaDonId = document.getElementById('hoaDonIdHuy').value;
     const lyDo = document.getElementById('lyDoHuy').value;
     const ghiChuThem = document.getElementById('ghiChuKhac').value;
@@ -187,10 +185,29 @@ function moModalHuy(hoaDonId) {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        alert("Hủy đơn thành công!");
-        location.reload();
+        Swal.fire({
+          icon: 'success',
+          title: 'Hủy đơn thành công!',
+          text: 'Đơn hàng đã được cập nhật trạng thái.',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          location.reload();
+        });
       } else {
-        alert(data.errorMessage || "Có lỗi xảy ra!");
+        Swal.fire({
+          icon: 'error',
+          title: 'Hủy thất bại',
+          text: data.errorMessage || 'Có lỗi xảy ra!',
+          confirmButtonText: 'Thử lại'
+        });
       }
+    })
+    .catch(err => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi kết nối',
+        text: 'Không thể kết nối đến máy chủ!',
+        confirmButtonText: 'Đóng'
+      });
     });
-  }
+}

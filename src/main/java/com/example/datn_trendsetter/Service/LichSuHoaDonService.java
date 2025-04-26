@@ -51,7 +51,6 @@ public class LichSuHoaDonService {
             // Lấy danh sách chi tiết hóa đơn
             List<HoaDonChiTiet> hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
 
-
             // Lấy danh sách tất cả sản phẩm chi tiết có trạng thái "Còn Hàng"
             List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
@@ -61,12 +60,18 @@ public class LichSuHoaDonService {
             // Danh sách sản phẩm không trùng hình ảnh
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
+            // Tập hợp chứa các ID SanPhamChiTiet đã có trong danh sách hóa đơn chi tiết
+            Set<Integer> sanPhamChiTietDaTonTai = hoaDonChiTiet.stream()
+                    .map(hdct -> hdct.getSanPhamChiTiet().getId())
+                    .collect(Collectors.toSet());
+
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
-                // Kiểm tra thêm trạng thái của sản phẩm chính: chỉ lấy khi sản phẩm chính đang hoạt động
+                // Kiểm tra trạng thái sản phẩm chính: chỉ lấy khi sản phẩm chính đang hoạt động
                 if (sp.getSanPham() != null && "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai())) {
                     if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
                         String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
-                        if (!seenImages.contains(imageUrl)) {
+                        // Kiểm tra nếu hình ảnh chưa được gặp và sản phẩm chưa có trong hoaDonChiTiet
+                        if (!seenImages.contains(imageUrl) && !sanPhamChiTietDaTonTai.contains(sp.getId())) {
                             seenImages.add(imageUrl);
                             uniqueSanPhamChiTiet.add(sp);
                         }
@@ -94,12 +99,12 @@ public class LichSuHoaDonService {
 
             model.addAttribute("tongTienThanhToan", tongTienThanhToan);
 
+            // Lấy danh sách khách hàng và phương thức thanh toán
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
             listPhuongThucThanhToan = listPhuongThucThanhToan.stream()
                     .filter(p -> !"VNPAY".equals(p.getTenPhuongThuc()))
                     .collect(Collectors.toList());
-
 
             model.addAttribute("khachHangs", khachHangs);
             model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);
@@ -115,11 +120,12 @@ public class LichSuHoaDonService {
             } else {
                 model.addAttribute("listPhieuGiamGia", new ArrayList<>()); // Không có phiếu giảm giá nào
             }
+
             List<LichSuHoaDon> listLichSuHoaDon = lichSuHoaDonRepository.findByHoaDonId(hoaDonId);
             List<LichSuThanhToan> listLichSuThanhToan = lichSuThanhToanRepository.findByHoaDonId(hoaDonId);
-            // Lọc danh sách phiếu giảm giá dựa trên tổng tiền
+
             model.addAttribute("hoaDon", hoaDon);
-            model.addAttribute("listLichSuThanhToan",listLichSuThanhToan);
+            model.addAttribute("listLichSuThanhToan", listLichSuThanhToan);
             model.addAttribute("listLichSuHoaDon", listLichSuHoaDon);
             model.addAttribute("danhSachHoaDonChiTiet", hoaDonChiTiet);
             model.addAttribute("hoaDon", hoaDon);
