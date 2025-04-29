@@ -231,7 +231,7 @@
                                                 <small th:text="'Màu Sắc: ' + ${hoaDonChiTiet.sanPhamChiTiet.mauSac.tenMauSac}"></small><br>
                                                 <small th:text="'Size: ' + ${hoaDonChiTiet.sanPhamChiTiet.kichThuoc.tenKichThuoc}"></small><br>
                                                 <small class="text-danger font-weight-bold fs-5"
-                                                       th:text="${#numbers.formatInteger(hoaDonChiTiet.sanPhamChiTiet.gia, 3, 'COMMA') + ' VND'}"></small><br>
+                                                       th:text="${#numbers.formatInteger(hoaDonChiTiet.gia, 3, 'COMMA') + ' VND'}"></small><br>
                                                 <small class="text-muted"
                                                        th:text="'Tồn Kho: ' + ${hoaDonChiTiet.sanPhamChiTiet.soLuong}"></small>
                                             </div>

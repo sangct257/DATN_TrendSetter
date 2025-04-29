@@ -231,21 +231,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
             danhMucContainer.appendChild(tatCaElement); // Thêm vào danh sách danh mục
 
-            // Thêm các danh mục từ API
-            data.forEach(danhMuc => {
-                let danhMucElement = document.createElement("a");
-                danhMucElement.href = "/san-pham"; // Chuyển hướng tới trang sản phẩm
-                danhMucElement.className = "nav-item nav-link";
-                danhMucElement.textContent = danhMuc.tenDanhMuc;
+            // Lặp qua các danh mục và kiểm tra sản phẩm
+            Promise.all(data.map(danhMuc => {
+                return fetch(`http://localhost:8080/api/sanpham/filter?danh_muc=${encodeURIComponent(danhMuc.tenDanhMuc)}&page=0`)
+                    .then(response => response.json())
+                    .then(productData => {
+                        // Nếu có sản phẩm thì mới thêm vào danh sách
+                        if (productData.content && productData.content.length > 0) {
+                            let danhMucElement = document.createElement("a");
+                            danhMucElement.href = "/san-pham"; // Chuyển hướng tới trang sản phẩm
+                            danhMucElement.className = "nav-item nav-link";
+                            danhMucElement.textContent = danhMuc.tenDanhMuc;
 
-                danhMucElement.addEventListener("click", function (event) {
-                    event.preventDefault();
-                    sessionStorage.setItem("selectedCategory", danhMuc.tenDanhMuc);
-                    window.location.href = "/san-pham"; // Chuyển hướng để lọc theo danh mục
-                });
+                            danhMucElement.addEventListener("click", function (event) {
+                                event.preventDefault();
+                                sessionStorage.setItem("selectedCategory", danhMuc.tenDanhMuc);
+                                window.location.href = "/san-pham"; // Chuyển hướng để lọc theo danh mục
+                            });
 
-                danhMucContainer.appendChild(danhMucElement);
-            });
+                            danhMucContainer.appendChild(danhMucElement);
+                        }
+                    })
+                    .catch(error => console.error("Lỗi tải sản phẩm theo danh mục:", error));
+            }));
         })
         .catch(error => console.error("Lỗi tải danh mục:", error));
 });

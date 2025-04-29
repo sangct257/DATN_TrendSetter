@@ -529,45 +529,55 @@ function clearFieldErrors() {
 
 
     async function saveNhanVien() {
-        if (!validateForm()) {
+    if (!validateForm()) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: "Vui lòng kiểm tra lại các trường thông tin.",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return;
+    }
+
+    const btnSubmit = document.getElementById("btnSave");
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+    const formData = new FormData();
+    formData.append("hoTen", document.getElementById("hoTen").value);
+    formData.append("username", document.getElementById("username").value);
+    formData.append("password", document.getElementById("password").value);
+    formData.append("email", document.getElementById("email").value);
+    formData.append("diaChi", document.getElementById("diaChi").value);
+    formData.append("gioiTinh", document.getElementById("gioiTinh").value);
+    formData.append("ngaySinh", document.getElementById("ngaySinh").value);
+    formData.append("trangThai", document.getElementById("trangThai").value);
+
+    const fileInput = document.getElementById("hinhAnh");
+    if (fileInput.files.length > 0) {
+        formData.append("file", fileInput.files[0]);
+    }
+
+    try {
+        const response = await fetch("http://localhost:8080/api/nhan-vien/add", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json(); // lấy JSON trả về từ BE
+
+        if (data.status === "warning") {
+            // Nếu là warning, hiện tất cả lỗi server trả về
             Swal.fire({
                 title: "Lỗi!",
-                text: "Vui lòng kiểm tra lại các trường thông tin.",
+                html: Object.values(data.messages).join("<br>"),  // nối các message bằng thẻ xuống dòng
                 icon: "error",
                 confirmButtonText: "OK"
             });
             return;
         }
 
-        const btnSubmit = document.getElementById("btnSave");
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
-
-        const formData = new FormData();
-        formData.append("hoTen", document.getElementById("hoTen").value);
-        formData.append("username", document.getElementById("username").value);
-        formData.append("password", document.getElementById("password").value);
-        formData.append("email", document.getElementById("email").value);
-        formData.append("diaChi", document.getElementById("diaChi").value);
-        formData.append("gioiTinh", document.getElementById("gioiTinh").value);
-        formData.append("ngaySinh", document.getElementById("ngaySinh").value);
-        formData.append("trangThai", document.getElementById("trangThai").value);
-
-        const fileInput = document.getElementById("hinhAnh");
-        if (fileInput.files.length > 0) {
-            formData.append("file", fileInput.files[0]);
-        }
-
-        try {
-            const response = await fetch("http://localhost:8080/api/nhan-vien/add", {
-                method: "POST",
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error("Có lỗi xảy ra khi thêm nhân viên.");
-            }
-
+        if (data.status === "success") {
             await Swal.fire({
                 title: "Thành công!",
                 text: "Nhân viên đã được thêm thành công!",
@@ -576,22 +586,32 @@ function clearFieldErrors() {
             });
 
             setTimeout(() => location.reload(), 1500);
-
-        } catch (error) {
+        } else {
+            // Các status khác (ví dụ lỗi hệ thống)
             Swal.fire({
                 title: "Lỗi!",
-                text: error.message,
+                text: "Có lỗi xảy ra: " + (data.message || "Không xác định."),
                 icon: "error",
-                confirmButtonText: "Thử lại"
+                confirmButtonText: "OK"
             });
-
-        } finally {
-            setTimeout(() => {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `Thêm nhân viên`;
-            }, 2000);
         }
+
+    } catch (error) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: error.message,
+            icon: "error",
+            confirmButtonText: "Thử lại"
+        });
+
+    } finally {
+        setTimeout(() => {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `Thêm nhân viên`;
+        }, 2000);
     }
+}
+
 
     document.getElementById("togglePassword").addEventListener("click", function () {
         const passwordInput = document.getElementById("password");

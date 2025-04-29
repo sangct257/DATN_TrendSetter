@@ -25,14 +25,15 @@ public class HoaDonOnlineApIController {
     @PostMapping("/create")
     public ResponseEntity<?> createHoaDon(@RequestBody HoaDonDTO hoaDonDTO, HttpSession session) {
         try {
-            HoaDon hoaDon = hoaDonOnlineService.createHoaDon(hoaDonDTO,session);
-            return ResponseEntity.ok(hoaDon); // Trả về hóa đơn vừa tạo
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace(); // Ghi log lỗi chi tiết ra console
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); // Đảm bảo trả về JSON hợp lệ
+            HoaDon hoaDon = hoaDonOnlineService.createHoaDon(hoaDonDTO, session);
+            return ResponseEntity.ok(hoaDon);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); // 🔥 đảm bảo luôn trả về field "error"
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Map.of("error", "Lỗi server: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Lỗi server: " + e.getMessage()));
         }
     }
 

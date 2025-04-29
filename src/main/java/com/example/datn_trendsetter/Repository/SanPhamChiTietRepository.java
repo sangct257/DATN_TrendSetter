@@ -24,8 +24,17 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     // Phương thức tìm các sản phẩm có trạng thái "Còn Hàng"
     List<SanPhamChiTiet> findByTrangThai(String trangThai);
 
-    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.soLuong <= 10 ORDER BY spct.soLuong ASC")
-    List<SanPhamChiTiet> findLowStockProducts();
+    @Query("""
+    SELECT spct
+    FROM SanPhamChiTiet spct
+    WHERE spct.soLuong <= 10
+      AND spct.deleted = false
+      AND (:trangThai IS NULL OR spct.sanPham.trangThai = :trangThai)
+    ORDER BY spct.soLuong ASC
+    """)
+    List<SanPhamChiTiet> findLowStockProductsWithActiveParent(@Param("trangThai") String trangThai);
+
+
 
     List<SanPhamChiTiet> findBySanPhamId(Integer sanPhamId);
 

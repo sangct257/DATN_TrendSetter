@@ -5,8 +5,11 @@ import com.example.datn_trendsetter.Entity.DiaChi;
 import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.DiaChiRepository;
+import com.example.datn_trendsetter.Repository.KhachHangRepository;
+import com.example.datn_trendsetter.Repository.NhanVienRepository;
 import com.example.datn_trendsetter.Service.DiaChiService;
 import com.example.datn_trendsetter.Service.KhachHangService;
+import com.example.datn_trendsetter.Service.NhanVienService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -31,7 +34,12 @@ public class KhachHangApiController {
     private KhachHangService khachHangService;
     @Autowired
     private DiaChiService diaChiService;
-
+    @Autowired
+    private NhanVienService nhanVienService;
+    @Autowired
+    private KhachHangRepository khachHangRepository;
+    @Autowired
+    private NhanVienRepository nhanVienRepository;
 
     @GetMapping("/list")
     public List<KhachHangDTO> getAllKhachHangDTO() {
@@ -115,10 +123,10 @@ public class KhachHangApiController {
             warnings.put("soDienThoai", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.");
         }
 
-        LocalDate ngaySinh = null; // Khai báo bên ngoài
+        LocalDate ngaySinh = null;
 
         try {
-            ngaySinh = LocalDate.parse(ngaySinhStr); // parse thành công thì gán
+            ngaySinh = LocalDate.parse(ngaySinhStr);
             if (ngaySinh.isAfter(LocalDate.now())) {
                 warnings.put("ngaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
             }
@@ -126,17 +134,25 @@ public class KhachHangApiController {
             warnings.put("ngaySinh", "Ngày sinh không đúng định dạng (yyyy-MM-dd).");
         }
 
-
         if (trangThai == null || (!trangThai.equalsIgnoreCase("Đang Hoạt động") && !trangThai.equalsIgnoreCase("Không Hoạt Động"))) {
             warnings.put("trangThai", "Vui lòng chọn trạng thái hợp lệ.");
         }
 
-        // Nếu có cảnh báo, trả về kèm HTTP 200 và warning
+        // Check trùng Email
+        if (khachHangRepository.existsByEmail(email) || nhanVienRepository.existsByEmail(email)) {
+            warnings.put("email", "Email đã được sử dụng!");
+        }
+
+        // Check trùng Số điện thoại
+        if (khachHangRepository.existsBySoDienThoai(soDienThoai)) {
+            warnings.put("soDienThoai", "Số điện thoại đã được sử dụng!");
+        }
+
         if (!warnings.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "warning");
             response.put("messages", warnings);
-            return ResponseEntity.ok(response); // status 200, không phải lỗi nghiêm trọng
+            return ResponseEntity.ok(response);
         }
 
         try {
@@ -165,6 +181,7 @@ public class KhachHangApiController {
                     ));
         }
     }
+
 
 
     @GetMapping("/check-password")
@@ -206,6 +223,7 @@ public class KhachHangApiController {
         try {
             Map<String, String> messages = new HashMap<>();
 
+            // Validate đầu vào
             if (hoTen == null || hoTen.trim().isEmpty()) {
                 messages.put("hoTen", "Họ tên không được để trống.");
             }
@@ -214,7 +232,7 @@ public class KhachHangApiController {
                 messages.put("username", "Tên đăng nhập không được để trống.");
             }
 
-            if (password != null && password.length() < 6) {
+            if (password != null && password.length() > 0 && password.length() < 6) {
                 messages.put("password", "Mật khẩu phải có ít nhất 6 ký tự.");
             }
 
@@ -240,10 +258,12 @@ public class KhachHangApiController {
                 messages.put("trangThai", "Trạng thái phải là 'Đang Hoạt động' hoặc 'Ngừng Hoạt Động'.");
             }
 
+            // Nếu có lỗi => trả về
             if (!messages.isEmpty()) {
                 return ResponseEntity.ok(Map.of("status", "warning", "messages", messages));
             }
 
+            // Mapping dữ liệu vào DTO
             KhachHang updatedKhachHang = new KhachHang();
             updatedKhachHang.setHoTen(hoTen.trim());
             updatedKhachHang.setUsername(username.trim());
@@ -254,7 +274,7 @@ public class KhachHangApiController {
             updatedKhachHang.setTrangThai(trangThai.trim());
 
             if (password != null && !password.trim().isEmpty()) {
-                updatedKhachHang.setPassword(password.trim()); // Gợi ý mã hóa tại service
+                updatedKhachHang.setPassword(password.trim()); // Mã hóa tại service
             }
 
             KhachHang saved = khachHangService.updateKhachHang(id, updatedKhachHang, file);

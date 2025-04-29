@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 
@@ -30,6 +31,9 @@ public class LichSuThanhToan {
     @ManyToOne
     @JoinColumn(name = "id_phuong_thuc_thanh_toan", referencedColumnName = "id")
     private PhuongThucThanhToan phuongThucThanhToan;
+
+    @Column(name = "nguoi_xac_nhan",columnDefinition = "NVARCHAR(255)")
+    private String nguoiXacNhan;
 
     @Column(name = "so_tien_thanh_toan")
     private Float soTienThanhToan;

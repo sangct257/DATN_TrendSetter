@@ -37,11 +37,15 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         String loaiTaiKhoan = request.getLoaiTaiKhoan();
 
-        if ("NHANVIEN".equalsIgnoreCase(loaiTaiKhoan)) {
-            if (nhanVienRepository.findByEmail(request.getEmail()).isPresent()) {
-                throw new RuntimeException("Email đã tồn tại trong hệ thống nhân viên");
-            }
+        // 🔒 Check email tồn tại ở cả hai bảng
+        boolean emailTonTaiTrongNhanVien = nhanVienRepository.findByEmail(request.getEmail()).isPresent();
+        boolean emailTonTaiTrongKhachHang = khachHangRepository.findByEmail(request.getEmail()).isPresent();
 
+        if (emailTonTaiTrongNhanVien || emailTonTaiTrongKhachHang) {
+            throw new RuntimeException("Email đã tồn tại trong hệ thống");
+        }
+
+        if ("NHANVIEN".equalsIgnoreCase(loaiTaiKhoan)) {
             NhanVien nhanVien = new NhanVien();
             nhanVien.setEmail(request.getEmail());
             nhanVien.setPassword(encodedPassword);
@@ -66,7 +70,7 @@ public class AuthService {
                     : "/admin/sell-counter";
 
             return new AuthResponse(
-                    savedNhanVien, // Truyền entity vào AuthResponse
+                    savedNhanVien,
                     userDetails,
                     redirectUrl,
                     roles,
@@ -74,22 +78,17 @@ public class AuthService {
                     null
             );
         } else {
-            if (khachHangRepository.findByEmail(request.getEmail()).isPresent()) {
-                throw new RuntimeException("Email đã tồn tại trong hệ thống khách hàng");
-            }
-
             KhachHang khachHang = new KhachHang();
             khachHang.setEmail(request.getEmail());
             khachHang.setPassword(encodedPassword);
             khachHang.setHoTen(request.getHoTen());
             khachHang.setTrangThai("Đang Hoạt Động");
-            KhachHang savedKhachHang = khachHangRepository.save(khachHang);
 
+            KhachHang savedKhachHang = khachHangRepository.save(khachHang);
             UserDetails userDetails = UserDetails.fromKhachHang(savedKhachHang);
             List<String> roles = Collections.singletonList("ROLE_KHACHHANG");
 
-            // Lưu cả entity và userDetails vào session
-            session.setAttribute("user", savedKhachHang); // Lưu entity thay vì UserDetails
+            session.setAttribute("user", savedKhachHang);
             session.setAttribute("userDetails", userDetails);
             session.setAttribute("roles", roles);
 
@@ -103,6 +102,7 @@ public class AuthService {
             );
         }
     }
+
     public AuthResponse login(LoginRequest request, HttpSession session, HttpServletResponse response) {
         Optional<NhanVien> optionalNhanVien = nhanVienRepository.findByEmail(request.getEmail());
         if (optionalNhanVien.isPresent()) {

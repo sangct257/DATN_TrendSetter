@@ -414,7 +414,11 @@ async function placeOrder() {
         let result = await response.json();
 
         if (!response.ok) {
-            Swal.fire({ icon: "error", title: "Lỗi tạo hóa đơn!", text: result.message || "Không thể tạo hóa đơn." });
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi tạo hóa đơn!",
+                text: result.error || "Không thể tạo hóa đơn." // 🔥 Lấy field "error" trả về từ server
+            });
             return;
         }
 

@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class HoaDonChiTietService {
@@ -75,14 +76,34 @@ public class HoaDonChiTietService {
         // Kiểm tra xem sản phẩm đã có trong hóa đơn chưa
         HoaDonChiTiet hoaDonChiTiet = chiTietTrungSP.isEmpty() ? new HoaDonChiTiet() : chiTietTrungSP.get();
 
-        int soLuongMoi = hoaDonChiTiet.getId() != null ? hoaDonChiTiet.getSoLuong() + soLuong : soLuong;
-        hoaDonChiTiet.setHoaDon(hoaDon);
-        hoaDonChiTiet.setSanPhamChiTiet(sanPhamChiTiet);
-        hoaDonChiTiet.setSoLuong(soLuongMoi);
-        hoaDonChiTiet.setGia(sanPhamChiTiet.getGia().floatValue());
-        hoaDonChiTiet.setThanhTien(soLuongMoi * hoaDonChiTiet.getGia());
+        if (hoaDonChiTiet.getId() != null) {
+            // Nếu sản phẩm đã có trong hóa đơn nhưng có giá khác, tạo bản ghi mới
+            if (!sanPhamChiTiet.getGia().equals(hoaDonChiTiet.getGia())) {
+                HoaDonChiTiet hoaDonChiTietMoi = new HoaDonChiTiet();
+                hoaDonChiTietMoi.setHoaDon(hoaDon);
+                hoaDonChiTietMoi.setSanPhamChiTiet(sanPhamChiTiet);
+                hoaDonChiTietMoi.setSoLuong(soLuong);
+                hoaDonChiTietMoi.setGia(sanPhamChiTiet.getGia().floatValue());
+                hoaDonChiTietMoi.setThanhTien(soLuong * hoaDonChiTietMoi.getGia());
 
-        hoaDonChiTietRepository.save(hoaDonChiTiet);
+                hoaDonChiTietRepository.save(hoaDonChiTietMoi);
+            } else {
+                // Nếu giá không thay đổi, chỉ cập nhật số lượng
+                int soLuongMoi = hoaDonChiTiet.getSoLuong() + soLuong;
+                hoaDonChiTiet.setSoLuong(soLuongMoi);
+                hoaDonChiTiet.setThanhTien(soLuongMoi * hoaDonChiTiet.getGia());
+                hoaDonChiTietRepository.save(hoaDonChiTiet);
+            }
+        } else {
+            // Nếu sản phẩm chưa có trong hóa đơn, tạo mới
+            hoaDonChiTiet.setHoaDon(hoaDon);
+            hoaDonChiTiet.setSanPhamChiTiet(sanPhamChiTiet);
+            hoaDonChiTiet.setSoLuong(soLuong);
+            hoaDonChiTiet.setGia(sanPhamChiTiet.getGia().floatValue());
+            hoaDonChiTiet.setThanhTien(soLuong * hoaDonChiTiet.getGia());
+
+            hoaDonChiTietRepository.save(hoaDonChiTiet);
+        }
 
         // ✅ Nếu hóa đơn KHÔNG ở trạng thái "Chờ Xác Nhận" thì mới cập nhật tồn kho
         if (!"Chờ Xác Nhận".equalsIgnoreCase(hoaDon.getTrangThai())) {
@@ -147,6 +168,12 @@ public class HoaDonChiTietService {
             return ResponseEntity.badRequest().body(response);
         }
 
+        // Kiểm tra xem giá sản phẩm chi tiết có khớp với giá của hóa đơn chi tiết không
+        if (!sanPhamChiTiet.getGia().equals(hoaDonChiTiet.getGia())) {
+            response.put("errorMessage", "Giá sản phẩm không khớp với giá của hóa đơn chi tiết!");
+            return ResponseEntity.badRequest().body(response);
+        }
+
         int soLuongTonKho = sanPhamChiTiet.getSoLuong();
         int soLuongCu = hoaDonChiTiet.getSoLuong();
         int chenhLechSoLuong = soLuong - soLuongCu;
@@ -157,24 +184,25 @@ public class HoaDonChiTietService {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Kiểm tra số lượng tồn kho ngay cả khi hóa đơn ở trạng thái "Chờ Xác Nhận"
+        // Tính tổng số lượng của sản phẩm chi tiết tương tự trong hóa đơn
+        int soLuongCuaTatCaChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId).stream()
+                .filter(ct -> ct.getSanPhamChiTiet().equals(sanPhamChiTiet)) // Lọc những chi tiết hóa đơn có sản phẩm chi tiết giống nhau
+                .mapToInt(HoaDonChiTiet::getSoLuong)
+                .sum();
+
+        // Kiểm tra số lượng tồn kho khi hóa đơn ở trạng thái "Chờ Xác Nhận"
         if ("Chờ Xác Nhận".equalsIgnoreCase(hoaDon.getTrangThai())) {
-            if (soLuong > soLuongTonKho) {
-                response.put("errorMessage", "Số lượng cập nhật vượt quá số lượng tồn kho!");
+            if (soLuongCuaTatCaChiTiet + chenhLechSoLuong > soLuongTonKho) {
+                response.put("errorMessage", "Tổng số lượng sản phẩm chi tiết trong hóa đơn vượt quá số lượng tồn kho!");
                 return ResponseEntity.badRequest().body(response);
             }
         } else {
             // Đã trừ tồn kho => chỉ được tăng nếu còn hàng
-            if (soLuong > (soLuongTonKho + soLuongCu)) {
+            if (soLuongCuaTatCaChiTiet + chenhLechSoLuong > (soLuongTonKho + soLuongCu)) {
                 response.put("errorMessage", "Số lượng cập nhật vượt quá tồn kho thực tế!");
                 return ResponseEntity.badRequest().body(response);
             }
         }
-
-        double tongSoTienDaThanhToan = lichSuThanhToanRepository.findByHoaDonId(hoaDonId)
-                .stream()
-                .mapToDouble(LichSuThanhToan::getSoTienThanhToan)
-                .sum();
 
         // Tính tổng tiền sau khi cập nhật số lượng sản phẩm
         float tongTienSanPhamSauCapNhat = (float) hoaDonChiTietRepository.findByHoaDonId(hoaDonId).stream()
@@ -197,11 +225,15 @@ public class HoaDonChiTietService {
         float tongTienFinal = Math.max(0, tongTienSauCapNhat - giaTriGiam);
 
         // Kiểm tra nếu tổng tiền đã thanh toán lớn hơn hoặc bằng tổng tiền mới
+        double tongSoTienDaThanhToan = lichSuThanhToanRepository.findByHoaDonId(hoaDonId)
+                .stream()
+                .mapToDouble(LichSuThanhToan::getSoTienThanhToan)
+                .sum();
+
         if (tongSoTienDaThanhToan > tongTienFinal) {
             response.put("errorMessage", "Không thể cập nhật vì tổng tiền đã thanh toán lớn hơn tổng tiền mới!");
             return ResponseEntity.badRequest().body(response);
         }
-
 
         hoaDonChiTiet.setSoLuong(soLuong);
         hoaDonChiTiet.setThanhTien(sanPhamChiTiet.getGia().floatValue() * soLuong);
@@ -312,7 +344,15 @@ public class HoaDonChiTietService {
         return hoaDonChiTietRepository.getTongSanPhamBanTrongThang("Đã Hoàn Thành");
     }
     public List<Object[]> getTotalSoldByProductInMonthWithImages() {
-        return hoaDonChiTietRepository.getTotalSoldByProductInMonth("Đã Hoàn Thành"); // Trả về danh sách sản phẩm
+        List<Object[]> rawList = hoaDonChiTietRepository.getTotalSoldByProductInMonth("Đã Hoàn Thành");
+        return rawList.stream()
+                .filter(item -> {
+                    String trangThaiSanPham = (String) item[5]; // Cột 5 mới đúng sp.trangThai
+                    return "Đang Hoạt Động".equals(trangThaiSanPham);
+                })
+                .collect(Collectors.toList());
     }
+
+
 
 }

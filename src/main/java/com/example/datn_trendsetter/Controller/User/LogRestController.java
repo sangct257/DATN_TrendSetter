@@ -5,7 +5,9 @@ import com.example.datn_trendsetter.DTO.LoginRequest;
 import com.example.datn_trendsetter.DTO.RegisterRequest;
 import com.example.datn_trendsetter.DTO.ResetPasswordRequest;
 import com.example.datn_trendsetter.Entity.KhachHang;
+import com.example.datn_trendsetter.Entity.ResetToken;
 import com.example.datn_trendsetter.Repository.KhachHangRepository;
+import com.example.datn_trendsetter.Repository.ResetTokenRepository;
 import com.example.datn_trendsetter.Service.AuthService;
 import com.example.datn_trendsetter.Service.EmailService;
 import com.example.datn_trendsetter.Service.KhachHangService;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -34,6 +37,9 @@ public class LogRestController {
     private KhachHangService khachHangService;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ResetTokenRepository resetTokenRepository;
 
     @Autowired
     public LogRestController(UserService userService, EmailService emailService,
@@ -56,7 +62,7 @@ public class LogRestController {
 
         String token = userService.generateResetToken(email);
         // Sửa thành link trỏ đến trang reset password của frontend
-        String resetLink = "http://localhost:3000/reset-password?token=" + token;
+        String resetLink = "http://localhost:8080/reset-password?token=" + token;
         emailService.sendResetPasswordEmail(email, resetLink);
 
         return ResponseEntity.ok().body(
@@ -67,27 +73,42 @@ public class LogRestController {
     @CrossOrigin(origins = "http://localhost:8080")
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        // 1. Kiểm tra token và mật khẩu mới
         if (request.getToken() == null || request.getNewPassword() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Token và mật khẩu mới là bắt buộc"));
         }
 
-        // 2. Tìm khách hàng bằng token (chỉ so sánh token, không bao gồm URL)
-        Optional<KhachHang> khachHangOpt = khachHangRepository.findByResetToken(request.getToken());
-        if (!khachHangOpt.isPresent()) {
-            // Log để debug
-            System.err.println("Token không tồn tại trong DB: " + request.getToken());
+        String token = request.getToken();
+        if (token.contains("token=")) {
+            token = token.substring(token.indexOf("token=") + 6);
+        }
+
+        Optional<ResetToken> resetTokenOpt = resetTokenRepository.findByToken(token);
+        if (!resetTokenOpt.isPresent()) {
+            System.err.println("Token không tồn tại trong DB: " + token);
             return ResponseEntity.status(400).body(Map.of("error", "Token không hợp lệ hoặc đã hết hạn"));
         }
 
-        // 3. Cập nhật mật khẩu và xóa token
-        KhachHang khachHang = khachHangOpt.get();
+        ResetToken resetToken = resetTokenOpt.get();
+
+        // Kiểm tra thời gian hết hạn token
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(400).body(Map.of("error", "Token đã hết hạn"));
+        }
+
+        // Lấy KhachHang từ resetToken
+        KhachHang khachHang = resetToken.getUser();
+
+        // Cập nhật mật khẩu
         khachHang.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        khachHang.setResetToken(null); // Xóa token sau khi dùng
         khachHangRepository.save(khachHang);
 
+        // Xóa token sau khi dùng
+        resetTokenRepository.delete(resetToken);
+
         return ResponseEntity.ok().body(Map.of("message", "Đặt lại mật khẩu thành công"));
+
     }
+
 
 
     @PostMapping("/khachhang/register")

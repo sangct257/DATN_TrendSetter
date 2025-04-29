@@ -114,6 +114,7 @@ public class ShopService {
         // Thiết lập thông tin hóa đơn
         hoaDon.setLoaiHoaDon("Tại Quầy");
         hoaDon.setTrangThai("Đang Xử Lý");
+        hoaDon.setLoaiGiaoDich("Trả Trước");
         hoaDon.setNgayTao(LocalDateTime.now());
 
         // Lưu hóa đơn
@@ -311,19 +312,7 @@ public class ShopService {
                         && "Đang Hoạt Động".equals(spct.getSanPham().getTrangThai()))
                 .collect(Collectors.toList());
 
-        // ✅ Lọc bỏ những sản phẩm chi tiết đã có trong hóa đơn chi tiết
-        Set<Integer> existingProductIds = hoaDonChiTiet.stream()
-                .map(hoaDonChiTietItem -> hoaDonChiTietItem.getSanPhamChiTiet().getId())
-                .collect(Collectors.toSet());
-
-        filteredSanPhamChiTiet = filteredSanPhamChiTiet.stream()
-                .filter(spct -> !existingProductIds.contains(spct.getId()))
-                .collect(Collectors.toList());
-
-        // ✅ Trộn ngẫu nhiên danh sách sản phẩm đã lọc
-        Collections.shuffle(filteredSanPhamChiTiet);
-
-        // ✅ Đưa danh sách vào model
+        // ✅ Đưa danh sách vào model mà không cần lọc bỏ sản phẩm đã có trong hóa đơn
         model.addAttribute("sanPhamChiTiet", filteredSanPhamChiTiet);
 
         // Lấy danh sách khách hàng và phương thức thanh toán
