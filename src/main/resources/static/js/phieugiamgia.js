@@ -320,46 +320,67 @@ document.addEventListener("DOMContentLoaded", function () {
     setMinDate();
 
     // Hàm validate form
-    function validateForm() {
-        let isValid = true;
-        document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
-        document.querySelectorAll(".invalid-feedback").forEach(el => el.remove());
+function validateForm() {
+    let isValid = true;
+    document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+    document.querySelectorAll(".invalid-feedback").forEach(el => el.remove());
 
-        function showError(inputId, message) {
-            const inputElement = document.getElementById(inputId);
-            inputElement.classList.add("is-invalid");
-            inputElement.insertAdjacentHTML("afterend", `<div class="invalid-feedback">${message}</div>`);
-            isValid = false;
-        }
-
-        const fields = [
-            { id: "maPGG", message: "Vui lòng nhập mã phiếu giảm giá." },
-            { id: "tenPGG", message: "Vui lòng nhập tên phiếu giảm giá." },
-            { id: "giaTriGiam", message: "Vui lòng nhập giá trị giảm hợp lệ.", validate: v => !isNaN(v) && v > 0 },
-            { id: "soLuong", message: "Vui lòng nhập số lượng hợp lệ.", validate: v => !isNaN(v) && v > 0 },
-            { id: "ngayBatDau", message: "Vui lòng chọn ngày bắt đầu." },
-            { id: "ngayKetThuc", message: "Vui lòng chọn ngày kết thúc." }
-        ];
-
-        fields.forEach(({ id, message, validate }) => {
-            const value = document.getElementById(id).value.trim();
-            if (!value || (validate && !validate(value))) {
-                showError(id, message);
-            }
-        });
-
-        const ngayBatDau = new Date(document.getElementById("ngayBatDau").value);
-        const ngayKetThuc = new Date(document.getElementById("ngayKetThuc").value);
-        if (ngayBatDau > ngayKetThuc) {
-            showError("ngayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu.");
-        }
-        const giaTriGiam = parseFloat(document.getElementById("giaTriGiam").value);
-        const dieuKien = parseFloat(document.getElementById("dieuKien").value) || 0;
-        if (giaTriGiam > dieuKien) {
-            showError("giaTriGiam", "Giá trị giảm không được lớn hơn giá trị tối thiểu.");
-        }
-        return isValid;
+    function showError(inputId, message) {
+        const inputElement = document.getElementById(inputId);
+        inputElement.classList.add("is-invalid");
+        inputElement.insertAdjacentHTML("afterend", `<div class="invalid-feedback">${message}</div>`);
+        isValid = false;
     }
+
+    // Các trường dữ liệu cần kiểm tra
+    const fields = [
+        { id: "maPGG", message: "Vui lòng nhập mã phiếu giảm giá." },
+        { id: "tenPGG", message: "Vui lòng nhập tên phiếu giảm giá." },
+        { id: "giaTriGiam", message: "Vui lòng nhập giá trị giảm hợp lệ (VND).", validate: v => !isNaN(v) && v > 0 },
+        { id: "soLuong", message: "Vui lòng nhập số lượng hợp lệ.", validate: v => !isNaN(v) && v > 0 },
+        { id: "ngayBatDau", message: "Vui lòng chọn ngày bắt đầu." },
+        { id: "ngayKetThuc", message: "Vui lòng chọn ngày kết thúc." }
+    ];
+
+    // Kiểm tra các trường dữ liệu
+    fields.forEach(({ id, message, validate }) => {
+        const value = document.getElementById(id).value.trim();
+        if (!value || (validate && !validate(value))) {
+            showError(id, message);
+        }
+    });
+
+    // Kiểm tra ngày bắt đầu và kết thúc
+    const ngayBatDau = new Date(document.getElementById("ngayBatDau").value);
+    const ngayKetThuc = new Date(document.getElementById("ngayKetThuc").value);
+    if (ngayBatDau > ngayKetThuc) {
+        showError("ngayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu.");
+    }
+
+    // Kiểm tra giá trị giảm
+   const giaTriGiam = parseFloat(document.getElementById("giaTriGiam").value);
+   const dieuKien = parseFloat(document.getElementById("dieuKien").value) || 0;
+
+   // Kiểm tra giá trị giảm phải lớn hơn 1000 VND
+   if (giaTriGiam <= 1000) {
+       showError("giaTriGiam", "Giá trị giảm phải lớn hơn 1.000 VND.");
+   }
+
+   // Kiểm tra giá trị giảm phải bằng một nửa giá trị điều kiện nếu điều kiện lớn hơn 10.000 VND
+   else if (dieuKien > 10000 && giaTriGiam !== dieuKien / 2) {
+       showError("giaTriGiam", `Giá trị giảm phải đúng bằng một nửa của điều kiện áp dụng (Giảm phải là ${dieuKien / 2} VND).`);
+   }
+
+   // Kiểm tra giá trị điều kiện phải lớn hơn 1000 VND và không nhỏ hơn giá trị giảm
+   if (dieuKien <= 1000) {
+       showError("dieuKien", "Giá trị điều kiện phải lớn hơn hoặc bằng 1.000 VND.");
+   } else if (dieuKien < giaTriGiam) {
+       showError("dieuKien", "Giá trị điều kiện phải lớn hơn giá trị giảm.");
+   }
+    return isValid;
+}
+
+
 
     // Ngăn dropdown tự mở khi nhấn vào trang thái
     document.getElementById("trangThai").addEventListener("mousedown", function (event) {

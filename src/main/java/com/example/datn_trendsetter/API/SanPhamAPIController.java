@@ -90,13 +90,35 @@ public class SanPhamAPIController {
     // API để xóa mềm sản phẩm (khi nhấn vào trạng thái)
     @PutMapping("/toggle-status/{id}")
     public ResponseEntity<?> toggleSanPhamStatus(@PathVariable Integer id) {
-        boolean updated = sanPhamService.toggleSanPhamStatus(id);
-        if (updated) {
-            return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công!"));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "Sản phẩm không tồn tại!"));
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            String result = sanPhamService.toggleSanPhamStatus(id);
+
+            switch (result) {
+                case "SUCCESS":
+                    response.put("status", "success");
+                    response.put("message", "Cập nhật trạng thái sản phẩm thành công!");
+                    return ResponseEntity.ok(response);
+
+                case "OUT_OF_STOCK":
+                    response.put("status", "warning");
+                    response.put("message", "Sản phẩm hết hàng!");
+                    return ResponseEntity.badRequest().body(response);
+
+                case "NOT_FOUND":
+                default:
+                    response.put("status", "error");
+                    response.put("message", "Không tìm thấy sản phẩm!");
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     @PostMapping("/add")
     @ResponseBody
@@ -296,7 +318,7 @@ public class SanPhamAPIController {
         boolean existsInHoaDonChiTiet = hoaDonChiTietRepository.existsBySanPhamChiTiet(sanPhamChiTiet);
         if (existsInHoaDonChiTiet) {
             response.put("status", "warning");
-            response.put("message", "Không thể xóa sản phẩm đang được thống kê!");
+            response.put("message", "Sản phẩm đã bán!");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
@@ -308,6 +330,7 @@ public class SanPhamAPIController {
         response.put("message", "Xóa sản phẩm chi tiết thành công!");
         return ResponseEntity.ok(response);
     }
+
 
 
     private void capNhatSoLuongTonKhoSanPham(SanPham sanPham) {
@@ -353,14 +376,23 @@ public class SanPhamAPIController {
         HinhAnh hinhAnh = optionalHinhAnh.get();
         String publicId = hinhAnh.getPublicId();
 
+        // Kiểm tra xem sản phẩm có liên kết với hóa đơn chi tiết hay không
+        boolean existsInHoaDonChiTiet = hoaDonChiTietRepository.existsBySanPhamChiTiet(hinhAnh.getSanPhamChiTiet());
+        if (existsInHoaDonChiTiet) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không thể xóa hình ảnh vì sản phẩm đang được bán!");
+        }
+
+        // Xóa ảnh trên Cloudinary
         boolean xoaThanhCong = hinhAnhService.xoaAnhTrenCloudinary(publicId);
         if (!xoaThanhCong) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi xóa ảnh trên Cloudinary!");
         }
 
+        // Xóa ảnh khỏi cơ sở dữ liệu
         hinhAnhRepository.delete(hinhAnh);
         return ResponseEntity.ok("Xóa hình ảnh thành công!");
     }
+
 
 
 

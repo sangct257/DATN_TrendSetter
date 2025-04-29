@@ -132,36 +132,46 @@ public class LichSuHoaDonApiController {
     private ResponseEntity<?> xuLyTruSanPhamVaPhieu(HoaDon hoaDon) {
         for (HoaDonChiTiet cthd : hoaDon.getHoaDonChiTiet()) {
             SanPhamChiTiet sanPhamChiTiet = cthd.getSanPhamChiTiet();
+            SanPham sanPham = sanPhamChiTiet.getSanPham();
 
-            if (sanPhamChiTiet.getSoLuong() < cthd.getSoLuong()) {
-                return response("Sản Phẩm Hết Hàng", false);
+            // ✅ Check trạng thái sản phẩm tổng
+            if (!"Đang Hoạt Động".equalsIgnoreCase(sanPham.getTrangThai())) {
+                return response("Sản phẩm '" + sanPham.getTenSanPham() + "' hiện đang dừng kinh doanh.", false);
             }
 
+            // ✅ Check tồn kho chi tiết
+            if (sanPhamChiTiet.getSoLuong() < cthd.getSoLuong()) {
+                return response("Sản phẩm '" + sanPham.getTenSanPham() + "' đã hết hàng.", false);
+            }
+
+            // ✅ Trừ tồn kho chi tiết sản phẩm
             sanPhamChiTiet.setSoLuong(sanPhamChiTiet.getSoLuong() - cthd.getSoLuong());
             sanPhamChiTiet.setTrangThai(sanPhamChiTiet.getSoLuong() > 0 ? "Còn Hàng" : "Hết Hàng");
             sanPhamChiTietRepository.save(sanPhamChiTiet);
 
-            SanPham sanPham = sanPhamChiTiet.getSanPham();
+            // ✅ Trừ tồn kho sản phẩm tổng
             sanPham.setSoLuong(sanPham.getSoLuong() - cthd.getSoLuong());
             sanPham.setTrangThai(sanPham.getSoLuong() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
             sanPhamRepository.save(sanPham);
         }
 
-        if (hoaDon.getPhieuGiamGia() != null) {
-            PhieuGiamGia phieu = hoaDon.getPhieuGiamGia();
+        // Nếu muốn xử lý phiếu giảm giá thì mở comment dưới ra
+//    if (hoaDon.getPhieuGiamGia() != null) {
+//        PhieuGiamGia phieu = hoaDon.getPhieuGiamGia();
+//        if (!"Đang Hoạt Động".equalsIgnoreCase(phieu.getTrangThai())) {
+//            throw new IllegalStateException("Phiếu giảm giá đã hết hạn.");
+//        }
+//        if (phieu.getSoLuotSuDung() <= 0) {
+//            phieu.setTrangThai("Ngừng Hoạt Động");
+//            phieuGiamGiaRepository.save(phieu);
+//            return response("Phiếu giảm giá đã hết lượt sử dụng", false);
+//        }
+//        phieu.setSoLuotSuDung(phieu.getSoLuotSuDung() - 1);
+//        phieu.setTrangThai(phieu.getSoLuotSuDung() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
+//        phieuGiamGiaRepository.save(phieu);
+//    }
 
-            if (phieu.getSoLuotSuDung() <= 0) {
-                phieu.setTrangThai("Ngừng Hoạt Động");
-                phieuGiamGiaRepository.save(phieu);
-                return response("Phiếu giảm giá đã hết lượt sử dụng", false);
-            }
-
-            phieu.setSoLuotSuDung(phieu.getSoLuotSuDung() - 1);
-            phieu.setTrangThai(phieu.getSoLuotSuDung() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
-            phieuGiamGiaRepository.save(phieu);
-        }
-
-        return null; // không lỗi
+        return null; // OK, không lỗi
     }
 
     @PostMapping("/van-chuyen")
@@ -315,6 +325,16 @@ public class LichSuHoaDonApiController {
                 }
             }
 
+            // ✅ Nếu hóa đơn trạng thái "Chờ Xác Nhận" thì hoàn lại phiếu giảm giá
+            if ("Chờ Xác Nhận".equalsIgnoreCase(hoaDon.getTrangThai()) && hoaDon.getPhieuGiamGia() != null) {
+                PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+                phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
+
+                phieuGiamGia.setTrangThai(phieuGiamGia.getSoLuotSuDung()>0 ? "Đang Hoạt Động":"Ngừng Hoạt Động");
+
+                phieuGiamGiaRepository.save(phieuGiamGia);
+            }
+
             // ✅ Cập nhật trạng thái hóa đơn
             hoaDon.setLoaiGiaoDich(hoaDon.getLoaiGiaoDich());
             hoaDon.setTrangThai("Chờ Xác Nhận");
@@ -411,6 +431,15 @@ public class LichSuHoaDonApiController {
 
         // Cập nhật hóa đơn
         hoaDon.setTrangThai("Đã Hủy");
+
+        // ✅ Hoàn lại phiếu giảm giá nếu đơn "Chờ Xác Nhận" và có phiếu giảm giá
+        if ("Chờ Xác Nhận".equalsIgnoreCase(hoaDon.getTrangThai()) && hoaDon.getPhieuGiamGia() != null) {
+            PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+            phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
+            phieuGiamGia.setTrangThai(phieuGiamGia.getSoLuotSuDung() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
+            phieuGiamGiaRepository.save(phieuGiamGia);
+        }
+
         if (nhanVienSession != null) {
             hoaDon.setNhanVien(nhanVienSession);
             hoaDon.setNguoiTao(nhanVienSession.getHoTen());
@@ -482,22 +511,29 @@ public class LichSuHoaDonApiController {
             }
 
             // Nếu là phương thức trả trước (id 2 hoặc 3), cập nhật lịch sử thanh toán
-            Integer ptttId = hoaDon.getPhuongThucThanhToan().getId();
-            if (ptttId == 2 || ptttId == 3) {
-                List<LichSuThanhToan> lichSuThanhToans = lichSuThanhToanRepository.findByHoaDonId(hoaDonId);
-                for (LichSuThanhToan lstt : lichSuThanhToans) {
-                    lstt.setTrangThai("Chưa Hoàn Tiền");
-                    lstt.setGhiChu("Đơn hàng bị hủy - chờ hoàn tiền");
-                    if (nhanVienSession != null) {
-                        lstt.setNhanVien(nhanVienSession);
-                    }
-                    lichSuThanhToanRepository.save(lstt);
+        }
+        Integer ptttId = hoaDon.getPhuongThucThanhToan().getId();
+        if (ptttId == 2 || ptttId == 3) {
+            List<LichSuThanhToan> lichSuThanhToans = lichSuThanhToanRepository.findByHoaDonId(hoaDonId);
+            for (LichSuThanhToan lstt : lichSuThanhToans) {
+                lstt.setTrangThai("Chưa Hoàn Tiền");
+                lstt.setGhiChu("Đơn hàng bị hủy - chờ hoàn tiền");
+                if (nhanVienSession != null) {
+                    lstt.setNhanVien(nhanVienSession);
                 }
+                lichSuThanhToanRepository.save(lstt);
             }
         }
-
         // Cập nhật trạng thái hóa đơn
         hoaDon.setTrangThai("Đã Hủy");
+
+        // ✅ Hoàn lại phiếu giảm giá nếu đơn "Chờ Xác Nhận" và có phiếu giảm giá
+        if ("Chờ Xác Nhận".equalsIgnoreCase(trangThaiHoaDon) && hoaDon.getPhieuGiamGia() != null) {
+            PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
+            phieuGiamGia.setSoLuotSuDung(phieuGiamGia.getSoLuotSuDung() + 1);
+            phieuGiamGia.setTrangThai(phieuGiamGia.getSoLuotSuDung() > 0 ? "Đang Hoạt Động" : "Ngừng Hoạt Động");
+            phieuGiamGiaRepository.save(phieuGiamGia);
+        }
 
         if (nhanVienSession != null) {
             hoaDon.setNhanVien(nhanVienSession);

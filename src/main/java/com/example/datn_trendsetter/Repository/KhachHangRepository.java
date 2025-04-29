@@ -26,4 +26,6 @@ public interface KhachHangRepository extends JpaRepository<KhachHang,Integer> {
     boolean existsByEmail(String email);
     @Query("SELECT k FROM KhachHang k WHERE k.resetToken = :token")
     Optional<KhachHang> findByResetToken(@Param("token") String token);
+
+    boolean existsBySoDienThoai(String soDienThoai);
 }

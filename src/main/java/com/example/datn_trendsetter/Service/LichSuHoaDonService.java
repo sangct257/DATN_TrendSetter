@@ -60,18 +60,13 @@ public class LichSuHoaDonService {
             // Danh sách sản phẩm không trùng hình ảnh
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
-            // Tập hợp chứa các ID SanPhamChiTiet đã có trong danh sách hóa đơn chi tiết
-            Set<Integer> sanPhamChiTietDaTonTai = hoaDonChiTiet.stream()
-                    .map(hdct -> hdct.getSanPhamChiTiet().getId())
-                    .collect(Collectors.toSet());
-
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
                 // Kiểm tra trạng thái sản phẩm chính: chỉ lấy khi sản phẩm chính đang hoạt động
                 if (sp.getSanPham() != null && "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai())) {
                     if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
                         String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
-                        // Kiểm tra nếu hình ảnh chưa được gặp và sản phẩm chưa có trong hoaDonChiTiet
-                        if (!seenImages.contains(imageUrl) && !sanPhamChiTietDaTonTai.contains(sp.getId())) {
+                        // Kiểm tra nếu hình ảnh chưa được gặp
+                        if (!seenImages.contains(imageUrl)) {
                             seenImages.add(imageUrl);
                             uniqueSanPhamChiTiet.add(sp);
                         }
@@ -131,6 +126,7 @@ public class LichSuHoaDonService {
             model.addAttribute("hoaDon", hoaDon);
         }
     }
+
 
 
     public void getHoaDon(String maHoaDon, Model model) {

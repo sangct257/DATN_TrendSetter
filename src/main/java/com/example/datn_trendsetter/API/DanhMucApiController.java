@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/danh-muc")
@@ -248,6 +249,9 @@ public class DanhMucApiController {
 
     @GetMapping
     public ResponseEntity<List<DanhMuc>> getAllDanhMuc() {
-        return ResponseEntity.ok(danhMucRepository.findAll());
+        List<DanhMuc> danhMucs = danhMucRepository.findAll();
+        return ResponseEntity.ok(danhMucs);
     }
+
+
 }

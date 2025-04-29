@@ -29,7 +29,8 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
 
     @Query("SELECT ha.urlHinhAnh, " +
             "CONCAT(sp.tenSanPham, ' - ', ms.tenMauSac, ' - ', kt.tenKichThuoc) AS productInfo, " +
-            "spct.gia, spct.soLuong, SUM(hdct.soLuong) AS totalQuantity " +
+            "spct.gia, spct.soLuong, SUM(hdct.soLuong) AS totalQuantity, " +
+            "sp.trangThai " +    // <<< THÊM dòng này
             "FROM HoaDonChiTiet hdct " +
             "JOIN SanPhamChiTiet spct ON hdct.sanPhamChiTiet.id = spct.id " +
             "JOIN SanPham sp ON spct.sanPham.id = sp.id " +
@@ -39,10 +40,11 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             "JOIN HoaDon hd ON hdct.hoaDon.id = hd.id " +
             "WHERE MONTH(hd.ngayTao) = MONTH(CURRENT_DATE) " +
             "  AND YEAR(hd.ngayTao) = YEAR(CURRENT_DATE) " +
-            "AND hd.trangThai = :trangThai " +
-            "GROUP BY ha.urlHinhAnh, sp.tenSanPham, ms.tenMauSac, kt.tenKichThuoc, spct.gia, spct.soLuong " +
-            "ORDER BY totalQuantity DESC ")
-    List<Object[]> getTotalSoldByProductInMonth(@Param("trangThai")  String trangThai);
+            "  AND hd.trangThai = :trangThai " +
+            "GROUP BY ha.urlHinhAnh, sp.tenSanPham, ms.tenMauSac, kt.tenKichThuoc, spct.gia, spct.soLuong, sp.trangThai " + // <<< Thêm sp.trangThai vào GROUP BY
+            "ORDER BY totalQuantity DESC")
+    List<Object[]> getTotalSoldByProductInMonth(@Param("trangThai") String trangThai);
+
 
 
     @Query("SELECT YEAR(h.hoaDon.ngayTao), MONTH(h.hoaDon.ngayTao), DAY(h.hoaDon.ngayTao), SUM(h.soLuong) " +

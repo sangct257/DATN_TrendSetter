@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>EShopper - Bootstrap Shop Template</title>
+    <title>TrendSetter</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
@@ -365,11 +365,9 @@
                     <p><strong>Số Điện Thoại:</strong> <span th:text="${hoaDon.soDienThoai}"></span></p>
 
                     <!-- Địa chỉ cụ thể -->
-                    <p><strong>Địa Chỉ:</strong>
-                        <span th:text="${hoaDon.diaChiCuThe +
-                        ' - ' +hoaDon.phuong +
-                        ' - ' +hoaDon.huyen +
-                        ' - ' +hoaDon.thanhPho}"></span>
+                    <p th:if="${hoaDon.loaiHoaDon != 'Tại Quầy'}">
+                        <strong>Địa Chỉ:</strong>
+                        <span th:text="${hoaDon.diaChiCuThe + ' - ' + hoaDon.phuong + ' - ' + hoaDon.huyen + ' - ' + hoaDon.thanhPho}"></span>
                     </p>
 
                     <!-- Thời gian nhận dự kiến -->
@@ -445,7 +443,7 @@
                         + ' ( ' + hoaDonChiTiet.sanPhamChiTiet.mauSac.tenMauSac
                         + ' - ' + hoaDonChiTiet.sanPhamChiTiet.kichThuoc.tenKichThuoc
                         + ' ) '}"></td>
-                        <td th:text="${hoaDonChiTiet.soLuong}"></td>
+                        <td th:text="${hoaDonChiTiet.soLuong} + ' x ' + ${#numbers.formatDecimal(hoaDonChiTiet.gia, 0, 'COMMA', 0, 'POINT') + ' VND'}"></td>
                         <td th:text="${#numbers.formatInteger(hoaDonChiTiet.thanhTien, 3, 'COMMA') + ' VND'}"></td>
                     </tr>
                 </th:block>

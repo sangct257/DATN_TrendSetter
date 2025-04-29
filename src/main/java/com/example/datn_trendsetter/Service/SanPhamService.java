@@ -204,10 +204,15 @@ public class SanPhamService {
     }
 
 
-    public boolean toggleSanPhamStatus(Integer id) {
+    public String toggleSanPhamStatus(Integer id) {
         Optional<SanPham> optionalSanPham = sanPhamRepository.findById(id);
         if (optionalSanPham.isPresent()) {
             SanPham sanPham = optionalSanPham.get();
+
+            // Kiểm tra số lượng sản phẩm
+            if (sanPham.getSoLuong() == 0) {
+                return "OUT_OF_STOCK"; // Trả về warning
+            }
 
             // Thay đổi trạng thái và đánh dấu xóa mềm
             if ("Đang Hoạt Động".equals(sanPham.getTrangThai())) {
@@ -219,9 +224,9 @@ public class SanPhamService {
             }
 
             sanPhamRepository.save(sanPham);
-            return true;
+            return "SUCCESS";
         }
-        return false;
+        return "NOT_FOUND"; // Không tìm thấy sản phẩm
     }
 
     public Page<SanPhamViewDTO> getSanPhams(int page, int size) {
@@ -234,6 +239,8 @@ public class SanPhamService {
         Pageable pageable = PageRequest.of(page, size);
         return sanPhamChiTietRepository.searchSanPham(keyword, pageable);
     }
+
+
     public Page<SanPhamViewDTO> filterSanPhams(String danhMuc, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return sanPhamChiTietRepository.filterSanPham(danhMuc, pageable);

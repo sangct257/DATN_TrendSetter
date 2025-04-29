@@ -314,7 +314,8 @@
                                     </div>
 
                                     <button type="submit" class="btn btn-warning"
-                                            th:if="${hoaDon.trangThai != 'Chờ Xác Nhận' and !listLichSuHoaDon.isEmpty() and
+                                            th:if="${hoaDon.trangThai != 'Chờ Xác Nhận' and
+                                            !listLichSuHoaDon.isEmpty() and
         (listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Xác Nhận' or
          listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Đã Xác Nhận' or
          listLichSuHoaDon[__${listLichSuHoaDon.size() - 1}__].hanhDong == 'Chờ Vận Chuyển')}"
@@ -501,7 +502,7 @@
                                                 </td>
                                                 <td th:text="${lichSuThanhToan.phuongThucThanhToan?.tenPhuongThuc ?: 'N/A'}"></td>
                                                 <td th:text="${lichSuThanhToan.ghiChu}" class="text-truncate"></td>
-                                                <td th:text="${lichSuThanhToan.nhanVien?.hoTen ?: 'Chưa xác nhận'}"></td>
+                                                <td th:text="${lichSuThanhToan.nhanVien?.hoTen != null ? lichSuThanhToan.nhanVien.hoTen : lichSuThanhToan.nguoiXacNhan}"></td>
                                             </tr>
                                         </th:block>
                                         </tbody>
@@ -520,7 +521,9 @@
                                 </div>
                                 <div class="col-md-6 text-end">
                                     <button class="btn btn-white border-dark"
-                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or hoaDon.loaiGiaoDich == 'Đã Thanh Toán'}"
+                                            th:attr="disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or
+                            ((hoaDon.loaiHoaDon != 'Online' or hoaDon.loaiGiaoDich != 'Trả Trước') and
+                             hoaDon.loaiGiaoDich != 'Trả Sau')} ? 'disabled' : null"
                                             data-bs-toggle="modal"
                                             data-bs-target="#changeOrderModal">
                                         Thay Đổi
@@ -700,7 +703,9 @@
                                     <div class="col-md-6 text-end">
                                         <button class="btn btn-light"
                                                 th:attr="
-            disabled=${hoaDon.trangThai != 'Chờ Xác Nhận'} ? 'disabled' : null,
+            disabled=${hoaDon.trangThai != 'Chờ Xác Nhận' or
+                            ((hoaDon.loaiHoaDon != 'Online' or hoaDon.loaiGiaoDich != 'Trả Trước') and
+                             hoaDon.loaiGiaoDich != 'Trả Sau')} ? 'disabled' : null,
             data-bs-toggle=${hoaDon.trangThai == 'Chờ Xác Nhận' and
                             (hoaDon.loaiGiaoDich == 'Trả Sau' or
                             (hoaDon.loaiHoaDon == 'Online' and hoaDon.loaiGiaoDich == 'Trả Trước'))} ? 'modal' : null,
@@ -765,8 +770,6 @@
                                                                                     th:text="${sanPhamChiTiet.mauSac.tenMauSac}"></span>
                                                                                 -
                                                                                 <span th:text="${sanPhamChiTiet.kichThuoc.tenKichThuoc}"></span>)<br>
-                                                                                <small class="text-muted"
-                                                                                       th:text="'Tồn Kho: ' + ${sanPhamChiTiet.soLuong}"></small>
                                                                             </td>
                                                                             <td class="text-center">
                                                                                 <input type="number" name="soLuong"
@@ -812,7 +815,7 @@
                                         <th style="width: 10%">Màu Sắc</th>
                                         <th style="width: 10%">Số Lượng</th>
                                         <th style="width: 15%">Tổng Tiền</th>
-                                        <th style="width: 10%">Trạng Thái</th>
+<!--                                        <th style="width: 10%">Trạng Thái</th>-->
                                         <th style="width: 10%">Chức Năng</th>
                                     </tr>
                                     </thead>
@@ -828,13 +831,7 @@
                                                     th:text="${hoaDonChiTiet.sanPhamChiTiet.sanPham.tenSanPham}"></strong><br>
                                                 <small th:text="'Size: ' + ${hoaDonChiTiet.sanPhamChiTiet.kichThuoc.tenKichThuoc}"></small><br>
                                                 <small class="text-danger font-weight-bold fs-5"
-                                                       th:text="${#numbers.formatInteger(hoaDonChiTiet.sanPhamChiTiet.gia, 3, 'COMMA') + ' VND'}"></small><br>
-                                                <!-- Trừ số lượng đã chọn từ tồn kho -->
-                                                <small th:text="'Tồn Kho: ' +
-    (${hoaDon.trangThai == 'Chờ Xác Nhận' ? hoaDonChiTiet.sanPhamChiTiet.soLuong - hoaDonChiTiet.soLuong : hoaDonChiTiet.sanPhamChiTiet.soLuong} < 0
-        ? 'Không đủ hàng'
-        : ${hoaDon.trangThai == 'Chờ Xác Nhận' ? hoaDonChiTiet.sanPhamChiTiet.soLuong - hoaDonChiTiet.soLuong : hoaDonChiTiet.sanPhamChiTiet.soLuong})">
-                                                </small>
+                                                       th:text="${#numbers.formatInteger(hoaDonChiTiet.gia, 3, 'COMMA') + ' VND'}"></small><br>
                                             </td>
                                             <td class="text-center">
                                                 <small th:text="${hoaDonChiTiet.sanPhamChiTiet.mauSac.tenMauSac}"></small><br>
@@ -854,10 +851,10 @@
                                                 <small class="text-danger font-weight-bold fs-5"
                                                        th:text="${#numbers.formatInteger(hoaDonChiTiet.thanhTien, 3, 'COMMA') + ' VND'}"></small><br>
                                             </td>
-                                            <td class="text-center">
-                                                <span th:class="${hoaDonChiTiet.sanPhamChiTiet.trangThai == 'Đang Hoạt Động' ? 'badge bg-danger' : 'badge bg-success'}"
-                                                      th:text="${hoaDonChiTiet.sanPhamChiTiet.trangThai}"></span>
-                                            </td>
+<!--                                            <td class="text-center">-->
+<!--                                                <span th:class="${hoaDonChiTiet.sanPhamChiTiet.trangThai == 'Đang Hoạt Động' ? 'badge bg-danger' : 'badge bg-success'}"-->
+<!--                                                      th:text="${hoaDonChiTiet.sanPhamChiTiet.trangThai}"></span>-->
+<!--                                            </td>-->
                                             <td class="text-center">
                                                 <!-- Chỉ hiển thị nút xóa nếu số lượng sản phẩm chi tiết > 1 -->
                                                 <div th:if="${#lists.size(danhSachHoaDonChiTiet) > 1}">

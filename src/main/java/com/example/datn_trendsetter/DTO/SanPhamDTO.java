@@ -1,9 +1,6 @@
 package com.example.datn_trendsetter.DTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,4 +26,5 @@ public class SanPhamDTO {
     private String nguoiSua;
     private Boolean deleted;
     private List<SanPhamChiTietDTO> sanPhamChiTiet;
+
 }
