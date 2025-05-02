@@ -320,7 +320,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setMinDate();
 
     // Hàm validate form
-function validateForm() {
+    function validateForm() {
     let isValid = true;
     document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
     document.querySelectorAll(".invalid-feedback").forEach(el => el.remove());
@@ -361,21 +361,15 @@ function validateForm() {
    const giaTriGiam = parseFloat(document.getElementById("giaTriGiam").value);
    const dieuKien = parseFloat(document.getElementById("dieuKien").value) || 0;
 
-   // Kiểm tra giá trị giảm phải lớn hơn 1000 VND
-   if (giaTriGiam <= 1000) {
-       showError("giaTriGiam", "Giá trị giảm phải lớn hơn 1.000 VND.");
-   }
 
-   // Kiểm tra giá trị giảm phải bằng một nửa giá trị điều kiện nếu điều kiện lớn hơn 10.000 VND
-   else if (dieuKien > 10000 && giaTriGiam !== dieuKien / 2) {
-       showError("giaTriGiam", `Giá trị giảm phải đúng bằng một nửa của điều kiện áp dụng (Giảm phải là ${dieuKien / 2} VND).`);
-   }
-
-   // Kiểm tra giá trị điều kiện phải lớn hơn 1000 VND và không nhỏ hơn giá trị giảm
-   if (dieuKien <= 1000) {
-       showError("dieuKien", "Giá trị điều kiện phải lớn hơn hoặc bằng 1.000 VND.");
-   } else if (dieuKien < giaTriGiam) {
-       showError("dieuKien", "Giá trị điều kiện phải lớn hơn giá trị giảm.");
+   if (isNaN(giaTriGiam) || giaTriGiam <= 1000) {
+           showError("giaTriGiam", "Giá trị giảm phải lớn hơn 1000 VND.");
+       } else if (isNaN(dieuKien) || dieuKien <= 10000) {
+           showError("dieuKien", "Điều kiện áp dụng phải lớn hơn 10000 VND.");
+       } else {
+           if (giaTriGiam >= dieuKien) {
+               showError("giaTriGiam", "Giá trị giảm phải nhỏ hơn điều kiện áp dụng.");
+           }
    }
     return isValid;
 }
@@ -429,6 +423,10 @@ function validateForm() {
     document.getElementById("addModal").addEventListener("hidden.bs.modal", function () {
         this.setAttribute("data-mode", "add");
         document.getElementById("maPGG").value = "";
+
+        // XÓA CÁC LỖI VALIDATE KHI ĐÓNG MODAL
+        document.querySelectorAll("#addModal .is-invalid").forEach(el => el.classList.remove("is-invalid"));
+        document.querySelectorAll("#addModal .invalid-feedback").forEach(el => el.remove());
     });
 
     // Sự kiện submit khi nhấn nút trong modal

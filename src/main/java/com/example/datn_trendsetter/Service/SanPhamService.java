@@ -210,8 +210,8 @@ public class SanPhamService {
             SanPham sanPham = optionalSanPham.get();
 
             // Kiểm tra số lượng sản phẩm
-            if (sanPham.getSoLuong() == 0) {
-                return "OUT_OF_STOCK"; // Trả về warning
+            if (Objects.isNull(sanPham.getSoLuong()) || sanPham.getSoLuong() == 0) {
+                return "OUT_OF_STOCK";
             }
 
             // Thay đổi trạng thái và đánh dấu xóa mềm

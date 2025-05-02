@@ -95,7 +95,7 @@
                                         </div>
                                         <div class="mb-3 d-flex justify-content-center align-items-center">
                                             <span class="form-label fw-semibold me-3">Mô tả:</span>
-                                            <textarea class="form-control" name="moTa" id="moTa" style="max-width: 600px;" rows="3"
+                                            <textarea class="form-control" name="moTa" id="moTa" style="max-width: 900px;" rows="6"
                                                       placeholder="Nhập mô tả sản phẩm"
                                                       th:text="${sanPham.moTa.replace('\n', '<br/>')}" th:value="${sanPham.moTa}"></textarea>
                                         </div>
@@ -649,69 +649,70 @@
 
 <script>
     document.getElementById("updateForm").addEventListener("submit", function (event) {
-      event.preventDefault(); // Ngăn chặn load lại trang
+   event.preventDefault(); // Ngăn chặn load lại trang
 
-      let formData = new FormData(this);
-      let requestBody = Object.fromEntries(formData);
+   let formData = new FormData(this);
+   let requestBody = Object.fromEntries(formData);
 
-      // Chuyển đổi xuống dòng thành <br> khi gửi mô tả
-      if (requestBody.moTa) {
-          requestBody.moTa = requestBody.moTa.replace(/\n/g, "<br/>");
-      }
+   // Chuyển đổi mỗi lần Enter thành <br> khi gửi mô tả
+   if (requestBody.moTa) {
+       requestBody.moTa = requestBody.moTa.replace(/\n/g, "<br/>");
+   }
 
-      fetch('/api/san-pham/update-san-pham/' + formData.get("id"), {
-          method: 'PUT',
-          body: JSON.stringify(requestBody),
-          headers: {
-              'Content-Type': 'application/json'
-          }
-      })
-          .then(response => response.json().then(data => ({ status: response.status, body: data })))
-          .then(({ status, body }) => {
-              if (status === 200) {
-                  Swal.fire({
-                      title: "Thành công!",
-                      text: "Cập nhật sản phẩm thành công!",
-                      icon: "success",
-                      timer: 1500,
-                      showConfirmButton: false
-                  }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
-              } else {
-                  let errorMessage = body.message || body.error || "Có lỗi xảy ra!";
-                  switch (status) {
-                      case 400:
-                          errorMessage = "Lỗi dữ liệu! " + errorMessage;
-                          break;
-                      case 409:
-                          errorMessage = "Xung đột dữ liệu! " + errorMessage;
-                          break;
-                      case 500:
-                          errorMessage = "Lỗi hệ thống! " + errorMessage;
-                          break;
-                  }
-                  throw new Error(errorMessage);
-              }
-          })
-          .catch(error => {
-              console.error("Lỗi cập nhật:", error);
+   fetch('/api/san-pham/update-san-pham/' + formData.get("id"), {
+       method: 'PUT',
+       body: JSON.stringify(requestBody),
+       headers: {
+           'Content-Type': 'application/json'
+       }
+   })
+   .then(response => response.json().then(data => ({ status: response.status, body: data })))
+   .then(({ status, body }) => {
+       if (status === 200) {
+           Swal.fire({
+               title: "Thành công!",
+               text: "Cập nhật sản phẩm thành công!",
+               icon: "success",
+               timer: 1500,
+               showConfirmButton: false
+           }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
+       } else {
+           let errorMessage = body.message || body.error || "Có lỗi xảy ra!";
+           switch (status) {
+               case 400:
+                   errorMessage = "Lỗi dữ liệu! " + errorMessage;
+                   break;
+               case 409:
+                   errorMessage = "Xung đột dữ liệu! " + errorMessage;
+                   break;
+               case 500:
+                   errorMessage = "Lỗi hệ thống! " + errorMessage;
+                   break;
+           }
+           throw new Error(errorMessage);
+       }
+   })
+   .catch(error => {
+       console.error("Lỗi cập nhật:", error);
 
-              // Phân biệt lỗi nhẹ và nặng để hiển thị cảnh báo phù hợp
-              const msg = error.message.toLowerCase();
-              const isDanger =
-                  msg.includes("lỗi hệ thống") ||
-                  msg.includes("exception") ||
-                  msg.includes("không thể") ||
-                  msg.includes("đã xảy ra") ||
-                  msg.includes("internal");
+       // Phân biệt lỗi nhẹ và nặng để hiển thị cảnh báo phù hợp
+       const msg = error.message.toLowerCase();
+       const isDanger =
+           msg.includes("lỗi hệ thống") ||
+           msg.includes("exception") ||
+           msg.includes("không thể") ||
+           msg.includes("đã xảy ra") ||
+           msg.includes("internal");
 
-              Swal.fire({
-                  title: isDanger ? "Lỗi!" : "Cảnh báo!",
-                  text: error.message,
-                  icon: isDanger ? "error" : "warning",
-                  confirmButtonText: "OK"
-              });
-          });
-  });
+       Swal.fire({
+           title: isDanger ? "Lỗi!" : "Cảnh báo!",
+           text: error.message,
+           icon: isDanger ? "error" : "warning",
+           confirmButtonText: "OK"
+       });
+   });
+ });
+
 </script>
 
 <script>
@@ -988,7 +989,15 @@
         });
     });
 </script>
-
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const textarea = document.getElementById('moTa');
+        if (textarea) {
+            // Chuyển <br> hoặc <br/> thành xuống dòng \n
+            textarea.value = textarea.value.replace(/<br\s*\/?>/gi, '\n');
+        }
+    });
+</script>
 <!--Load table-->
 <script>
     $(document).ready(function () {

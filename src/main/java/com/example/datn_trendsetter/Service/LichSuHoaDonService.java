@@ -57,15 +57,23 @@ public class LichSuHoaDonService {
             // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
             Set<String> seenImages = new HashSet<>();
 
-            // Danh sách sản phẩm không trùng hình ảnh
+            // Tập hợp ID các SPCT đã có trong hóa đơn chi tiết
+            Set<Integer> sanPhamChiTietDaCoTrongHoaDon = hoaDonChiTiet.stream()
+                    .map(hdct -> hdct.getSanPhamChiTiet().getId())
+                    .collect(Collectors.toSet());
+
+            // Danh sách sản phẩm không trùng hình ảnh và chưa có trong hóa đơn chi tiết
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
-                // Kiểm tra trạng thái sản phẩm chính: chỉ lấy khi sản phẩm chính đang hoạt động
-                if (sp.getSanPham() != null && "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai())) {
-                    if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
-                        String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
-                        // Kiểm tra nếu hình ảnh chưa được gặp
+                // Kiểm tra trạng thái sản phẩm chính và loại trừ những SPCT đã có trong hóa đơn
+                if (sp.getSanPham() != null &&
+                        "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai()) &&
+                        !sanPhamChiTietDaCoTrongHoaDon.contains(sp.getId())) {
+
+                    if (!sp.getHinhAnh().isEmpty()) {
+                        String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh();
+
                         if (!seenImages.contains(imageUrl)) {
                             seenImages.add(imageUrl);
                             uniqueSanPhamChiTiet.add(sp);
@@ -73,6 +81,7 @@ public class LichSuHoaDonService {
                     }
                 }
             }
+
 
             // Trộn danh sách để có thứ tự ngẫu nhiên
             Collections.shuffle(uniqueSanPhamChiTiet);
