@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.Repository;
 
 import com.example.datn_trendsetter.DTO.HoaDonResponseDto;
 import com.example.datn_trendsetter.Entity.HoaDon;
+import com.example.datn_trendsetter.Entity.PhieuGiamGia;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -130,4 +131,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findByKhachHang_Id(Integer khachHangId);
 
     Integer countByTrangThaiNot(String trangThai);
+
+    boolean existsByPhieuGiamGia(PhieuGiamGia phieuGiamGia);
 }

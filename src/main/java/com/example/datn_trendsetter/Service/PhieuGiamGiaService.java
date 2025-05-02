@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.Service;
 import com.example.datn_trendsetter.DTO.PhieuGiamGiaDTO;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
+import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
@@ -23,6 +24,9 @@ import java.util.stream.Collectors;
 public class PhieuGiamGiaService {
     @Autowired
     private PhieuGiamGiaRepository phieuGiamGiaRepository;
+
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
 
 
     @Transactional
@@ -112,6 +116,12 @@ public class PhieuGiamGiaService {
     public PhieuGiamGia updatePhieuGiamGia(Integer id, Map<String, Object> requestBody ,HttpSession session) throws Exception {
         PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
+
+        // Kiểm tra nếu phiếu giảm giá đã được dùng trong hóa đơn nào đó
+        boolean daSuDung = hoaDonRepository.existsByPhieuGiamGia(phieuGiamGia);
+        if (daSuDung) {
+            throw new Exception("Phiếu giảm giá đã được sử dụng trong hóa đơn, không thể cập nhật.");
+        }
 
         // Lấy nhân viên từ session
         NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");

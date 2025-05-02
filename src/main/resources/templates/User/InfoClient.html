@@ -109,13 +109,14 @@
                         <a href="trang-chu" class="nav-item nav-link active">Trang chủ</a>
                         <a href="san-pham" class="nav-item nav-link">Sản phẩm</a>
                         <a href="gio-hang" class="nav-item nav-link">Giỏ hàng</a>
-<!--                        <a href="thanh-toan" class="nav-item nav-link">Thanh toán</a>-->
+                        <!--                        <a href="thanh-toan" class="nav-item nav-link">Thanh toán</a>-->
                     </div>
                     <div class="navbar-nav ml-auto py-0">
                         <!-- Nếu chưa đăng nhập -->
                         <div th:if="${session.userKhachHang == null}" class="nav-item">
                             <a href="#" class="nav-link text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#authModal">Đăng nhập</a>
                         </div>
+
                         <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
                         <div th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
@@ -194,6 +195,10 @@
                                                     <label for="register-password" class="form-label">Mật khẩu</label>
                                                     <input type="password" class="form-control" id="register-password" placeholder="Mật khẩu" required>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <label for="register-confirm-password" class="form-label">Xác nhận mật khẩu</label>
+                                                    <input type="password" class="form-control" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
+                                                </div>
                                                 <button type="submit" class="btn btn-success w-100">Đăng ký</button>
                                             </form>
                                         </div>
@@ -203,7 +208,7 @@
                         </div>
                     </div>
 
-                    <!-- Modal Quên mật khẩu - Bước 1 -->
+                    <!-- Modal: Quên mật khẩu - Bước 1 (Nhập email) -->
                     <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
@@ -228,7 +233,7 @@
                         </div>
                     </div>
 
-                    <!-- Modal Quên mật khẩu - Bước 2 -->
+                    <!-- Modal: Quên mật khẩu - Bước 2 (Nhập mật khẩu mới) -->
                     <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
@@ -258,6 +263,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </nav>
         </div>

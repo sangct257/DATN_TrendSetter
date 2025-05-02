@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => {
             console.error("❌ Lỗi khi gọi API đơn hàng:", error);
-            document.getElementById("donHangContainer").innerHTML = "<p class='text-center text-danger'>Có lỗi xảy ra khi tải dữ liệu.</p>";
+            document.getElementById("donHangContainer").innerHTML = "<p class='text-center text-danger'>Chưa có hóa đơn.</p>";
         });
 });
 

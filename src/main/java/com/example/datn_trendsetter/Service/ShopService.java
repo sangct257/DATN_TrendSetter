@@ -290,30 +290,44 @@ public class ShopService {
         // Lấy danh sách sản phẩm có trạng thái "Còn Hàng"
         List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
+        // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
+        Set<String> seenImages = new HashSet<>();
+
+        // Tập hợp ID các SPCT đã có trong hóa đơn chi tiết
+        Set<Integer> sanPhamChiTietDaCoTrongHoaDon = hoaDonChiTiet.stream()
+                .map(hdct -> hdct.getSanPhamChiTiet().getId())
+                .collect(Collectors.toSet());
+
+        // Danh sách sản phẩm không trùng hình ảnh và chưa có trong hóa đơn chi tiết
+        List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
+
         // Lọc sản phẩm theo hình ảnh duy nhất
-        Map<String, SanPhamChiTiet> uniqueSanPhamMap = new LinkedHashMap<>();
         for (SanPhamChiTiet sp : allSanPhamChiTiet) {
-            List<HinhAnh> hinhAnhs = sp.getHinhAnh();
-            if (hinhAnhs != null && !hinhAnhs.isEmpty()) {
-                String imageUrl = hinhAnhs.get(0).getUrlHinhAnh();
-                uniqueSanPhamMap.putIfAbsent(imageUrl, sp); // Chỉ thêm nếu chưa có
+            // Kiểm tra trạng thái sản phẩm chính và loại trừ những SPCT đã có trong hóa đơn
+            if (sp.getSanPham() != null &&
+                    "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai()) &&
+                    !sanPhamChiTietDaCoTrongHoaDon.contains(sp.getId())) {
+
+                if (!sp.getHinhAnh().isEmpty()) {
+                    String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh();
+
+                    if (!seenImages.contains(imageUrl)) {
+                        seenImages.add(imageUrl);
+                        uniqueSanPhamChiTiet.add(sp);
+                    }
+                }
             }
         }
+        // Trộn danh sách để có thứ tự ngẫu nhiên
+        Collections.shuffle(uniqueSanPhamChiTiet);
+        // ✅ Đưa danh sách vào model mà không cần lọc bỏ sản phẩm đã có trong hóa đơn
+        model.addAttribute("sanPhamChiTiet", uniqueSanPhamChiTiet);
 
         List<MauSac> mauSacs = mauSacRepository.findAll();
         model.addAttribute("danhSachMauSac", mauSacs);
 
         List<KichThuoc> kichThuocs = kichThuocRepository.findAll();
         model.addAttribute("danhSachKichThuoc", kichThuocs);
-
-        // ✅ Lọc danh sách sản phẩm chi tiết Còn Hàng và có sản phẩm chính Đang Hoạt Động
-        List<SanPhamChiTiet> filteredSanPhamChiTiet = uniqueSanPhamMap.values().stream()
-                .filter(spct -> "Còn Hàng".equals(spct.getTrangThai())
-                        && "Đang Hoạt Động".equals(spct.getSanPham().getTrangThai()))
-                .collect(Collectors.toList());
-
-        // ✅ Đưa danh sách vào model mà không cần lọc bỏ sản phẩm đã có trong hóa đơn
-        model.addAttribute("sanPhamChiTiet", filteredSanPhamChiTiet);
 
         // Lấy danh sách khách hàng và phương thức thanh toán
         Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));

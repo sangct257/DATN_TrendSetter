@@ -157,6 +157,12 @@ public class HoaDonChiTietService {
             return ResponseEntity.badRequest().body(response);
         }
 
+        // Kiểm tra xem giá sản phẩm chi tiết có khớp với giá của hóa đơn chi tiết không
+        if (!sanPhamChiTiet.getGia().equals(hoaDonChiTiet.getGia())) {
+            response.put("errorMessage", "Giá sản phẩm đã thay đổi!");
+            return ResponseEntity.badRequest().body(response);
+        }
+
         SanPham sanPham = sanPhamChiTiet.getSanPham();
         if (sanPham == null) {
             response.put("errorMessage", "Sản phẩm không tồn tại!");
@@ -218,8 +224,18 @@ public class HoaDonChiTietService {
         float tongTienSauCapNhat = tongTienSanPhamSauCapNhat + phiShip;
 
         // Lấy giá trị giảm từ phiếu giảm giá nếu có
+        // Lấy phiếu giảm giá (nếu có)
         PhieuGiamGia phieuGiamGia = hoaDon.getPhieuGiamGia();
-        float giaTriGiam = (phieuGiamGia != null) ? phieuGiamGia.getGiaTriGiam() : 0;
+        float giaTriGiam = 0;
+        if (phieuGiamGia != null) {
+            float dieuKienApDung = phieuGiamGia.getDieuKien();
+            if (tongTienSanPhamSauCapNhat < dieuKienApDung) {
+                response.put("errorMessage", "Không thể cập nhật vì tổng thành tiền không đủ điều kiện áp dụng phiếu giảm giá!");
+                return ResponseEntity.badRequest().body(response);
+            }
+            giaTriGiam = phieuGiamGia.getGiaTriGiam();
+        }
+//        float giaTriGiam = (phieuGiamGia != null) ? phieuGiamGia.getGiaTriGiam() : 0;
 
         // Cập nhật tổng tiền cuối cùng (sau khi áp dụng giảm giá)
         float tongTienFinal = Math.max(0, tongTienSauCapNhat - giaTriGiam);
@@ -231,7 +247,7 @@ public class HoaDonChiTietService {
                 .sum();
 
         if (tongSoTienDaThanhToan > tongTienFinal) {
-            response.put("errorMessage", "Không thể cập nhật vì tổng tiền đã thanh toán lớn hơn tổng tiền mới!");
+            response.put("errorMessage", "Không thể cập nhật vì điều kiện áp dụng không phù hợp!");
             return ResponseEntity.badRequest().body(response);
         }
 

@@ -31,13 +31,16 @@
                     <section class="content">
                         <div class="box-body">
                             <div class="d-flex justify-content-center gap-3 mb-3 p-3 border rounded-3 shadow-sm bg-light">
-                                <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill" data-status="">
+                                <button class="btn btn-outline-primary filter-btn px-4 py-2 fw-bold border border-primary rounded-pill"
+                                        data-status="">
                                     Tất Cả (<span id="count-all">0</span>)
                                 </button>
-                                <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill" data-status="Đang Hoạt Động">
+                                <button class="btn btn-outline-success filter-btn px-4 py-2 fw-bold border border-success rounded-pill"
+                                        data-status="Đang Hoạt Động">
                                     Đang Hoạt Động (<span id="count-active">0</span>)
                                 </button>
-                                <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill" data-status="Ngừng Hoạt Động">
+                                <button class="btn btn-outline-danger filter-btn px-4 py-2 fw-bold border border-danger rounded-pill"
+                                        data-status="Ngừng Hoạt Động">
                                     Ngừng Hoạt Động (<span id="count-inactive">0</span>)
                                 </button>
                             </div>
@@ -67,15 +70,18 @@
                                     <td th:text="${i.index + 1}"></td>
                                     <td th:text="${sanPham.maSanPham}"></td>
                                     <td th:text="${sanPham.tenSanPham}"></td>
-                                    <td class="fw-bold text-danger" th:text="${#numbers.formatInteger(sanPham.soLuong, 0, 'DEFAULT') ?: 0}"></td>
+                                    <td class="fw-bold text-danger"
+                                        th:text="${#numbers.formatInteger(sanPham.soLuong, 0, 'DEFAULT') ?: 0}"></td>
                                     <td>
-                                        <button class="badge" th:classappend="${sanPham.trangThai == 'Đang Hoạt Động'} ? 'bg-success' : 'bg-danger'"
+                                        <button class="badge"
+                                                th:classappend="${sanPham.trangThai == 'Đang Hoạt Động'} ? 'bg-success' : 'bg-danger'"
                                                 th:attr="data-id=${sanPham.id}">
                                             <span th:text="${sanPham.trangThai}"></span>
                                         </button>
                                     </td>
                                     <td>
-                                        <a th:href="@{/admin/detail-san-pham(sanPhamId=${sanPham.id})}" class="btn btn-primary btn-sm fw-bold me-2">
+                                        <a th:href="@{/admin/detail-san-pham(sanPhamId=${sanPham.id})}"
+                                           class="btn btn-primary btn-sm fw-bold me-2">
                                             <i class="bi bi-eye"></i> Chi Tiết
                                         </a>
                                     </td>
@@ -207,11 +213,12 @@
                 if (result.isConfirmed) {
                     fetch(`/api/san-pham/toggle-status/${sanPhamId}`, { method: "PUT" })
                         .then(response => response.json()
-                            .then(data => ({
-                                status: response.status,
-                                message: data.error || data.message || "Có lỗi xảy ra!"
-                            })))
-                        .then(({ status, message }) => {
+    .then(data => ({
+        httpStatus: response.status,       // vẫn giữ nếu muốn debug thêm
+        status: data.status,               // lấy đúng status trong body JSON
+        message: data.message || "Có lỗi xảy ra!"
+    })))
+.then(({ status, message }) => {
     if (status === "success") {
         Swal.fire("Thành công!", message, "success");
         loadSanPham("");
@@ -221,7 +228,8 @@
     } else {
         Swal.fire("Lỗi!", message, "error");
     }
-})
+});
+
                 }
             });
         }
