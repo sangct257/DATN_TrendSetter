@@ -109,10 +109,14 @@ public class KhachHangApiController {
 
         if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             warnings.put("email", "Email không hợp lệ.");
+        } else if (khachHangService.existsByEmail(email)) {
+            warnings.put("email", "Email đã được sử dụng.");
         }
 
         if (soDienThoai == null || !soDienThoai.matches("^(0[1-9][0-9]{8})$")) {
             warnings.put("soDienThoai", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.");
+        } else if (khachHangService.existsBySoDienThoai(soDienThoai)) {
+            warnings.put("soDienThoai", "Số điện thoại đã được sử dụng.");
         }
 
         LocalDate ngaySinh = null; // Khai báo bên ngoài
@@ -127,7 +131,7 @@ public class KhachHangApiController {
         }
 
 
-        if (trangThai == null || (!trangThai.equalsIgnoreCase("Hoạt động") && !trangThai.equalsIgnoreCase("Không hoạt động"))) {
+        if (trangThai == null || (!trangThai.equalsIgnoreCase("Đang Hoạt động") && !trangThai.equalsIgnoreCase("Ngừng hoạt động"))) {
             warnings.put("trangThai", "Vui lòng chọn trạng thái hợp lệ.");
         }
 

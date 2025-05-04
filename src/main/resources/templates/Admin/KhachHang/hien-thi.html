@@ -37,14 +37,40 @@
                             <th class="text-center">Ảnh</th>
                             <th class="text-center">Tên Khách Hàng</th>
                             <th class="text-center">Số Điện Thoại</th>
+                            <th class="text-center">Email</th>
                             <th class="text-center">Ngày Sinh</th>
                             <th class="text-center">Giới Tính</th>
                             <th class="text-center">Trạng Thái</th>
                             <th class="text-center">Action</th>
                         </tr>
                         </thead>
-                        <tbody id="khachHangBody">
-                        <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+                        <tbody>
+                        <tr th:each="kh, status : ${listKhachHang}">
+                            <td class="text-center" th:text="${status.index + 1}"></td>
+
+                            <td class="text-center">
+                                <img th:src="${kh.hinhAnh}" width="50" alt="Ảnh">
+                            </td>
+
+                            <td class="text-center" th:text="${kh.hoTen}"></td>
+                            <td class="text-center" th:text="${kh.soDienThoai}"></td>
+                            <td class="text-center" th:text="${kh.email}"></td>
+                            <td class="text-center" th:text="${#temporals.format(kh.ngaySinh, 'dd/MM/yyyy')}"></td>
+
+                            <td class="text-center" th:text="${kh.gioiTinh == 1 ? 'Nam' : 'Nữ'}"></td>
+
+                            <td class="text-center" th:text="${kh.trangThai}"></td>
+
+                            <td class="text-center">
+                                <button class="btn btn-primary btn-sm fw-bold me-2" th:onclick="'editKhachHang(' + ${kh.id} + ')'">
+                                    <i class="bi bi-pencil"></i> Sửa
+                                </button>
+                                <button class="btn btn-primary btn-sm fw-bold me-2"
+                                        th:onclick="'diaChiKhachHang(' + ${kh.id} + ')'">
+                                    <i class="bi bi-pencil"></i> Địa chỉ
+                                </button>
+                            </td>
+                        </tr>
                         </tbody>
                     </table>
 

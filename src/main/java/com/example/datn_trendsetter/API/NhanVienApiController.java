@@ -68,6 +68,8 @@ public class NhanVienApiController {
 
         if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             warnings.put("email", "Email không hợp lệ.");
+        } else if (nhanVienService.existsByEmail(email)) {
+            warnings.put("email", "Email đã được sử dụng.");
         }
 
         if (diaChi == null || diaChi.trim().isEmpty()) {

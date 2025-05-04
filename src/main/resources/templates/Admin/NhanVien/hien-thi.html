@@ -165,10 +165,40 @@
                             <th class="text-center">Action</th>
                         </tr>
                         </thead>
-                        <tbody id="nhanVienBody">
-                        <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+                        <tbody>
+                        <tr th:each="nv, status : ${listNhanVien}">
+                            <td class="text-center" th:text="${status.index + 1}"></td>
+
+                            <td class="text-center">
+                                <img th:src="${nv.hinhAnh}" width="50" alt="Ảnh">
+                            </td>
+
+
+                            <td class="text-center" th:text="${nv.hoTen}"></td>
+                            <td class="text-center" th:text="${#temporals.format(nv.ngaySinh, 'dd/MM/yyyy')}"></td>
+
+                            <!-- Sửa tại đây -->
+                            <td class="text-center" th:text="${nv.gioiTinh == 1 ? 'Nam' : 'Nữ'}"></td>
+
+                            <td class="text-center" th:text="${nv.vaiTro}"></td>
+
+                            <td class="text-center">
+                                <button class="badge btnChangeTrangThai"
+                                        th:classappend="${nv.trangThai == 'Đang Hoạt Động' ? 'bg-success' : 'bg-danger'}"
+                                        th:text="${nv.trangThai}"></button>
+                            </td>
+
+                            <td class="text-center">
+                                <button class="btn btn-primary btn-sm fw-bold me-2" th:onclick="'editNhanVien(' + ${nv.id} + ')'">
+                                    <i class="bi bi-pencil"></i> Sửa
+                                </button>
+                            </td>
+
+                        </tr>
                         </tbody>
                     </table>
+
+
                     <!-- Modal Sửa Nhan Viên -->
                     <div class="modal fade" id="modalUpdateNhanVien" tabindex="-1" aria-labelledby="updateNhanVienLabel"
                          aria-hidden="true">

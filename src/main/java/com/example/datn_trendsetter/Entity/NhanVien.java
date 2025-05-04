@@ -25,7 +25,8 @@ public class NhanVien {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+    @Column(name = "deleted")
+    private Boolean deleted = false;
     @Column(name = "ho_ten", columnDefinition = "NVARCHAR(255)")
     private String hoTen;
 
