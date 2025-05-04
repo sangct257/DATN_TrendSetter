@@ -129,11 +129,19 @@ public class PhieuGiamGiaApiController {
         return ResponseEntity.ok("Xóa mềm thành công!");
     }
     @PutMapping("/update/{id}")
-    public ResponseEntity<PhieuGiamGia> updatePhieuGiamGia(
+    public ResponseEntity<?> updatePhieuGiamGia(
             @PathVariable Integer id,
             @RequestBody Map<String, Object> requestBody,
-            HttpSession session) throws Exception {
-        return ResponseEntity.ok(phieuGiamGiaService.updatePhieuGiamGia(id, requestBody,session));
+            HttpSession session) {
+        try {
+            PhieuGiamGia result = phieuGiamGiaService.updatePhieuGiamGia(id, requestBody, session);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Collections.singletonMap("message", e.getMessage()));
+        }
     }
+
 
 }

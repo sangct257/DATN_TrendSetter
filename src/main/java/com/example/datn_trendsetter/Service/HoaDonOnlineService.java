@@ -70,6 +70,11 @@ public class HoaDonOnlineService {
         hoaDon.setTongTien(request.getTongTien());
         hoaDon.setPhiShip(request.getPhiShip());
 
+        // Kiểm tra tổng tiền
+        if (hoaDon.getTongTien().compareTo(Float.valueOf(50000000)) > 0) {
+            throw new IllegalStateException("Đơn hàng vượt quá 50.000.000đ. Vui lòng liên hệ trực tiếp với cửa hàng để được hỗ trợ.");
+        }
+
         // Gán phương thức thanh toán
         hoaDon.setPhuongThucThanhToan(
                 phuongThucThanhToanRepository.findById(request.getIdPhuongThucThanhToan()).orElse(null)
@@ -161,8 +166,6 @@ public class HoaDonOnlineService {
 
         return hoaDon;
     }
-
-
 
     // ✅ Tạo mã hóa đơn duy nhất
     private String generateUniqueMaHoaDon() {
