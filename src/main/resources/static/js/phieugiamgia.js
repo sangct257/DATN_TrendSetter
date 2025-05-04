@@ -516,22 +516,30 @@ document.addEventListener("DOMContentLoaded", function () {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ phieuGiamGia })
                     })
-                        .then(response => {
-                            if (!response.ok) throw new Error("Có lỗi khi cập nhật phiếu giảm giá!");
-                            return response.json();
-                        })
-                        .then(() => {
-                            Swal.fire({ title: "Thành công!", text: "Phiếu giảm giá đã được cập nhật.", icon: "success" })
-                                .then(() => {
-                                    // Sau khi cập nhật thành công, tải lại trang để cập nhật dữ liệu
-                                    location.reload();
-                                    let modal = bootstrap.Modal.getInstance(document.getElementById("addModal"));
-                                    modal.hide();
-                                });
-                        })
-                        .catch(() => {
-                            Swal.fire({ title: "Lỗi!", text: "Đã xảy ra lỗi khi cập nhật phiếu giảm giá.", icon: "error" });
+                    .then(async response => {
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.message || "Có lỗi khi cập nhật phiếu giảm giá!");
+                        }
+
+                        Swal.fire({
+                            title: "Thành công!",
+                            text: data.message || "Phiếu giảm giá đã được cập nhật.",
+                            icon: "success"
+                        }).then(() => {
+                            location.reload();
+                            let modal = bootstrap.Modal.getInstance(document.getElementById("addModal"));
+                            modal.hide();
                         });
+                    })
+                    .catch(err => {
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: err.message || "Đã xảy ra lỗi khi cập nhật phiếu giảm giá.",
+                            icon: "error"
+                        });
+                    });
                 }
             });
         }
