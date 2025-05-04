@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.Service;
 import com.example.datn_trendsetter.DTO.PhieuGiamGiaDTO;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.PhieuGiamGia;
+import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import com.example.datn_trendsetter.Repository.PhieuGiamGiaRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
@@ -23,6 +24,9 @@ import java.util.stream.Collectors;
 public class PhieuGiamGiaService {
     @Autowired
     private PhieuGiamGiaRepository phieuGiamGiaRepository;
+
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
 
 
     @Transactional
@@ -109,7 +113,7 @@ public class PhieuGiamGiaService {
     }
 
     @Transactional
-    public PhieuGiamGia updatePhieuGiamGia(Integer id, Map<String, Object> requestBody ,HttpSession session) throws Exception {
+    public PhieuGiamGia updatePhieuGiamGia(Integer id, Map<String, Object> requestBody, HttpSession session) throws Exception {
         PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
 
@@ -119,15 +123,29 @@ public class PhieuGiamGiaService {
             throw new Exception("Bạn cần đăng nhập.");
         }
 
+        // Kiểm tra nếu phiếu giảm giá đã được dùng trong hóa đơn nào đó
+        boolean daSuDung = hoaDonRepository.existsByPhieuGiamGia(phieuGiamGia);
 
         Map<String, Object> dto = (Map<String, Object>) requestBody.get("phieuGiamGia");
 
-        // Cập nhật thông tin phiếu giảm giá
+        // Nếu đã được sử dụng, không cho phép thay đổi giá trị giảm và điều kiện
+        if (daSuDung) {
+            float giaTriMoi = ((Number) dto.get("giaTriGiam")).floatValue();
+            float dieuKienMoi = ((Number) dto.get("dieuKien")).floatValue();
+
+            if (phieuGiamGia.getGiaTriGiam() != giaTriMoi || phieuGiamGia.getDieuKien() != dieuKienMoi) {
+                throw new Exception("Không được thay đổi giá trị giảm hoặc điều kiện vì phiếu đã được sử dụng trong hóa đơn.");
+            }
+        } else {
+            // Nếu chưa sử dụng, cho phép cập nhật
+            phieuGiamGia.setGiaTriGiam(((Number) dto.get("giaTriGiam")).floatValue());
+            phieuGiamGia.setDieuKien(((Number) dto.get("dieuKien")).floatValue());
+        }
+
+        // Các trường còn lại luôn được cập nhật
         phieuGiamGia.setMaPhieuGiamGia((String) dto.get("maPhieuGiamGia"));
         phieuGiamGia.setTenPhieuGiamGia((String) dto.get("tenPhieuGiamGia"));
-        phieuGiamGia.setGiaTriGiam(((Number) dto.get("giaTriGiam")).floatValue());
         phieuGiamGia.setDonViTinh((String) dto.get("donViTinh"));
-        phieuGiamGia.setDieuKien(((Number) dto.get("dieuKien")).floatValue());
         phieuGiamGia.setMoTa((String) dto.get("moTa"));
         phieuGiamGia.setTrangThai((String) dto.get("trangThai"));
         phieuGiamGia.setSoLuotSuDung(((Number) dto.get("soLuotSuDung")).intValue());
@@ -142,10 +160,9 @@ public class PhieuGiamGiaService {
 
         phieuGiamGia.setNgaySua(LocalDate.now());
         phieuGiamGia.setNguoiSua(nhanVienSession.getHoTen());
-        phieuGiamGia = phieuGiamGiaRepository.save(phieuGiamGia);
-        return phieuGiamGia;
-    }
 
+        return phieuGiamGiaRepository.save(phieuGiamGia);
+    }
 
     @Transactional
     public void deletePhieuGiamGia(Integer id) {

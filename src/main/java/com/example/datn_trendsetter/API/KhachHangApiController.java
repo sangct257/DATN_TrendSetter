@@ -115,10 +115,10 @@ public class KhachHangApiController {
             warnings.put("soDienThoai", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.");
         }
 
-        LocalDate ngaySinh = null;
+        LocalDate ngaySinh = null; // Khai báo bên ngoài
 
         try {
-            ngaySinh = LocalDate.parse(ngaySinhStr);
+            ngaySinh = LocalDate.parse(ngaySinhStr); // parse thành công thì gán
             if (ngaySinh.isAfter(LocalDate.now())) {
                 warnings.put("ngaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
             }
@@ -127,15 +127,16 @@ public class KhachHangApiController {
         }
 
 
-        if (trangThai == null || (!trangThai.equalsIgnoreCase("Đang hoạt động") && !trangThai.equalsIgnoreCase("Ngừng hoạt động"))) {
+        if (trangThai == null || (!trangThai.equalsIgnoreCase("Hoạt động") && !trangThai.equalsIgnoreCase("Không hoạt động"))) {
             warnings.put("trangThai", "Vui lòng chọn trạng thái hợp lệ.");
         }
 
+        // Nếu có cảnh báo, trả về kèm HTTP 200 và warning
         if (!warnings.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "warning");
             response.put("messages", warnings);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response); // status 200, không phải lỗi nghiêm trọng
         }
 
         try {

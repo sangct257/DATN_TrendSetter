@@ -55,19 +55,32 @@ public class ThongKeControlller {
         model.addAttribute("revenueData", revenueData.isEmpty() ? Collections.emptyList() : revenueData);
 
         // Đảm bảo danh sách không rỗng trước khi truy cập phần tử
-        List<Long> orderStatusPercentages = hoaDonService.getOrderStatusStatistics();
-        while (orderStatusPercentages.size() < 8) {
-            orderStatusPercentages.add(0L);
+        // Lấy dữ liệu thống kê
+        List<Object> orderStatusStats = hoaDonService.getOrderStatusStatistics();
+
+        // Đảm bảo danh sách không rỗng trước khi truy cập phần tử
+        while (orderStatusStats.size() < 16) {
+            orderStatusStats.add(0L);  // Thêm các giá trị mặc định nếu thiếu
         }
 
-        model.addAttribute("processingPercentage", orderStatusPercentages.get(0));
-        model.addAttribute("waitingConfirmationPercentage", orderStatusPercentages.get(1));
-        model.addAttribute("confirmedPercentage", orderStatusPercentages.get(2));
-        model.addAttribute("waitingDeliveryPercentage", orderStatusPercentages.get(3));
-        model.addAttribute("paidPercentage", orderStatusPercentages.get(4));
-        model.addAttribute("finishedPercentage", orderStatusPercentages.get(5));
-        model.addAttribute("cancelledPercentage", orderStatusPercentages.get(6));
-        model.addAttribute("failedPercentage", orderStatusPercentages.get(7));
+        // Lấy phần trăm và số lượng
+        model.addAttribute("processingPercentage", orderStatusStats.get(0));
+        model.addAttribute("waitingConfirmationPercentage", orderStatusStats.get(2));
+        model.addAttribute("confirmedPercentage", orderStatusStats.get(4));
+        model.addAttribute("waitingDeliveryPercentage", orderStatusStats.get(6));
+        model.addAttribute("paidPercentage", orderStatusStats.get(8));
+        model.addAttribute("finishedPercentage", orderStatusStats.get(10));
+        model.addAttribute("cancelledPercentage", orderStatusStats.get(12));
+        model.addAttribute("failedPercentage", orderStatusStats.get(14));
+
+        model.addAttribute("processingCount", orderStatusStats.get(1));
+        model.addAttribute("waitingConfirmationCount", orderStatusStats.get(3));
+        model.addAttribute("confirmedCount", orderStatusStats.get(5));
+        model.addAttribute("waitingDeliveryCount", orderStatusStats.get(7));
+        model.addAttribute("paidCount", orderStatusStats.get(9));
+        model.addAttribute("finishedCount", orderStatusStats.get(11));
+        model.addAttribute("cancelledCount", orderStatusStats.get(13));
+        model.addAttribute("failedCount", orderStatusStats.get(15));
 
         // Thống kê số lượng sản phẩm bán chạy trong tháng
         List<Object[]> productList = hoaDonChiTietService.getTotalSoldByProductInMonthWithImages();

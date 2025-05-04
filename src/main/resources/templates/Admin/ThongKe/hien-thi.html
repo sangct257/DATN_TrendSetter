@@ -616,13 +616,22 @@
     var cancelledPercentage = [[${cancelledPercentage}]];
     var failedPercentage = [[${failedPercentage}]];
 
+    var processingCount = [[${processingCount}]];
+    var waitingConfirmationCount = [[${waitingConfirmationCount}]];
+    var confirmedCount = [[${confirmedCount}]];
+    var waitingDeliveryCount = [[${waitingDeliveryCount}]];
+    var paidCount = [[${paidCount}]];
+    var finishedCount = [[${finishedCount}]];
+    var cancelledCount = [[${cancelledCount}]];
+    var failedCount = [[${failedCount}]];
+
     var ctx = document.getElementById('orderStatusChart').getContext('2d');
 
     var orderStatusChart = new Chart(ctx, {
         type: 'pie',
         data: {
             labels: ['Đang Xử Lý', 'Chờ Xác Nhận', 'Đã Xác Nhận', 'Chờ Vận Chuyển',
-                'Đã Thanh Toán', 'Đã Hoàn Thành', 'Đã Hủy', 'Hoàn Trả'],
+                'Đã Thanh Toán', 'Đã Hoàn Thành', 'Đã Hủy'],
             datasets: [{
                 label: 'Trạng Thái Đơn Hàng',
                 data: [
@@ -632,11 +641,10 @@
                     waitingDeliveryPercentage,
                     paidPercentage,
                     finishedPercentage,
-                    cancelledPercentage,
-                    failedPercentage
+                    cancelledPercentage
                 ],
-                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#ffc0cb', '#007bff', '#8e44ad', '#f39c12', '#d35400'],
-                borderColor: ['#218838', '#e0a800', '#138496', '#e0a0a0', '#0056b3', '#6c3483', '#d68910', '#b03a2e'],
+                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#ffc0cb', '#007bff', '#8e44ad', '#f39c12'],
+                borderColor: ['#218838', '#e0a800', '#138496', '#e0a0a0', '#0056b3', '#6c3483', '#d68910'],
                 borderWidth: 1
             }]
         },
@@ -649,7 +657,39 @@
                 tooltip: {
                     callbacks: {
                         label: function (tooltipItem) {
-                            return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            var label = tooltipItem.label;
+                            var percentage = tooltipItem.raw;
+                            var count = 0;
+
+                            // Tính số lượng cụ thể theo từng trạng thái
+                            switch (label) {
+                                case 'Đang Xử Lý':
+                                    count = processingCount;
+                                    break;
+                                case 'Chờ Xác Nhận':
+                                    count = waitingConfirmationCount;
+                                    break;
+                                case 'Đã Xác Nhận':
+                                    count = confirmedCount;
+                                    break;
+                                case 'Chờ Vận Chuyển':
+                                    count = waitingDeliveryCount;
+                                    break;
+                                case 'Đã Thanh Toán':
+                                    count = paidCount;
+                                    break;
+                                case 'Đã Hoàn Thành':
+                                    count = finishedCount;
+                                    break;
+                                case 'Đã Hủy':
+                                    count = cancelledCount;
+                                    break;
+                                case 'Hoàn Trả':
+                                    count = failedCount;
+                                    break;
+                            }
+
+                            return label + ': ' + percentage + '% (' + count.toFixed(0) + ' đơn)';
                         }
                     }
                 }

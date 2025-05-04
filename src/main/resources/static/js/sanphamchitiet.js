@@ -178,7 +178,11 @@ function updateProductImages(products) {
 
     // Nếu có hình ảnh, hiển thị ảnh đầu tiên làm ảnh chính
     if (uniqueImages.length > 0) {
-        document.getElementById('mainImage').src = uniqueImages[0]; // Cập nhật ảnh chính
+        const mainImage = document.getElementById('mainImage');
+        // Giữ ảnh chính là ảnh đầu tiên của uniqueImages
+        if (mainImage.src !== uniqueImages[0]) {
+            mainImage.src = uniqueImages[0];
+        }
     } else {
         document.getElementById('mainImage').src = "https://via.placeholder.com/300"; // Nếu không có hình ảnh, hiển thị ảnh mặc định
     }
@@ -246,13 +250,22 @@ function increaseQuantity() {
 
     const availableQuantity = selectedProduct.soLuongTheoSize[selectedSize] || 0;
 
-    if (currentQuantity < availableQuantity) {
-        quantityInput.value = currentQuantity + 1;
+    // Kiểm tra số lượng tối đa là 20
+    if (currentQuantity < 20) {
+        if (currentQuantity < availableQuantity) {
+            quantityInput.value = currentQuantity + 1;
+        } else {
+            Swal.fire({
+                icon: "warning",
+                title: "Vượt quá số lượng tồn kho!",
+                text: `Chỉ còn lại ${availableQuantity} sản phẩm.`,
+                confirmButtonText: "OK"
+            });
+        }
     } else {
         Swal.fire({
             icon: "warning",
-            title: "Vượt quá số lượng tồn kho!",
-            text: `Chỉ còn lại ${availableQuantity} sản phẩm.`,
+            title: "Số lượng tối đa là 20!",
             confirmButtonText: "OK"
         });
     }
@@ -285,7 +298,6 @@ function updateCartBadge() {
 
 // 🔹 Gọi hàm cập nhật ngay khi tải trang
 document.addEventListener("DOMContentLoaded", updateCartBadge);
-// 🔹 Thêm vào giỏ hàng
 // 🔹 Thêm vào giỏ hàng
 document.querySelector(".buy-button").addEventListener("click", function (event) {
     event.preventDefault();
@@ -340,24 +352,28 @@ document.querySelector(".buy-button").addEventListener("click", function (event)
     }
 
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
-    let existingProduct = cart.find(item => item.idSanPhamChiTiet === idSanPhamChiTiet);
+    let existingProduct = cart.find(item => item.idSanPhamChiTiet === idSanPhamChiTiet && item.size === selectedSize && item.color === selectedColor);
 
+    // Kiểm tra sự thay đổi về giá sản phẩm
     if (existingProduct) {
-        if (existingProduct.quantity + quantity > availableQuantity) {
-            Swal.fire({
-                icon: "warning",
-                title: "Không thể thêm vào giỏ hàng!",
-                html: `
-                    <p><strong>Bạn đã có ${existingProduct.quantity} sản phẩm trong giỏ.</strong></p>
-                    <p>Số lượng yêu cầu <strong>vượt quá số lượng tồn kho</strong> (<strong>${availableQuantity}</strong>).</p>
-                    <p>⚠️ Mong quý khách thông cảm và vui lòng điều chỉnh lại số lượng!</p>
-                `,
-                confirmButtonText: "OK"
+        if (existingProduct.price !== selectedProduct.gia.toLocaleString('vi-VN')) {
+            // Nếu giá thay đổi, tạo sản phẩm mới trong giỏ hàng
+            cart.push({
+                idSanPhamChiTiet: idSanPhamChiTiet,
+                name: selectedProduct.tenSanPham,
+                price: selectedProduct.gia.toLocaleString('vi-VN'),
+                size: selectedSize,
+                color: selectedColor,
+                image: document.getElementById('mainImage').src,
+                quantity: quantity,
+                availableQuantity: availableQuantity
             });
-            return;
+        } else {
+            // Nếu giá không thay đổi, cộng thêm số lượng vào sản phẩm hiện tại
+            existingProduct.quantity += quantity;
         }
-        existingProduct.quantity += quantity;
     } else {
+        // Nếu sản phẩm chưa có trong giỏ, thêm mới
         cart.push({
             idSanPhamChiTiet: idSanPhamChiTiet,
             name: selectedProduct.tenSanPham,
@@ -445,23 +461,28 @@ document.querySelector(".buy-now-button").addEventListener("click", function (ev
     }
 
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
-    let existingProduct = cart.find(item => item.idSanPhamChiTiet === idSanPhamChiTiet);
+    let existingProduct = cart.find(item => item.idSanPhamChiTiet === idSanPhamChiTiet && item.size === selectedSize && item.color === selectedColor);
 
+    // Kiểm tra sự thay đổi về giá sản phẩm
     if (existingProduct) {
-        if (existingProduct.quantity + quantity > availableQuantity) {
-            Swal.fire({
-                icon: "warning",
-                title: "Không thể mua ngay!",
-                html: `
-                    <p><strong>Bạn đã có ${existingProduct.quantity} sản phẩm trong giỏ.</strong></p>
-                    <p>Số lượng yêu cầu <strong>vượt quá số lượng tồn kho</strong> (<strong>${availableQuantity}</strong>).</p>
-                `,
-                confirmButtonText: "OK"
+        if (existingProduct.price !== selectedProduct.gia.toLocaleString('vi-VN')) {
+            // Nếu giá thay đổi, tạo sản phẩm mới trong giỏ hàng
+            cart.push({
+                idSanPhamChiTiet: idSanPhamChiTiet,
+                name: selectedProduct.tenSanPham,
+                price: selectedProduct.gia.toLocaleString('vi-VN'),
+                size: selectedSize,
+                color: selectedColor,
+                image: document.getElementById('mainImage').src,
+                quantity: quantity,
+                availableQuantity: availableQuantity
             });
-            return;
+        } else {
+            // Nếu giá không thay đổi, cộng thêm số lượng vào sản phẩm hiện tại
+            existingProduct.quantity += quantity;
         }
-        existingProduct.quantity += quantity;
     } else {
+        // Nếu sản phẩm chưa có trong giỏ, thêm mới
         cart.push({
             idSanPhamChiTiet: idSanPhamChiTiet,
             name: selectedProduct.tenSanPham,

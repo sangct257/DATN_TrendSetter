@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.Repository;
 
 import com.example.datn_trendsetter.DTO.HoaDonResponseDto;
 import com.example.datn_trendsetter.Entity.HoaDon;
+import com.example.datn_trendsetter.Entity.PhieuGiamGia;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
@@ -26,6 +28,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findByTrangThaiNot(String trangThai,Sort sort);
 
     HoaDon findByMaHoaDon(String maHoaDon);
+
     boolean existsByMaHoaDon(String maHoaDon);
 
     @Query("SELECT COALESCE(SUM(h.tongTien - COALESCE(h.phiShip, 0) + COALESCE(h.phieuGiamGia.giaTriGiam, 0)), 0) " +
@@ -84,7 +87,17 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<Object[]> getInvoiceCountByDateMonthYear(
             @Param("trangThaiHoaDon") List<String> trangThaiHoaDon);
 
+    @Query("SELECT YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao), SUM(hd.tongTien) " +
+            "FROM HoaDon hd " +
+            "WHERE hd.trangThai IN :trangThaiHoaDon " +
+            "GROUP BY YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao) " +
+            "ORDER BY YEAR(hd.ngayTao), MONTH(hd.ngayTao), DAY(hd.ngayTao)")
+    List<Object[]> getTotalRevenueByDateMonthYear(
+            @Param("trangThaiHoaDon") List<String> trangThaiHoaDon
+    );
 
+    @Query("SELECT h FROM HoaDon h WHERE h.trangThai NOT IN :trangThaiList")
+    List<HoaDon> findByTrangThaiNotInCustom(@Param("trangThaiList") List<String> trangThaiList, Sort sort);
 
 
 
@@ -118,4 +131,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findByKhachHang_Id(Integer khachHangId);
 
     Integer countByTrangThaiNot(String trangThai);
+
+    boolean existsByPhieuGiamGia(PhieuGiamGia phieuGiamGia);
 }

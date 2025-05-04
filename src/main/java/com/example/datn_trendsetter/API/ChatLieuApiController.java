@@ -2,6 +2,7 @@ package com.example.datn_trendsetter.API;
 
 import com.example.datn_trendsetter.Entity.*;
 import com.example.datn_trendsetter.Repository.ChatLieuRepository;
+import com.example.datn_trendsetter.Repository.SanPhamRepository;
 import com.example.datn_trendsetter.Repository.ThuongHieuRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ public class ChatLieuApiController {
     @Autowired
     private ChatLieuRepository chatLieuRepository;
 
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
 
     @PostMapping("add")
     public ResponseEntity<?> add(@RequestBody ChatLieu chatLieuRequest , HttpSession session) {
@@ -141,7 +144,7 @@ public class ChatLieuApiController {
 
 
     @DeleteMapping("delete/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id,HttpSession session) {
+    public ResponseEntity<?> delete(@PathVariable Integer id, HttpSession session) {
         try {
             // Lấy nhân viên từ session
             NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
@@ -152,7 +155,7 @@ public class ChatLieuApiController {
                 ));
             }
 
-            // Tìm danh mục theo ID
+            // Tìm chất liệu theo ID
             Optional<ChatLieu> optionalChatLieu = chatLieuRepository.findById(id);
             if (optionalChatLieu.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -161,18 +164,23 @@ public class ChatLieuApiController {
                 ));
             }
 
-            // Xóa mềm
             ChatLieu chatLieu = optionalChatLieu.get();
-            chatLieu.setTrangThai("Ngừng Hoạt Động");
-            chatLieu.setDeleted(true);
-            chatLieu.setNgaySua(LocalDate.now());
-            chatLieu.setNguoiSua(nhanVienSession.getHoTen());
 
-            chatLieuRepository.save(chatLieu);
+            // Kiểm tra xem chất liệu này có đang được dùng trong sản phẩm không
+            boolean isUsed = sanPhamRepository.existsByChatLieu(chatLieu);
+            if (isUsed) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Không thể xóa. Chất liệu này đang được sử dụng bởi sản phẩm."
+                ));
+            }
+
+            // Xóa thẳng nếu không bị ràng buộc
+            chatLieuRepository.delete(chatLieu);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Xóa chất liệu thành công (đã đánh dấu là deleted)"
+                    "message", "Xóa chất liệu thành công"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
@@ -181,6 +189,7 @@ public class ChatLieuApiController {
             ));
         }
     }
+
 
     @PutMapping("update-trang-thai/{id}")
     public ResponseEntity<?> updateTrangThai(@PathVariable Integer id, @RequestBody Map<String, String> request, HttpSession session) {

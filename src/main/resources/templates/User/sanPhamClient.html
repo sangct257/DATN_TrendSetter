@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>EShopper - Bootstrap Shop Template</title>
+    <title>TrendSetter</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
@@ -102,8 +102,7 @@
         <div class="col-lg-9">
             <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
                 <a href="" class="text-decoration-none d-block d-lg-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold"><span
-                            class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+                    <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
                 </a>
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
                     <span class="navbar-toggler-icon"></span>
@@ -113,16 +112,16 @@
                         <a href="trang-chu" class="nav-item nav-link active">Trang chủ</a>
                         <a href="san-pham" class="nav-item nav-link">Sản phẩm</a>
                         <a href="gio-hang" class="nav-item nav-link">Giỏ hàng</a>
-                        <a href="thanh-toan" class="nav-item nav-link">Thanh toán</a>
+                        <!--                        <a href="thanh-toan" class="nav-item nav-link">Thanh toán</a>-->
                     </div>
                     <div class="navbar-nav ml-auto py-0">
                         <!-- Nếu chưa đăng nhập -->
                         <div th:if="${session.userKhachHang == null}" class="nav-item">
                             <a href="#" class="nav-link text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#authModal">Đăng nhập</a>
                         </div>
+
                         <!-- Nếu đã đăng nhập và là KHÁCH HÀNG -->
                         <div th:if="${session.userKhachHang != null and session.rolesKhachHang != null and #lists.contains(session.rolesKhachHang, 'ROLE_KHACHHANG')}" class="nav-item dropdown">
-
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img th:src="${session.userKhachHang.hinhAnh}" class="rounded-circle user-image" alt="User Image" width="40" height="40">
                                 <span class="d-none d-md-inline ms-2" th:text="${session.userKhachHang.hoTen}"></span>
@@ -198,6 +197,10 @@
                                                 <div class="mb-3">
                                                     <label for="register-password" class="form-label">Mật khẩu</label>
                                                     <input type="password" class="form-control" id="register-password" placeholder="Mật khẩu" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="register-confirm-password" class="form-label">Xác nhận mật khẩu</label>
+                                                    <input type="password" class="form-control" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
                                                 </div>
                                                 <button type="submit" class="btn btn-success w-100">Đăng ký</button>
                                             </form>
@@ -368,23 +371,23 @@
                 <div class="col-md-4 mb-5">
                     <h5 class="font-weight-bold text-dark mb-4">Liên kết nhanh</h5>
                     <div class="d-flex flex-column justify-content-start">
-                        <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
-                        <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
-                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Chi tiết sản phẩm</a>
-                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
-                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
-                        <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Chi tiết sản phẩm</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
+                        <a class="text-dark"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-5">
                     <h5 class="font-weight-bold text-dark mb-4">Liên kết nhanh</h5>
                     <div class="d-flex flex-column justify-content-start">
-                        <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
-                        <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
-                        <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Chi tiết sản phẩm</a>
-                        <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
-                        <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
-                        <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Chi tiết sản phẩm</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
+                        <a class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
+                        <a class="text-dark"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-5">

@@ -160,7 +160,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Content-Type": "application/json"
                     }
                 })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || "API call failed with status " + response.status);
+                            });
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.message) {
                             Swal.fire({
@@ -175,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             Swal.fire({
                                 icon: "error",
                                 title: "Lỗi",
-                                text: data.error,
+                                text: data.error || "Đã xảy ra lỗi không xác định!",
                                 confirmButtonText: "OK"
                             });
                         }
@@ -185,13 +192,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         Swal.fire({
                             icon: "error",
                             title: "Lỗi",
-                            text: "Đã xảy ra lỗi trong quá trình xử lý!",
+                            text: error.message || "Đã xảy ra lỗi trong quá trình xử lý!",
                             confirmButtonText: "OK"
                         });
                     });
             }
         });
     };
+
 
     // Đảm bảo rằng phần dưới có sự kiện DOMContentLoaded
     document.addEventListener("DOMContentLoaded", function() {
@@ -278,20 +286,23 @@ document.addEventListener("DOMContentLoaded", function () {
     // Cập nhật trạng thái tự động dựa vào ngày bắt đầu
     function updateTrangThai() {
         const ngayBatDauInput = document.getElementById("ngayBatDau");
+        const ngayKetThucInput = document.getElementById("ngayKetThuc");
         const trangThaiSelect = document.getElementById("trangThai");
 
-        if (!ngayBatDauInput.value) return;
+        if (!ngayBatDauInput.value || !ngayKetThucInput.value) return;
 
-        const ngayBatDau = new Date(ngayBatDauInput.value + "T00:00:00"); // Fix lỗi múi giờ
-        if (isNaN(ngayBatDau.getTime())) return; // Kiểm tra ngày hợp lệ
+        const ngayBatDau = new Date(ngayBatDauInput.value + "T00:00:00");
+        const ngayKetThuc = new Date(ngayKetThucInput.value + "T00:00:00");
+
+        if (isNaN(ngayBatDau.getTime()) || isNaN(ngayKetThuc.getTime())) return;
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Đặt giờ về 00:00 để so sánh chính xác
+        today.setHours(0, 0, 0, 0); // reset giờ
 
-        if (ngayBatDau.getTime() === today.getTime()) {
-            trangThaiSelect.value = "Đang Hoạt Động";
-        } else if (ngayBatDau.getTime() > today.getTime()) {
+        if (today < ngayBatDau) {
             trangThaiSelect.value = "Sắp Diễn Ra";
+        } else if (today >= ngayBatDau && today <= ngayKetThuc) {
+            trangThaiSelect.value = "Đang Hoạt Động";
         } else {
             trangThaiSelect.value = "Ngừng Hoạt Động";
         }
@@ -302,49 +313,68 @@ document.addEventListener("DOMContentLoaded", function () {
         updateTrangThai();
     });
 
+    document.getElementById("ngayKetThuc").addEventListener("change", function () {
+        updateTrangThai();
+    });
+
     setMinDate();
 
     // Hàm validate form
     function validateForm() {
-        let isValid = true;
-        document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
-        document.querySelectorAll(".invalid-feedback").forEach(el => el.remove());
+    let isValid = true;
+    document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+    document.querySelectorAll(".invalid-feedback").forEach(el => el.remove());
 
-        function showError(inputId, message) {
-            const inputElement = document.getElementById(inputId);
-            inputElement.classList.add("is-invalid");
-            inputElement.insertAdjacentHTML("afterend", `<div class="invalid-feedback">${message}</div>`);
-            isValid = false;
-        }
-
-        const fields = [
-            { id: "maPGG", message: "Vui lòng nhập mã phiếu giảm giá." },
-            { id: "tenPGG", message: "Vui lòng nhập tên phiếu giảm giá." },
-            { id: "giaTriGiam", message: "Vui lòng nhập giá trị giảm hợp lệ.", validate: v => !isNaN(v) && v > 0 },
-            { id: "soLuong", message: "Vui lòng nhập số lượng hợp lệ.", validate: v => !isNaN(v) && v > 0 },
-            { id: "ngayBatDau", message: "Vui lòng chọn ngày bắt đầu." },
-            { id: "ngayKetThuc", message: "Vui lòng chọn ngày kết thúc." }
-        ];
-
-        fields.forEach(({ id, message, validate }) => {
-            const value = document.getElementById(id).value.trim();
-            if (!value || (validate && !validate(value))) {
-                showError(id, message);
-            }
-        });
-
-        const ngayBatDau = new Date(document.getElementById("ngayBatDau").value);
-        const ngayKetThuc = new Date(document.getElementById("ngayKetThuc").value);
-        if (ngayBatDau > ngayKetThuc) {
-            showError("ngayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu.");
-        }
-        const giaTriGiam = parseFloat(document.getElementById("giaTriGiam").value);
-        const dieuKien = parseFloat(document.getElementById("dieuKien").value) || 0;
-        if (giaTriGiam > dieuKien) {
-            showError("giaTriGiam", "Giá trị giảm không được lớn hơn giá trị tối thiểu.");
-        }
-        return isValid;
+    function showError(inputId, message) {
+        const inputElement = document.getElementById(inputId);
+        inputElement.classList.add("is-invalid");
+        inputElement.insertAdjacentHTML("afterend", `<div class="invalid-feedback">${message}</div>`);
+        isValid = false;
     }
+
+    // Các trường dữ liệu cần kiểm tra
+    const fields = [
+        { id: "maPGG", message: "Vui lòng nhập mã phiếu giảm giá." },
+        { id: "tenPGG", message: "Vui lòng nhập tên phiếu giảm giá." },
+        { id: "giaTriGiam", message: "Vui lòng nhập giá trị giảm hợp lệ (VND).", validate: v => !isNaN(v) && v > 0 },
+        { id: "soLuong", message: "Vui lòng nhập số lượng hợp lệ.", validate: v => !isNaN(v) && v > 0 },
+        { id: "ngayBatDau", message: "Vui lòng chọn ngày bắt đầu." },
+        { id: "ngayKetThuc", message: "Vui lòng chọn ngày kết thúc." }
+    ];
+
+    // Kiểm tra các trường dữ liệu
+    fields.forEach(({ id, message, validate }) => {
+        const value = document.getElementById(id).value.trim();
+        if (!value || (validate && !validate(value))) {
+            showError(id, message);
+        }
+    });
+
+    // Kiểm tra ngày bắt đầu và kết thúc
+    const ngayBatDau = new Date(document.getElementById("ngayBatDau").value);
+    const ngayKetThuc = new Date(document.getElementById("ngayKetThuc").value);
+    if (ngayBatDau > ngayKetThuc) {
+        showError("ngayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu.");
+    }
+
+    // Kiểm tra giá trị giảm
+   const giaTriGiam = parseFloat(document.getElementById("giaTriGiam").value);
+   const dieuKien = parseFloat(document.getElementById("dieuKien").value) || 0;
+
+
+   if (isNaN(giaTriGiam) || giaTriGiam <= 1000) {
+           showError("giaTriGiam", "Giá trị giảm phải lớn hơn 1000 VND.");
+       } else if (isNaN(dieuKien) || dieuKien <= 10000) {
+           showError("dieuKien", "Điều kiện áp dụng phải lớn hơn 10000 VND.");
+       } else {
+           if (giaTriGiam >= dieuKien) {
+               showError("giaTriGiam", "Giá trị giảm phải nhỏ hơn điều kiện áp dụng.");
+           }
+   }
+    return isValid;
+}
+
+
 
     // Ngăn dropdown tự mở khi nhấn vào trang thái
     document.getElementById("trangThai").addEventListener("mousedown", function (event) {
@@ -393,6 +423,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("addModal").addEventListener("hidden.bs.modal", function () {
         this.setAttribute("data-mode", "add");
         document.getElementById("maPGG").value = "";
+
+        // XÓA CÁC LỖI VALIDATE KHI ĐÓNG MODAL
+        document.querySelectorAll("#addModal .is-invalid").forEach(el => el.classList.remove("is-invalid"));
+        document.querySelectorAll("#addModal .invalid-feedback").forEach(el => el.remove());
     });
 
     // Sự kiện submit khi nhấn nút trong modal
@@ -482,22 +516,30 @@ document.addEventListener("DOMContentLoaded", function () {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ phieuGiamGia })
                     })
-                        .then(response => {
-                            if (!response.ok) throw new Error("Có lỗi khi cập nhật phiếu giảm giá!");
-                            return response.json();
-                        })
-                        .then(() => {
-                            Swal.fire({ title: "Thành công!", text: "Phiếu giảm giá đã được cập nhật.", icon: "success" })
-                                .then(() => {
-                                    // Sau khi cập nhật thành công, tải lại trang để cập nhật dữ liệu
-                                    location.reload();
-                                    let modal = bootstrap.Modal.getInstance(document.getElementById("addModal"));
-                                    modal.hide();
-                                });
-                        })
-                        .catch(() => {
-                            Swal.fire({ title: "Lỗi!", text: "Đã xảy ra lỗi khi cập nhật phiếu giảm giá.", icon: "error" });
+                    .then(async response => {
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.message || "Có lỗi khi cập nhật phiếu giảm giá!");
+                        }
+
+                        Swal.fire({
+                            title: "Thành công!",
+                            text: data.message || "Phiếu giảm giá đã được cập nhật.",
+                            icon: "success"
+                        }).then(() => {
+                            location.reload();
+                            let modal = bootstrap.Modal.getInstance(document.getElementById("addModal"));
+                            modal.hide();
                         });
+                    })
+                    .catch(err => {
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: err.message || "Đã xảy ra lỗi khi cập nhật phiếu giảm giá.",
+                            icon: "error"
+                        });
+                    });
                 }
             });
         }

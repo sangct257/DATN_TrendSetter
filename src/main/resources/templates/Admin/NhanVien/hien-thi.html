@@ -63,7 +63,8 @@
                                         <div class="row">
                                             <!-- Cột 1: Avatar (Canh giữa) -->
                                             <div class="col-md-4 d-flex flex-column align-items-center justify-content-center">
-                                                <img id="avatarPreview" class="rounded-circle border shadow mb-3" width="150" height="150">
+                                                <img id="avatarPreview" class="rounded-circle border shadow mb-3"
+                                                     width="150" height="150">
                                                 <input type="file" class="form-control mt-2" id="hinhAnh"
                                                        accept="image/*" onchange="previewImage(event)">
                                                 <div class="error-message" id="hinhAnhError"></div>
@@ -169,12 +170,15 @@
                         </tbody>
                     </table>
                     <!-- Modal Sửa Nhan Viên -->
-                    <div class="modal fade" id="modalUpdateNhanVien" tabindex="-1" aria-labelledby="updateNhanVienLabel" aria-hidden="true">
+                    <div class="modal fade" id="modalUpdateNhanVien" tabindex="-1" aria-labelledby="updateNhanVienLabel"
+                         aria-hidden="true">
                         <div class="modal-dialog modal-xl">
                             <div class="modal-content">
                                 <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title" id="updateNhanVienLabel"><i class="bi bi-person-plus"></i> Sửa Nhân Viên</h5>
-                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <h5 class="modal-title" id="updateNhanVienLabel"><i class="bi bi-person-plus"></i>
+                                        Sửa Nhân Viên</h5>
+                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <form id="updateNhanVienForm">
@@ -182,43 +186,66 @@
                                         <div class="row">
                                             <!-- Cột 1: Avatar -->
                                             <div class="col-md-4 d-flex flex-column align-items-center justify-content-center">
-                                                <img id="avatarPreview1" class="rounded-circle border shadow mb-3" width="150" height="150" alt="Ảnh Nhân Viên">
-                                                <input type="file" class="form-control mt-2" accept="image/*" name="hinhAnh" onchange="previewImage(event)">
+                                                <img id="avatarPreview1" class="rounded-circle border shadow mb-3"
+                                                     width="150" height="150" alt="Ảnh Nhân Viên">
+                                                <input type="file" class="form-control mt-2" accept="image/*"
+                                                       name="hinhAnh" onchange="previewImage(event)">
                                             </div>
                                             <!-- Cột 2: Thông tin nhân viên -->
                                             <div class="col-md-8">
                                                 <div class="mb-3">
-                                                    <label class="form-label"><i class="bi bi-person"></i> Họ Tên</label>
-                                                    <input type="text" class="form-control" name="hoTen" placeholder="Nhập họ tên" required>
+                                                    <label class="form-label"><i class="bi bi-person"></i> Họ
+                                                        Tên</label>
+                                                    <input type="text" class="form-control" name="hoTen"
+                                                           placeholder="Nhập họ tên" required>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label"><i class="bi bi-person-circle"></i> Username</label>
-                                                        <input type="text" class="form-control" name="username" placeholder="Nhập username" required>
+                                                        <label class="form-label"><i class="bi bi-person-circle"></i>
+                                                            Username</label>
+                                                        <input type="text" class="form-control" name="username"
+                                                               placeholder="Nhập username" required>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label"><i class="bi bi-key"></i> Mật Khẩu</label>
-                                                        <input type="password" class="form-control" name="password" placeholder="Nhập mật khẩu" required>
+                                                        <label class="form-label"><i class="bi bi-key"></i> Mật
+                                                            Khẩu</label>
+                                                        <div class="input-group">
+                                                            <input type="password" class="form-control" name="password"
+                                                                   id="password1" placeholder="Nhập mật khẩu" required>
+                                                            <button class="btn btn-outline-secondary border-start-0"
+                                                                    type="button" id="togglePassword1">
+                                                                <i class="bi bi-eye"></i>
+                                                            </button>
+                                                        </div>
+                                                        <div id="passwordFeedback" class="mt-2" style="display: none;">
+                                                            <small id="passwordMessage" class="text-danger"></small>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label"><i class="bi bi-envelope"></i> Email</label>
-                                                    <input type="email" class="form-control" name="email" placeholder="Nhập email" required>
+                                                    <label class="form-label"><i class="bi bi-envelope"></i>
+                                                        Email</label>
+                                                    <input type="email" class="form-control" name="email"
+                                                           placeholder="Nhập email" required>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label"><i class="bi bi-house"></i> Địa Chỉ</label>
-                                                    <input type="text" class="form-control" name="diaChi" placeholder="Nhập địa chỉ">
+                                                    <label class="form-label"><i class="bi bi-house"></i> Địa
+                                                        Chỉ</label>
+                                                    <input type="text" class="form-control" name="diaChi"
+                                                           placeholder="Nhập địa chỉ">
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label"><i class="bi bi-gender-ambiguous"></i> Giới Tính</label>
+                                                        <label class="form-label"><i class="bi bi-gender-ambiguous"></i>
+                                                            Giới Tính</label>
                                                         <select class="form-select" name="gioiTinh">
                                                             <option value="true">Nam</option>
                                                             <option value="false">Nữ</option>
                                                         </select>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label"><i class="bi bi-calendar"></i> Ngày Sinh</label>
+                                                        <label class="form-label"><i class="bi bi-calendar"></i> Ngày
+                                                            Sinh</label>
                                                         <input type="date" class="form-control" name="ngaySinh">
                                                     </div>
                                                 </div>
@@ -234,8 +261,11 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="button" class="btn btn-primary" id="btnUpdate" onclick="updateNhanVien()">Lưu</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="btnUpdate"
+                                            onclick="updateNhanVien()">Lưu
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -387,9 +417,23 @@
         // Validate mật khẩu
         const password = document.getElementById("password").value;
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
-        if (password && !passwordRegex.test(password)) {
-            showError("password", "Mật khẩu phải có ít nhất 6 ký tự, gồm cả chữ và số");
-        }
+        // Kiểm tra độ dài mật khẩu
+    if (password.length < 6) {
+        passwordMessage.textContent = "Mật khẩu phải có ít nhất 6 ký tự.";
+        passwordFeedback.style.display = "block";
+    } else if (!/[A-Z]/.test(password)) {
+        passwordMessage.textContent = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa.";
+        passwordFeedback.style.display = "block";
+    } else if (!/[a-z]/.test(password)) {
+        passwordMessage.textContent = "Mật khẩu phải chứa ít nhất một chữ cái viết thường.";
+        passwordFeedback.style.display = "block";
+    } else if (!/[0-9]/.test(password)) {
+        passwordMessage.textContent = "Mật khẩu phải chứa ít nhất một chữ số.";
+        passwordFeedback.style.display = "block";
+    } else {
+        passwordMessage.textContent = "";
+        passwordFeedback.style.display = "none";
+    }
 
         // Validate hình ảnh
         const fileInput = document.getElementById("hinhAnh");
@@ -485,45 +529,55 @@ function clearFieldErrors() {
 
 
     async function saveNhanVien() {
-        if (!validateForm()) {
+    if (!validateForm()) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: "Vui lòng kiểm tra lại các trường thông tin.",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return;
+    }
+
+    const btnSubmit = document.getElementById("btnSave");
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
+
+    const formData = new FormData();
+    formData.append("hoTen", document.getElementById("hoTen").value);
+    formData.append("username", document.getElementById("username").value);
+    formData.append("password", document.getElementById("password").value);
+    formData.append("email", document.getElementById("email").value);
+    formData.append("diaChi", document.getElementById("diaChi").value);
+    formData.append("gioiTinh", document.getElementById("gioiTinh").value);
+    formData.append("ngaySinh", document.getElementById("ngaySinh").value);
+    formData.append("trangThai", document.getElementById("trangThai").value);
+
+    const fileInput = document.getElementById("hinhAnh");
+    if (fileInput.files.length > 0) {
+        formData.append("file", fileInput.files[0]);
+    }
+
+    try {
+        const response = await fetch("http://localhost:8080/api/nhan-vien/add", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json(); // lấy JSON trả về từ BE
+
+        if (data.status === "warning") {
+            // Nếu là warning, hiện tất cả lỗi server trả về
             Swal.fire({
                 title: "Lỗi!",
-                text: "Vui lòng kiểm tra lại các trường thông tin.",
+                html: Object.values(data.messages).join("<br>"),  // nối các message bằng thẻ xuống dòng
                 icon: "error",
                 confirmButtonText: "OK"
             });
             return;
         }
 
-        const btnSubmit = document.getElementById("btnSave");
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<i class="bi bi-hourglass-split"></i> Đang xử lý...`;
-
-        const formData = new FormData();
-        formData.append("hoTen", document.getElementById("hoTen").value);
-        formData.append("username", document.getElementById("username").value);
-        formData.append("password", document.getElementById("password").value);
-        formData.append("email", document.getElementById("email").value);
-        formData.append("diaChi", document.getElementById("diaChi").value);
-        formData.append("gioiTinh", document.getElementById("gioiTinh").value);
-        formData.append("ngaySinh", document.getElementById("ngaySinh").value);
-        formData.append("trangThai", document.getElementById("trangThai").value);
-
-        const fileInput = document.getElementById("hinhAnh");
-        if (fileInput.files.length > 0) {
-            formData.append("file", fileInput.files[0]);
-        }
-
-        try {
-            const response = await fetch("http://localhost:8080/api/nhan-vien/add", {
-                method: "POST",
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error("Có lỗi xảy ra khi thêm nhân viên.");
-            }
-
+        if (data.status === "success") {
             await Swal.fire({
                 title: "Thành công!",
                 text: "Nhân viên đã được thêm thành công!",
@@ -532,22 +586,32 @@ function clearFieldErrors() {
             });
 
             setTimeout(() => location.reload(), 1500);
-
-        } catch (error) {
+        } else {
+            // Các status khác (ví dụ lỗi hệ thống)
             Swal.fire({
                 title: "Lỗi!",
-                text: error.message,
+                text: "Có lỗi xảy ra: " + (data.message || "Không xác định."),
                 icon: "error",
-                confirmButtonText: "Thử lại"
+                confirmButtonText: "OK"
             });
-
-        } finally {
-            setTimeout(() => {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `Thêm nhân viên`;
-            }, 2000);
         }
+
+    } catch (error) {
+        Swal.fire({
+            title: "Lỗi!",
+            text: error.message,
+            icon: "error",
+            confirmButtonText: "Thử lại"
+        });
+
+    } finally {
+        setTimeout(() => {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `Thêm nhân viên`;
+        }, 2000);
     }
+}
+
 
     document.getElementById("togglePassword").addEventListener("click", function () {
         const passwordInput = document.getElementById("password");
@@ -563,6 +627,46 @@ function clearFieldErrors() {
             icon.classList.add("bi-eye");
         }
     });
+
+    document.getElementById("togglePassword1").addEventListener("click", function () {
+    const passwordInput = document.getElementById("password1");
+    const icon = this.querySelector("i");
+
+    if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        icon.classList.remove("bi-eye");
+        icon.classList.add("bi-eye-slash");
+    } else {
+        passwordInput.type = "password";
+        icon.classList.remove("bi-eye-slash");
+        icon.classList.add("bi-eye");
+    }
+});
+
+// Kiểm tra khi người dùng nhập mật khẩu
+document.getElementById("password1").addEventListener("input", function () {
+    const password = this.value;
+    const passwordMessage = document.getElementById("passwordMessage");
+    const passwordFeedback = document.getElementById("passwordFeedback");
+
+    // Kiểm tra độ dài mật khẩu
+    if (password.length < 6) {
+        passwordMessage.textContent = "Mật khẩu phải có ít nhất 6 ký tự.";
+        passwordFeedback.style.display = "block";
+    } else if (!/[A-Z]/.test(password)) {
+        passwordMessage.textContent = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa.";
+        passwordFeedback.style.display = "block";
+    } else if (!/[a-z]/.test(password)) {
+        passwordMessage.textContent = "Mật khẩu phải chứa ít nhất một chữ cái viết thường.";
+        passwordFeedback.style.display = "block";
+    } else if (!/[0-9]/.test(password)) {
+        passwordMessage.textContent = "Mật khẩu phải chứa ít nhất một chữ số.";
+        passwordFeedback.style.display = "block";
+    } else {
+        passwordMessage.textContent = "";
+        passwordFeedback.style.display = "none";
+    }
+});
 
 </script>
 

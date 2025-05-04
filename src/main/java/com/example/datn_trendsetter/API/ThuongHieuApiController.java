@@ -4,6 +4,7 @@ import com.example.datn_trendsetter.Entity.ChatLieu;
 import com.example.datn_trendsetter.Entity.MauSac;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.ThuongHieu;
+import com.example.datn_trendsetter.Repository.SanPhamRepository;
 import com.example.datn_trendsetter.Repository.ThuongHieuRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class ThuongHieuApiController {
 
     @Autowired
     private ThuongHieuRepository thuongHieuRepository;
+
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
 
     @PostMapping("add")
     public ResponseEntity<?> addThuongHieu(@RequestBody ThuongHieu thuongHieuRequest, HttpSession session){
@@ -149,9 +153,9 @@ public class ThuongHieuApiController {
 
 
     @DeleteMapping("delete/{id}")
-    public ResponseEntity<?> deleteThuongHieu(@PathVariable Integer id,HttpSession session) {
+    public ResponseEntity<?> deleteThuongHieu(@PathVariable Integer id, HttpSession session) {
         try {
-            // Lấy nhân viên từ session
+            // Kiểm tra đăng nhập
             NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
@@ -160,8 +164,7 @@ public class ThuongHieuApiController {
                 ));
             }
 
-
-            // Tìm thương hiệu theo ID
+            // Tìm thương hiệu
             Optional<ThuongHieu> optionalThuongHieu = thuongHieuRepository.findById(id);
             if (optionalThuongHieu.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -170,18 +173,23 @@ public class ThuongHieuApiController {
                 ));
             }
 
-            // Xóa mềm
             ThuongHieu thuongHieu = optionalThuongHieu.get();
-            thuongHieu.setTrangThai("Ngừng Hoạt Động");
-            thuongHieu.setDeleted(true);
-            thuongHieu.setNgaySua(LocalDate.now());
-            thuongHieu.setNguoiSua(nhanVienSession.getHoTen());
 
-            thuongHieuRepository.save(thuongHieu);
+            // Kiểm tra xem thương hiệu này có đang được dùng trong sản phẩm không
+            boolean isUsed = sanPhamRepository.existsByThuongHieu(thuongHieu);
+            if (isUsed) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Không thể xóa. Thương hiệu này đang được sử dụng trong sản phẩm."
+                ));
+            }
+
+            // Xóa thẳng khỏi DB
+            thuongHieuRepository.delete(thuongHieu);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Xóa thương hiệu thành công (đã đánh dấu là deleted)"
+                    "message", "Xóa thương hiệu thành công"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
@@ -190,6 +198,7 @@ public class ThuongHieuApiController {
             ));
         }
     }
+
 
     @PutMapping("update-trang-thai/{id}")
     public ResponseEntity<?> updateTrangThai(@PathVariable Integer id, @RequestBody Map<String, String> request, HttpSession session) {

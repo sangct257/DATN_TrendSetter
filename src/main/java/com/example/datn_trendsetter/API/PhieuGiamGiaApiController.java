@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +60,6 @@ public class PhieuGiamGiaApiController {
         return ResponseEntity.ok().body(countMap);
     }
 
-
     // API để update trạng thái phiếu giảm giá  (khi nhấn vào trạng thái)
     @PutMapping("/toggle-status/{id}")
     public ResponseEntity<?> togglePhieuGiamGiaStatus(@PathVariable Integer id, HttpSession session) {
@@ -71,28 +72,38 @@ public class PhieuGiamGiaApiController {
 
         PhieuGiamGia pgg = phieuGiamGiaOpt.get();
 
-        // Lấy danh sách vai trò từ session
-        List<String> userRoles = (List<String>) session.getAttribute("rolesNhanVien");
-
-        // Nếu không có vai trò, đặt mặc định là NHANVIEN
-        if (userRoles == null) {
-            userRoles = Collections.singletonList("ROLE_NHANVIEN");
+        // Kiểm tra vai trò ADMIN trong session
+        List<String> roles = (List<String>) session.getAttribute("rolesNhanVien");
+        if (roles == null || !roles.contains("ROLE_ADMIN")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Bạn không có quyền thay đổi trạng thái phiếu giảm giá!"));
         }
 
-        System.out.println("Vai trò hiện tại: " + userRoles); // Kiểm tra session
-
-        // Nếu là ADMIN, có toàn quyền chỉnh sửa
-        if (userRoles.contains("ROLE_ADMIN")) {
-            pgg.setTrangThai("Đang Hoạt Động".equalsIgnoreCase(pgg.getTrangThai()) ? "Ngừng Hoạt Động" : "Đang Hoạt Động");
-            PhieuGiamGiaScheduler.markAsEditedByAdmin(pgg.getId()); // Đánh dấu là ADMIN đã thay đổi trong bộ nhớ
-            phieuGiamGiaRepository.save(pgg);
-            return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công (ADMIN)!"));
+        // Kiểm tra số lượt sử dụng của phiếu giảm giá
+        if (pgg.getSoLuotSuDung() == 0) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Phiếu giảm giá đã hết lượt sử dụng!"));
         }
 
-        // ❌ Nếu không phải ADMIN, chặn thao tác
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Collections.singletonMap("error", "Bạn không có quyền thay đổi trạng thái phiếu giảm giá!"));
+        // Kiểm tra ngày bắt đầu và ngày kết thúc
+        LocalDate currentDate = LocalDate.now();
+        if (pgg.getNgayBatDau().isAfter(currentDate)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Phiếu giảm giá chưa bắt đầu!"));
+        }
+        if (pgg.getNgayKetThuc().isBefore(currentDate)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", "Phiếu giảm giá đã hết hạn!"));
+        }
+
+        // Nếu tất cả điều kiện hợp lệ, cho phép thay đổi trạng thái
+        pgg.setTrangThai("Đang Hoạt Động".equalsIgnoreCase(pgg.getTrangThai()) ? "Ngừng Hoạt Động" : "Đang Hoạt Động");
+        PhieuGiamGiaScheduler.markAsEditedByAdmin(pgg.getId());
+        phieuGiamGiaRepository.save(pgg);
+
+        return ResponseEntity.ok(Collections.singletonMap("message", "Cập nhật trạng thái thành công (ADMIN)!"));
     }
+
 
 
 
@@ -118,11 +129,19 @@ public class PhieuGiamGiaApiController {
         return ResponseEntity.ok("Xóa mềm thành công!");
     }
     @PutMapping("/update/{id}")
-    public ResponseEntity<PhieuGiamGia> updatePhieuGiamGia(
+    public ResponseEntity<?> updatePhieuGiamGia(
             @PathVariable Integer id,
             @RequestBody Map<String, Object> requestBody,
-            HttpSession session) throws Exception {
-        return ResponseEntity.ok(phieuGiamGiaService.updatePhieuGiamGia(id, requestBody,session));
+            HttpSession session) {
+        try {
+            PhieuGiamGia result = phieuGiamGiaService.updatePhieuGiamGia(id, requestBody, session);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Collections.singletonMap("message", e.getMessage()));
+        }
     }
+
 
 }

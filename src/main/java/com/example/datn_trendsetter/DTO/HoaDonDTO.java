@@ -87,22 +87,22 @@ public class HoaDonDTO {
 
     public HoaDonDTO(Integer id, String maHoaDon,
                      Integer idKhachHang,
-                     String nguoiTao,
+                     String nguoiNhan,
                      String loaiHoaDon,
                      LocalDateTime ngayTao,
                      Float tongTien,
                      String trangThai,
-                     Float phiShip,
+                     String nguoiTao,
                      Integer idPhuongThuocThanhToan) {
         this.id = id;
         this.idKhachHang = idKhachHang;
         this.maHoaDon = maHoaDon;
         this.tongTien = tongTien;
-        this.phiShip = phiShip;
+        this.nguoiTao = nguoiTao;
         this.trangThai = trangThai;
         this.loaiHoaDon = loaiHoaDon;
         this.ngayTao = ngayTao;
-        this.nguoiTao = nguoiTao;
+        this.nguoiNhan = nguoiNhan;
         this.idPhuongThucThanhToan = idPhuongThuocThanhToan;
     }
 }

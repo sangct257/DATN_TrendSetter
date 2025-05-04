@@ -5,6 +5,7 @@ import com.example.datn_trendsetter.Entity.DanhMuc;
 import com.example.datn_trendsetter.Entity.KichThuoc;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Repository.KichThuocRepository;
+import com.example.datn_trendsetter.Repository.SanPhamChiTietRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,9 @@ public class KichThuocApiController {
 
     @Autowired
     private KichThuocRepository kichThuocRepository;
+
+    @Autowired
+    private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @PostMapping("add")
     public ResponseEntity<?> add(@RequestBody KichThuoc kichThuocRequest, HttpSession session) {
@@ -147,7 +151,7 @@ public class KichThuocApiController {
     @DeleteMapping("delete/{id}")
     public ResponseEntity<?> delete(@PathVariable Integer id, HttpSession session) {
         try {
-            // Lấy nhân viên từ session
+            // Kiểm tra đăng nhập nhân viên
             NhanVien nhanVienSession = (NhanVien) session.getAttribute("userNhanVien");
             if (nhanVienSession == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
@@ -156,7 +160,7 @@ public class KichThuocApiController {
                 ));
             }
 
-            // Tìm kích thước theo ID
+            // Tìm kích thước
             Optional<KichThuoc> optionalKichThuoc = kichThuocRepository.findById(id);
             if (optionalKichThuoc.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -165,26 +169,32 @@ public class KichThuocApiController {
                 ));
             }
 
-            // Xóa mềm
             KichThuoc kichThuoc = optionalKichThuoc.get();
-            kichThuoc.setTrangThai("Ngừng Hoạt Động");
-            kichThuoc.setDeleted(true);
-            kichThuoc.setNgaySua(LocalDate.now());
-            kichThuoc.setNguoiSua(nhanVienSession.getHoTen());
 
-            kichThuocRepository.save(kichThuoc);
+            // Kiểm tra xem có sản phẩm chi tiết nào đang dùng kích thước này không
+            boolean isUsed = sanPhamChiTietRepository.existsByKichThuoc(kichThuoc);
+            if (isUsed) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Không thể xóa. Kích thước này đang được sử dụng trong sản phẩm."
+                ));
+            }
+
+            // Xóa khỏi database
+            kichThuocRepository.delete(kichThuoc);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Xóa kích thước thành công (đã đánh dấu là deleted)"
+                    "message", "Xóa kích thước thành công"
             ));
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "success", false,
                     "message", "Đã xảy ra lỗi: " + e.getMessage()
             ));
         }
     }
+
 
     @PutMapping("update-trang-thai/{id}")
     public ResponseEntity<?> updateTrangThai(@PathVariable Integer id, @RequestBody Map<String, String> request, HttpSession session) {

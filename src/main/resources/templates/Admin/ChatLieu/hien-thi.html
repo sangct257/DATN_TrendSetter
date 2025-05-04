@@ -307,50 +307,50 @@
     }
 
 
-    function deleteChatLieu(button) {
-        let row = button.closest("tr");
-        let hiddenInput = row.querySelector("td input[type='hidden']");
+    // Hàm xóa màu sắc
+       function deleteChatLieu(button) {
+           let row = button.closest("tr");
+           let hiddenInput = row.querySelector("td input[type='hidden']");
+           if (!hiddenInput) {
+               Swal.fire("Lỗi!", "Không tìm thấy ID chất liệu!", "error");
+               return;
+           }
 
-        if (!hiddenInput) {
-            Swal.fire("Lỗi!", "Không tìm thấy ID chất liệu!", "error");
-            return;
-        }
+           let chatLieuId = hiddenInput.value;
 
-        let chatLieuId = hiddenInput.value;
+           Swal.fire({
+               title: "Bạn có chắc chắn muốn xóa chất liệu này?",
+               text: "Hành động này không thể hoàn tác!",
+               icon: "warning",
+               showCancelButton: true,
+               confirmButtonText: "Xóa",
+               cancelButtonText: "Hủy"
+           }).then((result) => {
+               if (result.isConfirmed) {
+                   Swal.fire({
+                       title: "Đang xóa chất liệu...",
+                       allowOutsideClick: false,
+                       didOpen: () => Swal.showLoading()
+                   });
 
-        Swal.fire({
-            title: "Bạn có chắc chắn muốn xóa chất liệu này?",
-            text: "Hành động này không thể hoàn tác!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Xóa",
-            cancelButtonText: "Hủy"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: "Đang xóa chất liệu...",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
-
-                fetch(`/api/danh-muc/delete/${chatLieuId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire("Đã xóa!", data.message, "success").then(() => {
-                            row.remove();
-                        });
-                    } else {
-                        Swal.fire("Lỗi!", data.message, "warning");
-                    }
-                })
-                .catch(() => Swal.fire("Lỗi!", "Không thể xóa chất liệu!", "error"));
-            }
-        });
-    }
+                   fetch(`/api/chat-lieu/delete/${chatLieuId}`, {
+                       method: 'DELETE',
+                       headers: { 'Content-Type': 'application/json' }
+                   })
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data.success) {
+                           Swal.fire("Đã xóa!", data.message, "success").then(() => {
+                               row.remove();
+                           });
+                       } else {
+                           Swal.fire("Lỗi!", data.message, "warning");
+                       }
+                   })
+                   .catch(() => Swal.fire("Lỗi!", "Không thể xóa chất liệu!", "error"));
+               }
+           });
+       }
 
     // Hàm cập nhật trạng thái chất liệu khi click vào nút trạng thái
     async function updateTrangThai(button) {

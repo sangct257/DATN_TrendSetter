@@ -22,8 +22,11 @@ public interface DiaChiRepository extends JpaRepository<DiaChi,Integer> {
     List<DiaChi> findByKhachHangId(Integer khachHangId);
 
     @Modifying
-    @Query("UPDATE DiaChi d SET d.trangThai = 'Không Mặc Định' WHERE d.khachHang.id = :khachHangId")
-    void updateAllToKhongMacDinh(@Param("khachHangId") Integer khachHangId);
+    @Query("UPDATE DiaChi d SET d.trangThai = :trangThai WHERE d.khachHang.id = :khachHangId")
+    void updateAllToKhongMacDinh(@Param("khachHangId") Integer khachHangId,
+                                 @Param("trangThai") String trangThai);
+
+
 
     boolean existsByKhachHangAndTrangThai(KhachHang khachHang, String trangThai);
 

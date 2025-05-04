@@ -20,13 +20,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!product) return;
 
         if (event.target.classList.contains("btn-plus")) {
-            if (product.quantity < product.availableQuantity) {
+            if (product.quantity < 20 && product.quantity < product.availableQuantity) {
                 product.quantity += 1;
             } else {
                 Swal.fire({
                     icon: "warning",
-                    title: "Không đủ hàng!",
-                    text: `Chỉ còn ${product.availableQuantity - product.quantity} sản phẩm trong kho.`,
+                    title: "Giới hạn số lượng!",
+                    text: "Bạn chỉ có thể mua tối đa 20 sản phẩm mỗi loại, hoặc không đủ hàng.",
                     confirmButtonText: "OK"
                 });
             }
@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem("cart", JSON.stringify(cart));
             renderCart();  // Cập nhật lại giỏ hàng sau khi xóa sản phẩm
             fetchCoupons(); // Cập nhật lại phiếu giảm giá sau khi thay đổi giỏ hàng
-            // Cập nhật số lượng giỏ hàng (badge) sau khi xóa sản phẩm
             updateCartBadge();
         }
 
@@ -121,7 +120,7 @@ function renderCart() {
     <td class="align-middle">${item.name || "Sản phẩm không xác định"}</td>
     <td class="align-middle">
         Màu: ${item.color || "Không rõ"}, Size: ${item.size || "Không rõ"}
-        <br> <small class="text-muted">Tồn kho: ${item.availableQuantity - item.quantity}</small>
+
     </td>
     <td class="align-middle">
         <div class="input-group quantity mx-auto" style="width: 100px;">
@@ -228,13 +227,7 @@ function renderCoupons(coupons) {
         updateTotal(0);
     }
 
-    // Nếu có phiếu giảm giá đủ điều kiện, tự động chọn phiếu giảm giá có giá trị giảm cao nhất
-    let selectedCoupon = null;
-    if (eligibleCoupons.length > 0) {
-        selectedCoupon = eligibleCoupons[0]; // Chọn phiếu có giá trị giảm cao nhất
-    }
-
-    // Hiển thị phiếu giảm giá đã chọn
+    // Hiển thị phiếu giảm giá đủ điều kiện
     coupons.forEach(coupon => {
         let isEligible = cartTotal >= coupon.dieuKien;
 
@@ -248,14 +241,9 @@ function renderCoupons(coupons) {
             </div>
             <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}"
                    data-value="${coupon.giaTriGiam}" ${isEligible ? '' : 'disabled'}
-                   ${coupon.maPhieuGiamGia === (selectedCoupon ? selectedCoupon.maPhieuGiamGia : savedDiscountCode) ? 'checked' : ''}>
+                   ${coupon.maPhieuGiamGia === savedDiscountCode ? 'checked' : ''}>
         `;
         container.appendChild(couponElement);
-
-        // Nếu phiếu đã lưu trữ được tìm thấy, tự động áp dụng lại
-        if (coupon.maPhieuGiamGia === savedDiscountCode) {
-            updateTotal(savedDiscountValue);
-        }
 
         couponElement.addEventListener('click', function (event) {
             let radio = couponElement.querySelector(".coupon-select");
@@ -290,31 +278,8 @@ function renderCoupons(coupons) {
         });
     });
 
-    // Hiển thị chỉ 3 phiếu giảm giá tốt nhất còn lại
-    let remainingCoupons = eligibleCoupons.slice(2, 4); // Lấy từ phiếu thứ 2 đến thứ 4
-
-    remainingCoupons.forEach(coupon => {
-        const couponElement = document.createElement('div');
-        couponElement.classList.add('coupon');
-        couponElement.innerHTML = `
-            <div class="coupon-left">${coupon.giaTriGiam.toLocaleString()} ${coupon.donViTinh}</div>
-            <div class="coupon-right">
-                <div class="coupon-title">${coupon.tenPhieuGiamGia} - <strong>${coupon.maPhieuGiamGia}</strong></div>
-                <div class="coupon-condition">Đơn hàng từ ${coupon.dieuKien.toLocaleString()} ${coupon.donViTinh}</div>
-            </div>
-            <input type="radio" name="coupon" class="coupon-select" value="${coupon.maPhieuGiamGia}"
-                   data-value="${coupon.giaTriGiam}" ${coupon.maPhieuGiamGia === savedDiscountCode ? 'checked' : ''}>
-        `;
-        container.appendChild(couponElement);
-    });
-
-    // Nếu có phiếu giảm giá tự động chọn, cập nhật tổng
-    if (selectedCoupon) {
-        localStorage.setItem("discountCode", selectedCoupon.maPhieuGiamGia);
-        localStorage.setItem("discountValue", selectedCoupon.giaTriGiam);
-        localStorage.setItem("discountId", selectedCoupon.id);
-        updateTotal(selectedCoupon.giaTriGiam);
-    }
+    // Không tự động chọn phiếu giảm giá, chỉ hiển thị các phiếu hợp lệ
+    // Xóa đoạn mã tự động chọn phiếu giảm giá tại đây
 }
 
 // Cập nhật danh sách phiếu khi giỏ hàng thay đổi

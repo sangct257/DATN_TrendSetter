@@ -254,49 +254,49 @@
         }
 
         // Hàm xóa xuất xứ
-        function deleteXuatXu(button) {
-            let row = button.closest("tr");
-            let hiddenInput = row.querySelector("td input[type='hidden']");
-            if (!hiddenInput) {
-                Swal.fire("Lỗi!", "Không tìm thấy ID xuất xứ!", "error");
-                return;
-            }
+       function deleteXuatXu(button) {
+           let row = button.closest("tr");
+           let hiddenInput = row.querySelector("td input[type='hidden']");
+           if (!hiddenInput) {
+               Swal.fire("Lỗi!", "Không tìm thấy ID xuất xứ!", "error");
+               return;
+           }
 
-            let xuatXuId = hiddenInput.value;
+           let xuatXuId = hiddenInput.value;
 
-            Swal.fire({
-                title: "Bạn có chắc chắn muốn xóa xuất xứ này?",
-                text: "Hành động này không thể hoàn tác!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Xóa",
-                cancelButtonText: "Hủy"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: "Đang xóa xuất xứ...",
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading()
-                    });
+           Swal.fire({
+               title: "Bạn có chắc chắn muốn xóa xuất xứ này?",
+               text: "Hành động này không thể hoàn tác!",
+               icon: "warning",
+               showCancelButton: true,
+               confirmButtonText: "Xóa",
+               cancelButtonText: "Hủy"
+           }).then((result) => {
+               if (result.isConfirmed) {
+                   Swal.fire({
+                       title: "Đang xóa xuất xứ...",
+                       allowOutsideClick: false,
+                       didOpen: () => Swal.showLoading()
+                   });
 
-                    fetch(`/api/xuat-xu/delete/${xuatXuId}`, {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire("Đã xóa!", data.message, "success").then(() => {
-                                row.remove();
-                            });
-                        } else {
-                            Swal.fire("Lỗi!", data.message, "warning");
-                        }
-                    })
-                    .catch(() => Swal.fire("Lỗi!", "Không thể xóa xuất xứ!", "error"));
-                }
-            });
-        }
+                   fetch(`/api/xuat-xu/delete/${xuatXuId}`, {
+                       method: 'DELETE',
+                       headers: { 'Content-Type': 'application/json' }
+                   })
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data.success) {
+                           Swal.fire("Đã xóa!", data.message, "success").then(() => {
+                               row.remove();
+                           });
+                       } else {
+                           Swal.fire("Lỗi!", data.message, "warning");
+                       }
+                   })
+                   .catch(() => Swal.fire("Lỗi!", "Không thể xóa xuất xứ!", "error"));
+               }
+           });
+       }
 
         // Hàm cập nhật xuất xứ
         function updateXuatXu() {

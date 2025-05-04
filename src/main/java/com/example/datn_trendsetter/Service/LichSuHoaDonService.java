@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,21 +51,29 @@ public class LichSuHoaDonService {
             // Lấy danh sách chi tiết hóa đơn
             List<HoaDonChiTiet> hoaDonChiTiet = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
 
-
             // Lấy danh sách tất cả sản phẩm chi tiết có trạng thái "Còn Hàng"
             List<SanPhamChiTiet> allSanPhamChiTiet = sanPhamChiTietRepository.findByTrangThai("Còn Hàng");
 
             // Tập hợp chứa các đường dẫn hình ảnh đã xuất hiện
             Set<String> seenImages = new HashSet<>();
 
-            // Danh sách sản phẩm không trùng hình ảnh
+            // Tập hợp ID các SPCT đã có trong hóa đơn chi tiết
+            Set<Integer> sanPhamChiTietDaCoTrongHoaDon = hoaDonChiTiet.stream()
+                    .map(hdct -> hdct.getSanPhamChiTiet().getId())
+                    .collect(Collectors.toSet());
+
+            // Danh sách sản phẩm không trùng hình ảnh và chưa có trong hóa đơn chi tiết
             List<SanPhamChiTiet> uniqueSanPhamChiTiet = new ArrayList<>();
 
             for (SanPhamChiTiet sp : allSanPhamChiTiet) {
-                // Kiểm tra thêm trạng thái của sản phẩm chính: chỉ lấy khi sản phẩm chính đang hoạt động
-                if (sp.getSanPham() != null && "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai())) {
-                    if (!sp.getHinhAnh().isEmpty()) {  // Kiểm tra nếu sản phẩm có hình ảnh
-                        String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh(); // Lấy hình ảnh đầu tiên
+                // Kiểm tra trạng thái sản phẩm chính và loại trừ những SPCT đã có trong hóa đơn
+                if (sp.getSanPham() != null &&
+                        "Đang Hoạt Động".equals(sp.getSanPham().getTrangThai()) &&
+                        !sanPhamChiTietDaCoTrongHoaDon.contains(sp.getId())) {
+
+                    if (!sp.getHinhAnh().isEmpty()) {
+                        String imageUrl = sp.getHinhAnh().get(0).getUrlHinhAnh();
+
                         if (!seenImages.contains(imageUrl)) {
                             seenImages.add(imageUrl);
                             uniqueSanPhamChiTiet.add(sp);
@@ -72,6 +81,7 @@ public class LichSuHoaDonService {
                     }
                 }
             }
+
 
             // Trộn danh sách để có thứ tự ngẫu nhiên
             Collections.shuffle(uniqueSanPhamChiTiet);
@@ -86,12 +96,19 @@ public class LichSuHoaDonService {
 
             hoaDon.setSoTienDaThanhToan(soTienDaThanhToan);
 
+            // Trong Controller
+            Float tongTienThanhToan = hoaDon.getLichSuThanhToan().stream()
+                    .map(t -> t.getSoTienThanhToan() != null ? t.getSoTienThanhToan() : 0F)
+                    .reduce(0F, Float::sum);
+
+            model.addAttribute("tongTienThanhToan", tongTienThanhToan);
+
+            // Lấy danh sách khách hàng và phương thức thanh toán
             Page<KhachHang> khachHangs = khachHangRepository.findAllByTrangThai("Đang Hoạt Động", Pageable.ofSize(5));
             List<PhuongThucThanhToan> listPhuongThucThanhToan = phuongThucThanhToanRepository.findAll();
             listPhuongThucThanhToan = listPhuongThucThanhToan.stream()
                     .filter(p -> !"VNPAY".equals(p.getTenPhuongThuc()))
                     .collect(Collectors.toList());
-
 
             model.addAttribute("khachHangs", khachHangs);
             model.addAttribute("listPhuongThucThanhToan", listPhuongThucThanhToan);
@@ -107,16 +124,18 @@ public class LichSuHoaDonService {
             } else {
                 model.addAttribute("listPhieuGiamGia", new ArrayList<>()); // Không có phiếu giảm giá nào
             }
+
             List<LichSuHoaDon> listLichSuHoaDon = lichSuHoaDonRepository.findByHoaDonId(hoaDonId);
             List<LichSuThanhToan> listLichSuThanhToan = lichSuThanhToanRepository.findByHoaDonId(hoaDonId);
-            // Lọc danh sách phiếu giảm giá dựa trên tổng tiền
+
             model.addAttribute("hoaDon", hoaDon);
-            model.addAttribute("listLichSuThanhToan",listLichSuThanhToan);
+            model.addAttribute("listLichSuThanhToan", listLichSuThanhToan);
             model.addAttribute("listLichSuHoaDon", listLichSuHoaDon);
             model.addAttribute("danhSachHoaDonChiTiet", hoaDonChiTiet);
             model.addAttribute("hoaDon", hoaDon);
         }
     }
+
 
 
     public void getHoaDon(String maHoaDon, Model model) {

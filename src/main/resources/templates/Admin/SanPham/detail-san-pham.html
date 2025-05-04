@@ -95,7 +95,7 @@
                                         </div>
                                         <div class="mb-3 d-flex justify-content-center align-items-center">
                                             <span class="form-label fw-semibold me-3">Mô tả:</span>
-                                            <textarea class="form-control" name="moTa" id="moTa" style="max-width: 600px;" rows="3"
+                                            <textarea class="form-control" name="moTa" id="moTa" style="max-width: 900px;" rows="6"
                                                       placeholder="Nhập mô tả sản phẩm"
                                                       th:text="${sanPham.moTa.replace('\n', '<br/>')}" th:value="${sanPham.moTa}"></textarea>
                                         </div>
@@ -473,53 +473,58 @@
 
         // Xử lý sự kiện xóa ảnh
         document.addEventListener("click", function (event) {
-            if (event.target.closest(".delete-image")) {
-                let button = event.target.closest(".delete-image");
-                let imageId = button.getAttribute("data-id");
+    if (event.target.closest(".delete-image")) {
+        let button = event.target.closest(".delete-image");
+        let imageId = button.getAttribute("data-id");
 
-                if (!imageId) {
-                    Swal.fire("Lỗi!", "Không tìm thấy ID ảnh!", "error");
-                    return;
-                }
+        if (!imageId) {
+            Swal.fire("Lỗi!", "Không tìm thấy ID ảnh!", "error");
+            return;
+        }
 
-                let wrapper = button.closest(".image-wrapper");
+        let wrapper = button.closest(".image-wrapper");
 
+        Swal.fire({
+            title: "Bạn có chắc chắn muốn xóa ảnh này?",
+            text: "Hành động này không thể hoàn tác!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Có, xóa ngay!",
+            cancelButtonText: "Hủy",
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6"
+        }).then((result) => {
+            if (result.isConfirmed) {
                 Swal.fire({
-                    title: "Bạn có chắc chắn muốn xóa ảnh này?",
-                    text: "Hành động này không thể hoàn tác!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Có, xóa ngay!",
-                    cancelButtonText: "Hủy",
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({
-                            title: "Đang xóa ảnh...",
-                            text: "Vui lòng chờ!",
-                            icon: "info",
-                            showConfirmButton: false,
-                            allowOutsideClick: false
-                        });
-
-                        fetch(`/api/san-pham/xoa/${imageId}`, { method: "DELETE" })
-                            .then(response => {
-                                if (!response.ok) throw new Error("Xóa ảnh thất bại!");
-                                return response.text();
-                            })
-                            .then(() => {
-                                wrapper.remove();
-                                Swal.fire("Thành công!", "Ảnh đã được xóa!", "success");
-                            })
-                            .catch(error => {
-                                console.error("Lỗi xóa ảnh:", error);
-                                Swal.fire("Lỗi!", "Xóa ảnh thất bại!", "error");
-                            });
-                    }
+                    title: "Đang xóa ảnh...",
+                    text: "Vui lòng chờ!",
+                    icon: "info",
+                    showConfirmButton: false,
+                    allowOutsideClick: false
                 });
+
+                fetch(`/api/san-pham/xoa/${imageId}`, { method: "DELETE" })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(message => {
+                                throw new Error(message);
+                            });
+                        }
+                        return response.text();
+                    })
+                    .then(() => {
+                        wrapper.remove();
+                        Swal.fire("Thành công!", "Ảnh đã được xóa!", "success");
+                    })
+                    .catch(error => {
+                        console.error("Lỗi xóa ảnh:", error);
+                        Swal.fire("Lỗi!", error.message || "Xóa ảnh thất bại!", "error");
+                    });
             }
         });
+    }
+});
+
 
         // Xử lý sự kiện xem ảnh
         document.addEventListener("click", function (event) {
@@ -644,69 +649,70 @@
 
 <script>
     document.getElementById("updateForm").addEventListener("submit", function (event) {
-      event.preventDefault(); // Ngăn chặn load lại trang
+   event.preventDefault(); // Ngăn chặn load lại trang
 
-      let formData = new FormData(this);
-      let requestBody = Object.fromEntries(formData);
+   let formData = new FormData(this);
+   let requestBody = Object.fromEntries(formData);
 
-      // Chuyển đổi xuống dòng thành <br> khi gửi mô tả
-      if (requestBody.moTa) {
-          requestBody.moTa = requestBody.moTa.replace(/\n/g, "<br/>");
-      }
+   // Chuyển đổi mỗi lần Enter thành <br> khi gửi mô tả
+   if (requestBody.moTa) {
+       requestBody.moTa = requestBody.moTa.replace(/\n/g, "<br/>");
+   }
 
-      fetch('/api/san-pham/update-san-pham/' + formData.get("id"), {
-          method: 'PUT',
-          body: JSON.stringify(requestBody),
-          headers: {
-              'Content-Type': 'application/json'
-          }
-      })
-          .then(response => response.json().then(data => ({ status: response.status, body: data })))
-          .then(({ status, body }) => {
-              if (status === 200) {
-                  Swal.fire({
-                      title: "Thành công!",
-                      text: "Cập nhật sản phẩm thành công!",
-                      icon: "success",
-                      timer: 1500,
-                      showConfirmButton: false
-                  }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
-              } else {
-                  let errorMessage = body.message || body.error || "Có lỗi xảy ra!";
-                  switch (status) {
-                      case 400:
-                          errorMessage = "Lỗi dữ liệu! " + errorMessage;
-                          break;
-                      case 409:
-                          errorMessage = "Xung đột dữ liệu! " + errorMessage;
-                          break;
-                      case 500:
-                          errorMessage = "Lỗi hệ thống! " + errorMessage;
-                          break;
-                  }
-                  throw new Error(errorMessage);
-              }
-          })
-          .catch(error => {
-              console.error("Lỗi cập nhật:", error);
+   fetch('/api/san-pham/update-san-pham/' + formData.get("id"), {
+       method: 'PUT',
+       body: JSON.stringify(requestBody),
+       headers: {
+           'Content-Type': 'application/json'
+       }
+   })
+   .then(response => response.json().then(data => ({ status: response.status, body: data })))
+   .then(({ status, body }) => {
+       if (status === 200) {
+           Swal.fire({
+               title: "Thành công!",
+               text: "Cập nhật sản phẩm thành công!",
+               icon: "success",
+               timer: 1500,
+               showConfirmButton: false
+           }).then(() => window.location.reload()); // Tải lại trang sau khi hoàn thành
+       } else {
+           let errorMessage = body.message || body.error || "Có lỗi xảy ra!";
+           switch (status) {
+               case 400:
+                   errorMessage = "Lỗi dữ liệu! " + errorMessage;
+                   break;
+               case 409:
+                   errorMessage = "Xung đột dữ liệu! " + errorMessage;
+                   break;
+               case 500:
+                   errorMessage = "Lỗi hệ thống! " + errorMessage;
+                   break;
+           }
+           throw new Error(errorMessage);
+       }
+   })
+   .catch(error => {
+       console.error("Lỗi cập nhật:", error);
 
-              // Phân biệt lỗi nhẹ và nặng để hiển thị cảnh báo phù hợp
-              const msg = error.message.toLowerCase();
-              const isDanger =
-                  msg.includes("lỗi hệ thống") ||
-                  msg.includes("exception") ||
-                  msg.includes("không thể") ||
-                  msg.includes("đã xảy ra") ||
-                  msg.includes("internal");
+       // Phân biệt lỗi nhẹ và nặng để hiển thị cảnh báo phù hợp
+       const msg = error.message.toLowerCase();
+       const isDanger =
+           msg.includes("lỗi hệ thống") ||
+           msg.includes("exception") ||
+           msg.includes("không thể") ||
+           msg.includes("đã xảy ra") ||
+           msg.includes("internal");
 
-              Swal.fire({
-                  title: isDanger ? "Lỗi!" : "Cảnh báo!",
-                  text: error.message,
-                  icon: isDanger ? "error" : "warning",
-                  confirmButtonText: "OK"
-              });
-          });
-  });
+       Swal.fire({
+           title: isDanger ? "Lỗi!" : "Cảnh báo!",
+           text: error.message,
+           icon: isDanger ? "error" : "warning",
+           confirmButtonText: "OK"
+       });
+   });
+ });
+
 </script>
 
 <script>
@@ -855,49 +861,50 @@
     });
 }
     function deleteProduct(button) {
-        let id = button.getAttribute("data-id");
+    let id = button.getAttribute("data-id");
 
-        Swal.fire({
-            title: "Bạn có chắc chắn muốn xóa?",
-            text: "Hành động này không thể hoàn tác!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Có, xóa ngay!",
-            cancelButtonText: "Hủy",
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch("/api/san-pham/delete/" + encodeURIComponent(id), {
-                    method: "DELETE"
-                })
-                    .then(response => response.text().then(data => ({ status: response.status, body: data })))
-                    .then(({ status, body }) => {
-                        if (status === 200) {
-                            Swal.fire({
-                                title: "Đã xóa!",
-                                text: "Sản phẩm đã được xóa thành công.",
-                                icon: "success",
-                                timer: 1500,
-                                showConfirmButton: false
-                            }).then(() => location.reload());
-                        } else {
-                            throw new Error(body || "Xóa thất bại!");
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Lỗi xóa sản phẩm:", error);
-                        const isDanger = isSeriousError(error.message);
+    Swal.fire({
+        title: "Bạn có chắc chắn muốn xóa?",
+        text: "Hành động này không thể hoàn tác!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Có, xóa ngay!",
+        cancelButtonText: "Hủy",
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch("/api/san-pham/delete/" + encodeURIComponent(id), {
+                method: "DELETE"
+            })
+                .then(response => response.json())  // Chuyển sang JSON để xử lý dễ dàng
+                .then(({ status, message }) => {
+                    if (status === "success") {
                         Swal.fire({
-                            title: isDanger ? "Lỗi!" : "Cảnh báo!",
-                            text: error.message,
-                            icon: isDanger ? "error" : "warning",
-                            confirmButtonText: "OK"
-                        });
+                            title: "Đã xóa!",
+                            text: message,  // Hiển thị thông báo từ API
+                            icon: "success",
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        throw new Error(message || "Xóa thất bại!");
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi xóa sản phẩm:", error);
+                    const isDanger = isSeriousError(error.message);
+                    Swal.fire({
+                        title: isDanger ? "Lỗi!" : "Cảnh báo!",
+                        text: error.message,
+                        icon: isDanger ? "error" : "warning",
+                        confirmButtonText: "OK"
                     });
-            }
-        });
-    }
+                });
+        }
+    });
+}
+
 
     function isSeriousError(message) {
         const msg = message.toLowerCase();
@@ -946,32 +953,6 @@
 
         updateDisabledSizes(); // Gọi lần đầu để cập nhật trạng thái
 
-        // Kiểm tra hợp lệ số lượng và giá
-        function checkValidQuantityAndPrice() {
-            let isValid = true;
-
-            document.querySelectorAll('.spct-soLuong').forEach(input => {
-                let quantity = parseInt(input.value);
-                if (quantity <= 0) {
-                    isValid = false;
-                    alert("Số lượng không thể nhỏ hơn hoặc bằng 0.");
-                    input.focus();
-                    return;
-                }
-            });
-
-            document.querySelectorAll('.spct-gia').forEach(input => {
-                let price = parseFloat(input.value.replace(' VND', '').replace(',', ''));
-                if (price <= 0) {
-                    isValid = false;
-                    alert("Giá không thể nhỏ hơn hoặc bằng 0.");
-                    input.focus();
-                    return;
-                }
-            });
-
-            return isValid;
-        }
 
         // Khi chọn kích thước, kiểm tra màu sắc nào đã tồn tại
         function updateDisabledColors() {
@@ -999,10 +980,6 @@
                 });
             }
 
-            // Kiểm tra tính hợp lệ của số lượng và giá khi thay đổi kích thước
-            if (!checkValidQuantityAndPrice()) {
-                return; // Dừng xử lý nếu có lỗi
-            }
         }
 
         document.querySelectorAll('.kich-thuoc').forEach(kichThuoc => {
@@ -1012,7 +989,15 @@
         });
     });
 </script>
-
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const textarea = document.getElementById('moTa');
+        if (textarea) {
+            // Chuyển <br> hoặc <br/> thành xuống dòng \n
+            textarea.value = textarea.value.replace(/<br\s*\/?>/gi, '\n');
+        }
+    });
+</script>
 <!--Load table-->
 <script>
     $(document).ready(function () {

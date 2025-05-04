@@ -1,6 +1,8 @@
 package com.example.datn_trendsetter.API;
 
+import com.example.datn_trendsetter.Entity.KhachHang;
 import com.example.datn_trendsetter.Entity.NhanVien;
+import com.example.datn_trendsetter.Repository.KhachHangRepository;
 import com.example.datn_trendsetter.Repository.NhanVienRepository;
 import com.example.datn_trendsetter.Service.CloudinaryService;
 import com.example.datn_trendsetter.Service.NhanVienService;
@@ -28,40 +30,105 @@ public class NhanVienApiController {
 
     @Autowired
     private NhanVienRepository nhanVienRepository;
+
+    @Autowired
+    private KhachHangRepository khachHangRepository;
+
     @GetMapping
     public List<NhanVien> getNhanVien() {
         return nhanVienService.getAllNhanVien();
     }
 
     @PostMapping("/add")
-    public ResponseEntity<NhanVien> addNhanVien(
+    public ResponseEntity<?> addNhanVien(
             @RequestParam("hoTen") String hoTen,
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("email") String email,
             @RequestParam("diaChi") String diaChi,
             @RequestParam("gioiTinh") Boolean gioiTinh,
-            @RequestParam("ngaySinh") String ngaySinh,
+            @RequestParam("ngaySinh") String ngaySinhStr,
             @RequestParam("trangThai") String trangThai,
             @RequestParam(value = "file", required = false) MultipartFile file) {
 
-        NhanVien nhanVien = new NhanVien();
-        nhanVien.setHoTen(hoTen);
-        nhanVien.setUsername(username);
-        nhanVien.setPassword(password);
-        nhanVien.setEmail(email);
-        nhanVien.setDiaChi(diaChi);
-        nhanVien.setGioiTinh(gioiTinh);
-        nhanVien.setNgaySinh(LocalDate.parse(ngaySinh));
-        nhanVien.setTrangThai(trangThai);
-        nhanVien.setVaiTro(NhanVien.Role.NHANVIEN);
+        Map<String, String> warnings = new HashMap<>();
+
+        // Validate cơ bản
+        if (hoTen == null || hoTen.trim().isEmpty()) {
+            warnings.put("hoTen", "Vui lòng nhập họ tên.");
+        }
+
+        if (username == null || username.trim().isEmpty()) {
+            warnings.put("username", "Vui lòng nhập tên đăng nhập.");
+        }
+
+        if (password == null || password.length() < 6) {
+            warnings.put("password", "Mật khẩu phải từ 6 ký tự trở lên.");
+        }
+
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            warnings.put("email", "Email không hợp lệ.");
+        }
+
+        if (diaChi == null || diaChi.trim().isEmpty()) {
+            warnings.put("diaChi", "Vui lòng nhập địa chỉ.");
+        }
+
+        LocalDate ngaySinh = null;
         try {
+            ngaySinh = LocalDate.parse(ngaySinhStr);
+            if (ngaySinh.isAfter(LocalDate.now())) {
+                warnings.put("ngaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
+            }
+        } catch (DateTimeParseException e) {
+            warnings.put("ngaySinh", "Ngày sinh không đúng định dạng (yyyy-MM-dd).");
+        }
+
+        if (trangThai == null || (!trangThai.equalsIgnoreCase("Đang Hoạt động") && !trangThai.equalsIgnoreCase("Không Hoạt Động"))) {
+            warnings.put("trangThai", "Vui lòng chọn trạng thái hợp lệ.");
+        }
+
+        // Check trùng Email
+        if (nhanVienRepository.existsByEmail(email) || khachHangRepository.existsByEmail(email)) {
+            warnings.put("email", "Email đã được sử dụng!");
+        }
+
+        if (!warnings.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "warning");
+            response.put("messages", warnings);
+            return ResponseEntity.ok(response);
+        }
+
+        // Nếu không có lỗi thì save
+        try {
+            NhanVien nhanVien = new NhanVien();
+            nhanVien.setHoTen(hoTen.trim());
+            nhanVien.setUsername(username.trim());
+            nhanVien.setPassword(password.trim());
+            nhanVien.setEmail(email.trim());
+            nhanVien.setDiaChi(diaChi.trim());
+            nhanVien.setGioiTinh(gioiTinh);
+            nhanVien.setNgaySinh(ngaySinh);
+            nhanVien.setTrangThai(trangThai.trim());
+            nhanVien.setVaiTro(NhanVien.Role.NHANVIEN);
+
             NhanVien savedNhanVien = nhanVienService.addNhanVien(nhanVien, file);
-            return ResponseEntity.ok(savedNhanVien);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "data", savedNhanVien
+            ));
+
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", "Lỗi khi thêm nhân viên: " + e.getMessage()
+                    ));
         }
     }
+
 
 
     @GetMapping("/check-password")
@@ -116,7 +183,7 @@ public class NhanVienApiController {
         }
 
         if (username == null || username.trim().isEmpty()) {
-            messages.put("username", "Tên đăng nhập không được để trống.");
+            messages.put("username", "Username không được để trống.");
         }
 
         if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
@@ -151,8 +218,21 @@ public class NhanVienApiController {
             messages.put("email", "Email đã được sử dụng bởi nhân viên khác.");
         }
 
+        // Kiểm tra email trùng với khách hàng (nếu có)
+        Optional<KhachHang> existingCustomerEmail = khachHangRepository.findByEmail(email);
+        if (existingCustomerEmail.isPresent()) {
+            messages.put("email", "Email này đã được sử dụng bởi khách hàng.");
+        }
+
+        // Nếu có lỗi, trả về các thông báo
         if (!messages.isEmpty()) {
             return ResponseEntity.ok(Map.of("status", "warning", "messages", messages));
+        }
+
+        // Kiểm tra nếu nhân viên cố gắng thay đổi trạng thái của chính mình
+        if (nhanVienSession.getId().equals(id) && !trangThai.equals(nhanVienSession.getTrangThai())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "error", "message", "Không thể thay đổi trạng thái của chính mình."));
         }
 
         // Tạo object NhanVien để cập nhật

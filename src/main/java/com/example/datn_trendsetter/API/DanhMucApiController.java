@@ -5,6 +5,7 @@ import com.example.datn_trendsetter.Entity.DanhMuc;
 import com.example.datn_trendsetter.Entity.NhanVien;
 import com.example.datn_trendsetter.Entity.ThuongHieu;
 import com.example.datn_trendsetter.Repository.DanhMucRepository;
+import com.example.datn_trendsetter.Repository.SanPhamRepository;
 import com.example.datn_trendsetter.Repository.ThuongHieuRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/danh-muc")
@@ -24,6 +26,9 @@ public class DanhMucApiController {
 
     @Autowired
     private DanhMucRepository danhMucRepository;
+
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
 
     @PostMapping("add")
     public ResponseEntity<?> add(@RequestBody DanhMuc danhMucRequest, HttpSession session) {
@@ -173,18 +178,23 @@ public class DanhMucApiController {
                 ));
             }
 
-            // Xóa mềm
             DanhMuc danhMuc = optionalDanhMuc.get();
-            danhMuc.setTrangThai("Ngừng Hoạt Động");
-            danhMuc.setDeleted(true);
-            danhMuc.setNgaySua(LocalDate.now());
-            danhMuc.setNguoiSua(nhanVienSession.getHoTen());
 
-            danhMucRepository.save(danhMuc);
+            // Kiểm tra xem có sản phẩm nào thuộc danh mục này không
+            boolean isUsed = sanPhamRepository.existsByDanhMuc(danhMuc);
+            if (isUsed) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "success", false,
+                        "message", "Không thể xóa. Danh mục này đang được sử dụng."
+                ));
+            }
+
+            // Xóa thẳng nếu không có sản phẩm nào đang dùng
+            danhMucRepository.delete(danhMuc);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Xóa danh mục thành công (đã đánh dấu là deleted)"
+                    "message", "Xóa danh mục thành công"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
@@ -193,7 +203,6 @@ public class DanhMucApiController {
             ));
         }
     }
-
 
     @PutMapping("update-trang-thai/{id}")
     public ResponseEntity<?> updateTrangThai(@PathVariable Integer id, @RequestBody Map<String, String> request, HttpSession session) {
@@ -240,6 +249,9 @@ public class DanhMucApiController {
 
     @GetMapping
     public ResponseEntity<List<DanhMuc>> getAllDanhMuc() {
-        return ResponseEntity.ok(danhMucRepository.findAll());
+        List<DanhMuc> danhMucs = danhMucRepository.findAll();
+        return ResponseEntity.ok(danhMucs);
     }
+
+
 }

@@ -5,6 +5,7 @@ import com.example.datn_trendsetter.Repository.HoaDonRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,7 +86,7 @@ public class HoaDonService {
         return hoaDonRepository.countHoaDonNgayNay(LocalDateTime.now(),"Đã Hoàn Thành");
     }
 
-    public List<Long> getOrderStatusStatistics() {
+    public List<Object> getOrderStatusStatistics() {
         List<HoaDon> allOrders = hoaDonRepository.findAll();
         long totalOrders = allOrders.size();
 
@@ -103,10 +104,18 @@ public class HoaDonService {
         Map<String, Long> statusCount = allOrders.stream()
                 .collect(Collectors.groupingBy(HoaDon::getTrangThai, Collectors.counting()));
 
-        // Tính phần trăm
-        return statusList.stream()
-                .map(status -> statusCount.getOrDefault(status, 0L) * 100 / totalOrders)
+        // Tính phần trăm và số lượng
+        List<Object> result = statusList.stream()
+                .map(status -> {
+                    long count = statusCount.getOrDefault(status, 0L);
+                    long percentage = count * 100 / totalOrders;
+                    return new Object[]{percentage, count}; // Trả về cả phần trăm và số lượng
+                })
+                .flatMap(Arrays::stream) // Đưa mảng vào một danh sách phẳng
                 .collect(Collectors.toList());
+
+        return result;
     }
+
 
 }

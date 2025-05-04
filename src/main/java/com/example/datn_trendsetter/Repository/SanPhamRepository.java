@@ -1,6 +1,6 @@
 package com.example.datn_trendsetter.Repository;
 
-import com.example.datn_trendsetter.Entity.SanPham;
+import com.example.datn_trendsetter.Entity.*;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -27,4 +27,11 @@ public interface SanPhamRepository extends JpaRepository<SanPham,Integer> {
     void updateStock(@Param("idSanPham") Integer idSanPham, @Param("totalStock") Integer totalStock);
 
 
+    boolean existsByThuongHieu(ThuongHieu thuongHieu);
+
+    boolean existsByXuatXu(XuatXu xuatXu);
+
+    boolean existsByDanhMuc(DanhMuc danhMuc);
+
+    boolean existsByChatLieu(ChatLieu chatLieu);
 }

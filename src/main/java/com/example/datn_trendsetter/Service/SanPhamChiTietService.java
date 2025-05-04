@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SanPhamChiTietService {
@@ -21,8 +22,15 @@ public class SanPhamChiTietService {
     SanPhamRepository sanPhamRepository;
 
     public List<SanPhamChiTiet> findLowStockProducts() {
-        return sanPhamChiTietRepository.findLowStockProducts(); // soLuong < 10 và deleted = false
+        // Lấy tất cả sản phẩm chi tiết có số lượng <= 10 và có trạng thái "Đang Hoạt Động"
+        List<SanPhamChiTiet> lowStockProducts = sanPhamChiTietRepository.findLowStockProductsWithActiveParent("Đang Hoạt Động");
+
+        // Lọc để chỉ lấy những sản phẩm chi tiết có hình ảnh (hình ảnh không bị xóa)
+        return lowStockProducts.stream()
+                .filter(spct -> spct.getHinhAnh() != null && spct.getHinhAnh().stream().anyMatch(ha -> ha.getDeleted() == null || !ha.getDeleted())) // Kiểm tra hình ảnh không null và không bị xóa
+                .collect(Collectors.toList());
     }
+
 
     public List<SanPhamChiTietViewDTO> getChiTietSanPhamById(Integer idSanPham) {
         List<Object[]> results = sanPhamChiTietRepository.findSanPhamChiTietWithImages(idSanPham);
@@ -44,10 +52,18 @@ public class SanPhamChiTietService {
             String tenThuongHieu = (String) row[9];  // Thương hiệu
             String quocGia = (String) row[10];  // Xuất xứ
 
+            // Kiểm tra nếu bất kỳ trường nào là null, bỏ qua sản phẩm chi tiết này
+            if (tenSanPham == null || gia == null || moTa == null || tenKichThuoc == null ||
+                    tenMauSac == null || hinhAnh == null || soLuong == null || tenChatLieu == null ||
+                    tenThuongHieu == null || quocGia == null) {
+                continue;  // Bỏ qua sản phẩm chi tiết này nếu có bất kỳ trường nào là null
+            }
+
             // Nếu sản phẩm chi tiết chưa có trong danh sách, thêm mới
             if (!sanPhamMap.containsKey(idSanPhamChiTiet)) {
                 SanPhamChiTietViewDTO newDTO = new SanPhamChiTietViewDTO(
-                        idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong, tenChatLieu, tenThuongHieu, quocGia);
+                        idSanPhamChiTiet, tenSanPham, gia, moTa, tenKichThuoc, tenMauSac, hinhAnh, soLuong, tenChatLieu, tenThuongHieu, quocGia
+                );
                 sanPhamMap.put(idSanPhamChiTiet, newDTO);
             }
 

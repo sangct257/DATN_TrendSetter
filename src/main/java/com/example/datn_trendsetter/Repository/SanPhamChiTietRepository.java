@@ -3,6 +3,7 @@ package com.example.datn_trendsetter.Repository;
 import com.example.datn_trendsetter.DTO.SanPhamChiTietDTO;
 import com.example.datn_trendsetter.DTO.SanPhamViewDTO;
 import com.example.datn_trendsetter.Entity.*;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,8 +24,16 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     // Phương thức tìm các sản phẩm có trạng thái "Còn Hàng"
     List<SanPhamChiTiet> findByTrangThai(String trangThai);
 
-    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.soLuong <= 10")
-    List<SanPhamChiTiet> findLowStockProducts();
+    @Query("""
+    SELECT spct
+    FROM SanPhamChiTiet spct
+    WHERE spct.soLuong <= 10
+      AND spct.deleted = false
+      AND (:trangThai IS NULL OR spct.sanPham.trangThai = :trangThai)
+    ORDER BY spct.soLuong ASC
+    """)
+    List<SanPhamChiTiet> findLowStockProductsWithActiveParent(@Param("trangThai") String trangThai);
+
 
 
     List<SanPhamChiTiet> findBySanPhamId(Integer sanPhamId);
@@ -40,10 +49,9 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "FROM SanPhamChiTiet spct " +
             "JOIN spct.sanPham sp " +
             "LEFT JOIN spct.hinhAnh ha " +
-            "WHERE sp.deleted = false AND spct.soLuong > 0 " +
+            "WHERE sp.deleted = false AND spct.soLuong > 0 AND sp.trangThai = :trangThai " +
             "GROUP BY sp.id, sp.tenSanPham")
-    Page<SanPhamViewDTO> findSanPhamChiTiet(Pageable pageable);
-
+    Page<SanPhamViewDTO> findSanPhamChiTietWithTrangThai(Pageable pageable, @Param("trangThai") String trangThai);
 
     @Query("SELECT new com.example.datn_trendsetter.DTO.SanPhamViewDTO( " +
             "sp.id, sp.tenSanPham, MIN(spct.gia), MIN(ha.urlHinhAnh) ) " +
@@ -75,6 +83,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "WHERE sp.id = :idSanPham AND sp.deleted = false")
     List<Object[]> findSanPhamChiTietWithImages(@Param("idSanPham") Integer idSanPham);
 
+    @Transactional
     @Modifying
     @Query("UPDATE SanPhamChiTiet spct SET spct.soLuong = spct.soLuong - :soLuong " +
             "WHERE spct.id = :idSanPhamChiTiet AND spct.soLuong >= :soLuong")
@@ -90,4 +99,10 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query("SELECT SUM(s.soLuong) FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId")
     Integer tinhTongSoLuongTheoSanPham(@Param("sanPhamId") Integer sanPhamId);
 
+    boolean existsByKichThuoc(KichThuoc kichThuoc);
+
+    boolean existsByMauSac(MauSac mauSac);
+
+    @Query("SELECT COALESCE(SUM(spct.soLuong), 0) FROM SanPhamChiTiet spct WHERE spct.sanPham.id = :sanPhamId")
+    int sumSoLuongBySanPhamId(@Param("sanPhamId") Integer sanPhamId);
 }
