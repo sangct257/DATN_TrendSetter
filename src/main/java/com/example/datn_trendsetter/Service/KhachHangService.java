@@ -44,11 +44,11 @@ public class KhachHangService {
 
     public KhachHang addKhachHang(KhachHang khachHang, MultipartFile file) throws IOException {
         if (file != null && !file.isEmpty()) {
-            String imageUrl = cloudinaryService.uploadImage(file); // Upload ảnh lên Cloudinary
+            String imageUrl = cloudinaryService.uploadImage(file);
             khachHang.setHinhAnh(imageUrl);
         }
 
-        khachHang.setPassword(passwordEncoder.encode(khachHang.getPassword())); // Mã hóa mật khẩu
+        khachHang.setPassword(passwordEncoder.encode(khachHang.getPassword()));
         return khachHangRepository.save(khachHang);
     }
 
@@ -100,8 +100,16 @@ public class KhachHangService {
         }
         throw new RuntimeException("Không tìm thấy khách hàng với ID: " + id);
     }
+
     public Optional<KhachHang> findByEmail(String email) {
         return khachHangRepository.findByEmail(email);
     }
 
+    public boolean existsByEmail(String email) {
+        return khachHangRepository.existsByEmail(email);
+    }
+
+    public boolean existsBySoDienThoai(String soDienThoai) {
+        return khachHangRepository.existsBySoDienThoai(soDienThoai);
+    }
 }

@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Component
 public class PhieuGiamGiaScheduler {
 
-    // Bộ nhớ tạm thời để lưu cờ "đã chỉnh sửa bởi ADMIN"
     private static final ConcurrentHashMap<Integer, Boolean> editedByAdmin = new ConcurrentHashMap<>();
 
     private final PhieuGiamGiaRepository phieuGiamGiaRepository;

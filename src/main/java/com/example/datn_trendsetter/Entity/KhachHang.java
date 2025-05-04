@@ -49,7 +49,8 @@ public class KhachHang {
 
     @Column(name = "hinh_anh",columnDefinition = "NVARCHAR(255)")
     private String hinhAnh;
-
+    @Column(name = "deleted")
+    private Boolean deleted = false;
     @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
     private List<DiaChi> diaChis = new ArrayList<>();
 

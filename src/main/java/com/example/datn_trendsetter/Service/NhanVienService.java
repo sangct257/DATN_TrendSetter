@@ -77,6 +77,10 @@ public class NhanVienService {
         }
         return null; // Trả về null nếu không tìm thấy nhân viên
     }
+    public boolean existsByEmail(String email) {
+        return nhanVienRepository.existsByEmail(email);
+    }
+
 
     public Optional<NhanVien> findByEmail(String email) {
         return nhanVienRepository.findByEmail(email);
